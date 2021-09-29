@@ -2,9 +2,8 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.dao.LoginType;
 import com.monkeypenthouse.core.dao.User;
-import com.monkeypenthouse.core.dao.UserRole;
+import com.monkeypenthouse.core.dao.Authority;
 import com.monkeypenthouse.core.repository.UserRepository;
-import com.monkeypenthouse.core.service.UserService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,7 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("유효한 일반 회원 정보를 주면 DB에 회원 추가한다.")
-    public void saveUser() {
+    public void saveUser() throws Exception {
         User user = User.builder()
                 .name("테스트사용자3")
                 .birth(LocalDate.of(1998, 1, 28))
@@ -41,7 +40,7 @@ public class UserServiceTest {
                 .personalInfoCollectable(1)
                 .infoReceivable(1)
                 .loginType(LoginType.LOCAL)
-                .userRole(UserRole.USER)
+                .authority(Authority.USER)
                 .build();
 
         userService.add(user);

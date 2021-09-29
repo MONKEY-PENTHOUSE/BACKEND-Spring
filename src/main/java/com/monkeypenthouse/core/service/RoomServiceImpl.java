@@ -19,16 +19,11 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     @Transactional
-    public Room giveVoidRoomForUser(User user) {
-        roomRepository.updateUserIdForVoidRoom(user.getId(), user.getUserRole());
+    public Room giveVoidRoomForUser(User user) throws Exception {
+        roomRepository.updateUserIdForVoidRoom(user.getId(), user.getAuthority());
         Optional<Room> roomOptional = roomRepository.findByUserId(user.getId());
-        if (roomOptional.isPresent()) {
-            Room room = roomOptional.get();
-            userRepository.updateRoomId(user.getId(), room);
-            return room;
-        } else {
-            return null;
-        }
-
+        Room room = roomOptional.orElseThrow(() -> new RuntimeException("빈 방이 없습니."));
+        userRepository.updateRoomId(user.getId(), room);
+        return room;
     }
 }

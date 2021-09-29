@@ -62,7 +62,7 @@ public class User {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name="user_role", nullable = false)
-    private UserRole userRole;
+    private Authority authority;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name="login_type", nullable = false)

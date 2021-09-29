@@ -24,7 +24,7 @@ public class Room {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "user_role", nullable = false, updatable = false)
-    private UserRole userRole;
+    private Authority authority;
 
     @Column(name = "user_id", nullable = true, unique = true)
     private Long userId;

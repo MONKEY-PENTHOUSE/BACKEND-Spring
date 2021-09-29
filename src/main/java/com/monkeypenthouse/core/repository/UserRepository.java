@@ -3,8 +3,6 @@ package com.monkeypenthouse.core.repository;
 import com.monkeypenthouse.core.dao.LoginType;
 import com.monkeypenthouse.core.dao.Room;
 import com.monkeypenthouse.core.dao.User;
-import com.monkeypenthouse.core.dao.UserRole;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying(clearAutomatically = true)
     @Query("UPDATE User u SET u.room = :room WHERE u.id = :userId")
     void updateRoomId(@Param("userId") Long userId, @Param("room") Room room);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByName(String name);
 }

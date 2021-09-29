@@ -2,10 +2,7 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.dao.Room;
 import com.monkeypenthouse.core.dao.User;
-import com.monkeypenthouse.core.dao.UserRole;
-import com.monkeypenthouse.core.repository.RoomRepository;
 import com.monkeypenthouse.core.repository.UserRepository;
-import com.monkeypenthouse.core.service.RoomService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +23,7 @@ public class RoomServiceTest {
 
     @Test
     @DisplayName("유저에게 빈 방을 할당")
-    public void giveUserRoom() {
+    public void giveUserRoom() throws Exception {
         User user = userRepository.findById(2L).get();
 
         Room room = roomService.giveVoidRoomForUser(user);
