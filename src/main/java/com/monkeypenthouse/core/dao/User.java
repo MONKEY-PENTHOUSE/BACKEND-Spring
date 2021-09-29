@@ -8,8 +8,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Builder
@@ -32,11 +30,11 @@ public class User {
     private LocalDateTime createdDateTime;
 
     @LastModifiedDate
-    @Column(name="last_modified_at", updatable=true)
+    @Column(name="last_modified_at")
     private LocalDateTime lastModifiedDateTime;
 
     @Column(nullable=false)
-    private LocalDateTime birth;
+    private LocalDate birth;
 
     // 0 : 여자
     // 1: 남자
@@ -53,23 +51,20 @@ public class User {
     private String phoneNum;
 
     @Column(name="collect_personal_info", nullable=false)
-    private int canCollectPersonalInfo;
+    private int personalInfoCollectable;
 
     @Column(name="receive_info", nullable=false)
-    private int canReceiveInfo;
+    private int infoReceivable;
 
-    @Column(name="room_num", unique = true, length=8, nullable=false)
-    private String roomNum;
+    @OneToOne
+    @JoinColumn(name="room_id", unique = true)
+    private Room room;
 
-    @ElementCollection(fetch=FetchType.LAZY)
-    @Builder.Default
-    private Set<UserRole> roleSet = new HashSet<>();
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name="user_role", nullable = false)
+    private UserRole userRole;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name="login_type", nullable = false)
     private LoginType loginType;
-
-    public void addUserRole(UserRole userRole) {
-        roleSet.add(userRole);
-    }
 }

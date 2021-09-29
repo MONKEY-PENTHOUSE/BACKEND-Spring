@@ -25,6 +25,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests()
                 .antMatchers("/sample/all").permitAll()
+                // 회원가입은 모두에게 접근 가능
+                .antMatchers("/user/signup").permitAll()
                 .antMatchers("/sample/member").hasRole("USER");
 
         // csrf 비활성
