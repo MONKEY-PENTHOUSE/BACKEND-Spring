@@ -1,5 +1,5 @@
 package com.monkeypenthouse.core.dao;
 
-public enum UserRole {
+public enum Authority {
     USER, ADMIN
 }

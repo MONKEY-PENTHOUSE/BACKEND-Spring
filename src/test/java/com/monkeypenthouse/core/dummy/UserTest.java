@@ -1,20 +1,9 @@
 package com.monkeypenthouse.core.dummy;
 
-import com.monkeypenthouse.core.dao.LoginType;
-import com.monkeypenthouse.core.dao.User;
-import com.monkeypenthouse.core.dao.UserRole;
 import com.monkeypenthouse.core.repository.UserRepository;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import javax.swing.text.html.Option;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.stream.IntStream;
 
 @SpringBootTest
 public class UserTest {

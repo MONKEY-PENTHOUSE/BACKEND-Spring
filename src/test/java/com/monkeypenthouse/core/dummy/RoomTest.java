@@ -1,7 +1,7 @@
 package com.monkeypenthouse.core.dummy;
 
 import com.monkeypenthouse.core.dao.Room;
-import com.monkeypenthouse.core.dao.UserRole;
+import com.monkeypenthouse.core.dao.Authority;
 import com.monkeypenthouse.core.repository.RoomRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,16 +38,16 @@ public class RoomTest {
                     id = str + "0" + i;
                 }
 
-                UserRole userRole;
+                Authority authority;
                 if (str.equals("A") && i <= 100) {
-                    userRole = UserRole.ADMIN;
+                    authority = Authority.ADMIN;
                 } else {
-                    userRole = UserRole.USER;
+                    authority = Authority.USER;
                 }
 
                 System.out.println("id = " + id);
                 Room room = Room.builder()
-                        .id(id).userRole(userRole).build();
+                        .id(id).authority(authority).build();
 
                 dummies.add(room);
             });

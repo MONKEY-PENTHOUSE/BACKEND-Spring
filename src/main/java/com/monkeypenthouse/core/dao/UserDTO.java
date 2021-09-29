@@ -16,7 +16,7 @@ public class UserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    public static class LocalUserDTO {
+    public static class LocalSignUpDTO {
         private String name;
         @DateTimeFormat(pattern = "yyyy-MM-dd")
         private LocalDate birth;
@@ -29,5 +29,17 @@ public class UserDTO {
         private int personalInfoCollectable;
         // 1: 동의 0: 비동의
         private int infoReceviable;
+    }
+
+    public static class MyUserDTO {
+        private Long id;
+        private String name;
+        @DateTimeFormat(pattern = "yyyy-MM-dd")
+        private LocalDate birth;
+        // 0: 여성, 1: 남성
+        private int gender;
+        private String email;
+        private String phoneNum;
+        private String roomId;
     }
 }
