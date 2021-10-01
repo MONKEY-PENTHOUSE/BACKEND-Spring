@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.dao.*;
+import com.monkeypenthouse.core.service.MessageService;
 import com.monkeypenthouse.core.service.RoomService;
 import com.monkeypenthouse.core.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/user/all/")
 @Log4j2
@@ -20,6 +23,7 @@ public class UserForAllController {
 
     private final UserService userService;
     private final RoomService roomService;
+    private final MessageService messageService;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -71,6 +75,19 @@ public class UserForAllController {
             } else {
                 return  ResponseEntity.ok("NO");
             }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.toString());
+        }
+    }
+
+    @PostMapping(value = "/sms-auth")
+    public ResponseEntity<String> smsAuth(@RequestBody Map<String, String> map) {
+        try {
+            String phoneNum = map.get("phoneNum");
+            messageService.sendSMS(phoneNum);
+
+            return ResponseEntity.ok("문자가 전송되었습니다.");
+
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.toString());
         }
