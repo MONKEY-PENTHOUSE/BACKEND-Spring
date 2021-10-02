@@ -1,5 +1,7 @@
 package com.monkeypenthouse.core.service;
 
+import com.monkeypenthouse.core.dao.SmsAuthNum;
+import com.monkeypenthouse.core.repository.SmsAuthNumRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.nurigo.java_sdk.api.Message;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -24,10 +27,11 @@ public class MessageServiceImpl implements MessageService {
     @Value("${coolsms.fromnumber}")
     private String fromNumber;
 
+    private final SmsAuthNumRepository smsAuthNumRepository;
+
     @Override
     public void sendSMS(String toNumber) {
         try {
-
             String randomNumber = numberGen(6,1);
 
             Message message = new Message(apiKey, apiSecret);
@@ -41,8 +45,21 @@ public class MessageServiceImpl implements MessageService {
             params.put("app_version", "test app 1.2"); // application name and version
             JSONObject obj = message.send(params);
             System.out.println(obj.toString());
+
+            SmsAuthNum smsAuthNum = new SmsAuthNum(toNumber, randomNumber);
+            smsAuthNumRepository.save(smsAuthNum);
         } catch (Exception e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean checkAuthNum(String phoneNum, String authNum) {
+        Optional<SmsAuthNum> numOptional = smsAuthNumRepository.findById(phoneNum);
+        if (numOptional.isPresent()) {
+            return authNum.equals(numOptional.get().getAuthNum());
+        } else {
+            return false;
         }
     }
 
