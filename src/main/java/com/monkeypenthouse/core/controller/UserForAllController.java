@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.dao.*;
+import com.monkeypenthouse.core.dto.UserDTO;
 import com.monkeypenthouse.core.service.MessageService;
 import com.monkeypenthouse.core.service.RoomService;
 import com.monkeypenthouse.core.service.UserService;
@@ -88,6 +89,17 @@ public class UserForAllController {
 
             return ResponseEntity.ok("문자가 전송되었습니다.");
 
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.toString());
+        }
+    }
+
+    @GetMapping(value = "/check-sms-auth")
+    public ResponseEntity<Object> checkSmsAuth(@RequestBody Map<String, String> map) {
+        try {
+            String phoneNum = map.get("phoneNum");
+            String authNum = map.get("authNum");
+            return ResponseEntity.ok(messageService.checkAuthNum(phoneNum, authNum));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.toString());
         }

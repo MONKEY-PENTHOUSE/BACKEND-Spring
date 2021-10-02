@@ -15,7 +15,6 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-
 public class Room {
 
     @Id
