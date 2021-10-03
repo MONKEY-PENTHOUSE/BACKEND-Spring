@@ -1,6 +1,9 @@
 package com.monkeypenthouse.core.controller;
 
+import com.monkeypenthouse.core.common.DefaultRes;
+import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.dao.*;
+import com.monkeypenthouse.core.dto.RoomDTO.*;
 import com.monkeypenthouse.core.dto.UserDTO;
 import com.monkeypenthouse.core.service.MessageService;
 import com.monkeypenthouse.core.service.RoomService;
@@ -29,7 +32,7 @@ public class UserForAllController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> signUp(@RequestBody UserDTO.LocalSignUpDTO userDTO) {
+    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody UserDTO.LocalSignUpDTO userDTO) {
         try {
             User user = modelMapper.map(userDTO, User.class);
 
@@ -46,51 +49,83 @@ public class UserForAllController {
 
             // 회원에게 빈방 주기
             Room room = roomService.giveVoidRoomForUser(user);
-
-            return new ResponseEntity<>(room.getId(), HttpStatus.CREATED);
+            SignUpRoomDTO roomDTO = SignUpRoomDTO.builder()
+                    .id(room.getId())
+                    .build();
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.CREATED.value(), ResponseMessage.CREATED_USER, roomDTO),
+                    HttpStatus.CREATED
+            );
         } catch (Exception e) {
-            return new ResponseEntity<>(e.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
     @GetMapping(value = "/check-id-duplication")
-    public ResponseEntity<String> checkIdDuplicate(@RequestParam("email") String email) {
+    public ResponseEntity<DefaultRes<?>> checkIdDuplicate(@RequestParam("email") String email) {
         try {
             boolean exist = userService.checkIdDuplicate(email);
             if (exist) {
-                return ResponseEntity.ok("YES");
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, true),
+                        HttpStatus.OK
+                );
             } else {
-                return  ResponseEntity.ok("NO");
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, false),
+                        HttpStatus.OK
+                );
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.toString());
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
     @GetMapping(value = "/check-name-duplication")
-    public ResponseEntity<String> checkNameDuplicate(@RequestParam("name") String name) {
+    public ResponseEntity<DefaultRes<?>> checkNameDuplicate(@RequestParam("name") String name) {
         try {
             boolean exist = userService.checkNameDuplicate(name);
             if (exist) {
-                return ResponseEntity.ok("YES");
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, true),
+                        HttpStatus.OK
+                );
             } else {
-                return  ResponseEntity.ok("NO");
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, false),
+                        HttpStatus.OK
+                );
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.toString());
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
     @PostMapping(value = "/sms-auth")
-    public ResponseEntity<String> smsAuth(@RequestBody Map<String, String> map) {
+    public ResponseEntity<DefaultRes<?>> smsAuth(@RequestBody Map<String, String> map) {
         try {
             String phoneNum = map.get("phoneNum");
             messageService.sendSMS(phoneNum);
 
-            return ResponseEntity.ok("문자가 전송되었습니다.");
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.SEND_SMS),
+                    HttpStatus.OK
+            );
 
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.toString());
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.SEND_SMS_FAIL),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
@@ -99,9 +134,16 @@ public class UserForAllController {
         try {
             String phoneNum = map.get("phoneNum");
             String authNum = map.get("authNum");
-            return ResponseEntity.ok(messageService.checkAuthNum(phoneNum, authNum));
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER,
+                            messageService.checkAuthNum(phoneNum, authNum)),
+                    HttpStatus.OK
+            );
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.toString());
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.SEND_SMS_FAIL),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 }

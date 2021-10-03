@@ -1,6 +1,5 @@
 package com.monkeypenthouse.core.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class UserDTO {
 
@@ -31,6 +29,10 @@ public class UserDTO {
         private int infoReceviable;
     }
 
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
     public static class MyUserDTO {
         private Long id;
         private String name;
