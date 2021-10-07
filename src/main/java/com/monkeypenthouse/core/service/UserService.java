@@ -21,8 +21,13 @@ public interface UserService {
     // 특정 이메일의 회원이 존해자는지 확인
     boolean checkNameDuplicate(String name) throws Exception;
 
+    // 로그인
     Tokens login(User user);
+
+    // accessToken 재발급
+    Tokens reissue(Tokens tokens);
 
     // 현재 SecurityContext에 있는 유저 정보 가져오기
     User getMyInfo() throws Exception;
+
 }

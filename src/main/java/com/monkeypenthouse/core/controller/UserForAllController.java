@@ -11,6 +11,7 @@ import com.monkeypenthouse.core.service.RoomService;
 import com.monkeypenthouse.core.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.dom4j.rule.Mode;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -165,6 +166,25 @@ public class UserForAllController {
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
                             modelMapper.map(userService.login(user), LoginResDTO.class)),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.SEND_SMS_FAIL),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<DefaultRes<?>> reissue(@CookieValue("refreshToken") String refreshToken, @RequestBody ReissueReqDTO tokenDTO) {
+        try {
+            Tokens tokens = modelMapper.map(tokenDTO, Tokens.class);
+            tokens.setRefreshToken(refreshToken);
+
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                            modelMapper.map(userService.reissue(tokens), LoginResDTO.class)),
                     HttpStatus.OK
             );
         } catch (Exception e) {
