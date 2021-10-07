@@ -1,7 +1,14 @@
 package com.monkeypenthouse.core.controller;
 
+import com.monkeypenthouse.core.common.DefaultRes;
+import com.monkeypenthouse.core.common.ResponseMessage;
+import com.monkeypenthouse.core.dto.UserDTO.*;
+import com.monkeypenthouse.core.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -10,18 +17,24 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
+    private final UserService userService;
+    private final ModelMapper modelMapper;
 
-
-//    @GetMapping(value = "/me", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<Object> getMyUserInfo() {
-//        try {
-//            MyUserDTO myUser = modelMapper.map(userService.getMyInfo(), MyUserDTO.class);
-//            return ResponseEntity.ok(myUser);
-//        } catch (Exception e) {
-//            return ResponseEntity.internalServerError().body(e.toString());
-//        }
-//    }
-
+    @GetMapping("/me")
+    public ResponseEntity<DefaultRes<?>> getMyUserInfo() {
+        try {
+            MyUserResDTO myUser = modelMapper.map(userService.getMyInfo(), MyUserResDTO.class);
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, myUser),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 
 
 }

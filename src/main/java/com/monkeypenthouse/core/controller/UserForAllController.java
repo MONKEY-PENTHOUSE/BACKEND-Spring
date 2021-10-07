@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 @RestController
@@ -149,12 +151,20 @@ public class UserForAllController {
     }
 
     @PostMapping(value = "/login")
-    public ResponseEntity<DefaultRes<?>> login(@RequestBody LoginReqDTO userDTO) {
+    @ResponseBody
+    public ResponseEntity<DefaultRes<?>> login(@RequestBody LoginReqDTO userDTO, HttpServletResponse response) {
         try {
             User user = modelMapper.map(userDTO, User.class);
+            Tokens tokens = userService.login(user);
+            Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
+            cookie.setMaxAge(60 * 60 * 24 * 14);
+            cookie.setSecure(true);
+            cookie.setHttpOnly(true);
+            cookie.setPath("/");
+            response.addCookie(cookie);
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
-                            modelMapper.map(userService.login(user), LoginResponseDTO.class)),
+                            modelMapper.map(userService.login(user), LoginResDTO.class)),
                     HttpStatus.OK
             );
         } catch (Exception e) {
