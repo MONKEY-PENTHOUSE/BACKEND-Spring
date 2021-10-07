@@ -17,4 +17,12 @@ public class TokenDTO {
         private String accessToken;
         private Long accessTokenExpiresIn;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReissueReqDTO {
+        private String accessToken;
+    }
 }
