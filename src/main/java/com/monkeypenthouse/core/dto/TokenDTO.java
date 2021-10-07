@@ -12,11 +12,9 @@ public class TokenDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class LoginResponseDTO {
+    public static class LoginResDTO {
         private String grantType;
         private String accessToken;
         private Long accessTokenExpiresIn;
-        private String refreshToken;
     }
-
 }

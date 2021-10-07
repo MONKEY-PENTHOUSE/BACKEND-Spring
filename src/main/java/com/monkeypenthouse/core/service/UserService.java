@@ -23,6 +23,6 @@ public interface UserService {
 
     Tokens login(User user);
 
-//    // 현재 SecurityContext에 있는 유저 정보 가져오기
-//    User getMyInfo() throws Exception;
+    // 현재 SecurityContext에 있는 유저 정보 가져오기
+    User getMyInfo() throws Exception;
 }
