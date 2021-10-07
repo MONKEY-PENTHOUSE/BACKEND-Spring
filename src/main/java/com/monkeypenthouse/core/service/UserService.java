@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.dao.LoginType;
+import com.monkeypenthouse.core.dao.Tokens;
 import com.monkeypenthouse.core.dao.User;
 
 public interface UserService {
@@ -19,6 +20,8 @@ public interface UserService {
 
     // 특정 이메일의 회원이 존해자는지 확인
     boolean checkNameDuplicate(String name) throws Exception;
+
+    Tokens login(User user);
 
 //    // 현재 SecurityContext에 있는 유저 정보 가져오기
 //    User getMyInfo() throws Exception;

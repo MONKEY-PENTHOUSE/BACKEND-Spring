@@ -15,4 +15,5 @@ public interface RoomRepository extends JpaRepository<Room, String> {
     void updateUserIdForVoidRoom(@Param("userId") Long userId, @Param("userRole") Authority authority);
 
     Optional<Room> findByUserId(Long userId);
+
 }
