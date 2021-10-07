@@ -67,4 +67,8 @@ public class User {
     @Enumerated(EnumType.ORDINAL)
     @Column(name="login_type", nullable = false)
     private LoginType loginType;
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name="life_style")
+    private LifeStyle lifeStyle;
 }

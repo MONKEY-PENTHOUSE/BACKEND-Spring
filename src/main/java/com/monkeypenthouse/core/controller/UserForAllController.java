@@ -4,7 +4,8 @@ import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.dao.*;
 import com.monkeypenthouse.core.dto.RoomDTO.*;
-import com.monkeypenthouse.core.dto.UserDTO;
+import com.monkeypenthouse.core.dto.TokenDTO.*;
+import com.monkeypenthouse.core.dto.UserDTO.*;
 import com.monkeypenthouse.core.service.MessageService;
 import com.monkeypenthouse.core.service.RoomService;
 import com.monkeypenthouse.core.service.UserService;
@@ -32,7 +33,7 @@ public class UserForAllController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody UserDTO.LocalSignUpDTO userDTO) {
+    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody LocalSignUpResDTO userDTO) {
         try {
             User user = modelMapper.map(userDTO, User.class);
 
@@ -130,13 +131,30 @@ public class UserForAllController {
     }
 
     @GetMapping(value = "/check-sms-auth")
-    public ResponseEntity<Object> checkSmsAuth(@RequestBody Map<String, String> map) {
+    public ResponseEntity<DefaultRes<?>> checkSmsAuth(@RequestBody Map<String, String> map) {
         try {
             String phoneNum = map.get("phoneNum");
             String authNum = map.get("authNum");
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER,
                             messageService.checkAuthNum(phoneNum, authNum)),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.SEND_SMS_FAIL),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping(value = "/login")
+    public ResponseEntity<DefaultRes<?>> login(@RequestBody LoginReqDTO userDTO) {
+        try {
+            User user = modelMapper.map(userDTO, User.class);
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                            modelMapper.map(userService.login(user), LoginResponseDTO.class)),
                     HttpStatus.OK
             );
         } catch (Exception e) {

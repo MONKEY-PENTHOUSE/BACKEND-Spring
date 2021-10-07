@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select m from User m where m.loginType = :loginType and m.email = :email")
     Optional<User> findByEmailAndLoginType(@Param("email") String email, @Param("loginType") LoginType loginType);
-
+    Optional<User> findByEmail(String email);
     @Modifying(clearAutomatically = true)
     @Query("UPDATE User u SET u.room = :room WHERE u.id = :userId")
     void updateRoomId(@Param("userId") Long userId, @Param("room") Room room);
