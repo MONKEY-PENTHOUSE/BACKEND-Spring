@@ -12,4 +12,6 @@ public class ResponseMessage {
     public static final String DB_ERROR = "데이터베이스 에러";
     public static final String SEND_SMS = "문자 전송 성공";
     public static final String SEND_SMS_FAIL = "문자 전송 실패";
+    public static final String REISSUE_SUCCESS = "재발급 성공";
+    public static final String REISSUE_FAIL = "재발금 실패";
 }
