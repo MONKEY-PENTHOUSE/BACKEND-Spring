@@ -145,7 +145,7 @@ public class UserForAllController {
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.SEND_SMS_FAIL),
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
@@ -159,7 +159,7 @@ public class UserForAllController {
             Tokens tokens = userService.login(user);
             Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
             cookie.setMaxAge(60 * 60 * 24 * 14);
-            cookie.setSecure(true);
+            // cookie.setSecure(true);
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             response.addCookie(cookie);
@@ -170,7 +170,7 @@ public class UserForAllController {
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.SEND_SMS_FAIL),
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.LOGIN_FAIL),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
@@ -183,13 +183,14 @@ public class UserForAllController {
             tokens.setRefreshToken(refreshToken);
 
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.REISSUE_SUCCESS,
                             modelMapper.map(userService.reissue(tokens), LoginResDTO.class)),
                     HttpStatus.OK
             );
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.SEND_SMS_FAIL),
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.REISSUE_FAIL),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }

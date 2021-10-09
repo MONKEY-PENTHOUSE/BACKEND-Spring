@@ -104,6 +104,8 @@ public class UserServiceImpl implements UserService {
 
         // 4. refreshToken 일치하는지 검사
         if (!refreshToken.getValue().equals(tokens.getRefreshToken())) {
+            System.out.println("tokens.getRefreshToken = " + tokens.getRefreshToken());
+            System.out.println("refreshToken.getValue() = " + refreshToken.getValue());
             throw new RuntimeException("토큰의 유저 정보가 일치하지 않습니다.");
         }
 
