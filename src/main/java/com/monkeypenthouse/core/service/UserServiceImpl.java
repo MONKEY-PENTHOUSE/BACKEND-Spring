@@ -1,9 +1,14 @@
 package com.monkeypenthouse.core.service;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.monkeypenthouse.core.connect.KakaoConnecter;
 import com.monkeypenthouse.core.dao.LoginType;
 import com.monkeypenthouse.core.dao.RefreshToken;
 import com.monkeypenthouse.core.dao.Tokens;
 import com.monkeypenthouse.core.dao.User;
+import com.monkeypenthouse.core.dto.KakaoUserDTO;
+import com.monkeypenthouse.core.dto.TokenDTO.*;
 import com.monkeypenthouse.core.repository.RefreshTokenRepository;
 import com.monkeypenthouse.core.repository.UserRepository;
 import com.monkeypenthouse.core.security.SecurityUtil;
@@ -11,13 +16,19 @@ import com.monkeypenthouse.core.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -30,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final KakaoConnecter kakaoConnecter;
 
     // 회원 추가
     @Override
@@ -54,11 +66,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean checkIdDuplicate(String email) throws Exception {
         return userRepository.existsByEmail(email);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean checkNameDuplicate(String name) throws Exception {
         return userRepository.existsByName(name);
     }
@@ -125,5 +139,41 @@ public class UserServiceImpl implements UserService {
     public User getMyInfo() throws Exception {
         return userRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
                 .orElseThrow(() -> new RuntimeException("유저 정보 없습니다."));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User authKakao(String code) {
+        KakaoUserDTO kakaoUser = null;
+        KakaoResDTO tokens = null;
+        try {
+            tokens = kakaoConnecter.getToken(code);
+        } catch (Exception e) {
+            System.out.println("토큰 정보 가져오는데 실패했습니다. : " + e.getMessage());
+            return null;
+        }
+
+        try {
+            kakaoUser = kakaoConnecter.getUserInfo(code, tokens.getAccess_token());
+        } catch (Exception e) {
+            System.out.println("카카오 유저 정보를 가져오는데 실패했습니다. : " + e.getMessage());
+            return null;
+        }
+        try {
+            Optional<User> optionalUser = userRepository.findByEmail(kakaoUser.getKakao_account().getEmail());
+
+            KakaoUserDTO finalKakaoUser = kakaoUser;
+            return optionalUser.orElseGet(() -> User.builder()
+                    .name(finalKakaoUser.getKakao_account().getProfile().getNickname())
+                    .gender(finalKakaoUser.getKakao_account().getGender().equals("female") ? 0 : 1)
+                    .email(finalKakaoUser.getKakao_account().getEmail())
+                    .password(UUID.randomUUID().toString())
+                    .loginType(LoginType.KAKAO)
+                    .kakaoId(finalKakaoUser.getId())
+                    .build());
+        } catch (Exception e) {
+            System.out.println("회원 정보를 찾는데 실패했습니다.");
+            return null;
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.dto;
 
 import com.monkeypenthouse.core.dao.LifeStyle;
+import com.monkeypenthouse.core.dao.LoginType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class UserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    public static class LocalSignUpResDTO {
+    public static class signupReqDTO {
         private String name;
         @DateTimeFormat(pattern = "yyyy-MM-dd")
         private LocalDate birth;
@@ -32,6 +33,8 @@ public class UserDTO {
         // 1: 동의 0: 비동의
         private int infoReceviable;
         private LifeStyle lifeStyle;
+        private LoginType loginType;
+        private Long kakaoId;
     }
 
     @Builder

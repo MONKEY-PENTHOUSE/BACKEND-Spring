@@ -47,6 +47,9 @@ dependencies {
 
 	// sms 인증 관련 의존성
 	implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
+
+	// 소셜 로그인을 위한 OAuth2
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client:2.5.5'
 }
 
 test {
