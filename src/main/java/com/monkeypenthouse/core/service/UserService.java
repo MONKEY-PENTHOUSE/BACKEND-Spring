@@ -4,6 +4,8 @@ import com.monkeypenthouse.core.dao.LoginType;
 import com.monkeypenthouse.core.dao.Tokens;
 import com.monkeypenthouse.core.dao.User;
 
+import java.util.Optional;
+
 public interface UserService {
 
     // 회원가입
@@ -30,4 +32,7 @@ public interface UserService {
     // 현재 SecurityContext에 있는 유저 정보 가져오기
     User getMyInfo() throws Exception;
 
+    // 카카오톡 인증 후 회원 정보 조회
+    // 유저 정보가 없을 시 비어있는 유저 리턴
+    User authKakao(String code) throws Exception;
 }

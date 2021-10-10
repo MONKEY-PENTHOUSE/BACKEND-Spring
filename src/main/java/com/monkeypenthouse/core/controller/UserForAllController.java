@@ -11,11 +11,8 @@ import com.monkeypenthouse.core.service.RoomService;
 import com.monkeypenthouse.core.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.dom4j.rule.Mode;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,14 +33,12 @@ public class UserForAllController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody LocalSignUpResDTO userDTO) {
+    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody signupReqDTO userDTO) {
         try {
             User user = modelMapper.map(userDTO, User.class);
 
             // 비밀번호 암호화
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            // loginType : LOCAL
-            user.setLoginType(LoginType.LOCAL);
             // userRole : USER
             user.setAuthority(Authority.USER);
 
@@ -153,7 +148,7 @@ public class UserForAllController {
 
     @PostMapping(value = "/login")
     @ResponseBody
-    public ResponseEntity<DefaultRes<?>> login(@RequestBody LoginReqDTO userDTO, HttpServletResponse response) {
+    public ResponseEntity<DefaultRes<?>> loginLocal(@RequestBody LoginReqDTO userDTO, HttpServletResponse response) {
         try {
             User user = modelMapper.map(userDTO, User.class);
             Tokens tokens = userService.login(user);
@@ -171,6 +166,41 @@ public class UserForAllController {
         } catch (Exception e) {
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.LOGIN_FAIL),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @GetMapping(value = "/auth/kakao")
+    @ResponseBody
+    public ResponseEntity<DefaultRes<?>> authKakao(@RequestParam("code") String code, HttpServletResponse response) {
+        try {
+            User user = userService.authKakao(code);
+            // 유저 정보가 있으면 로그인 처리
+            if (user.getId() != null) {
+                Tokens tokens = userService.login(user);
+                Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
+                cookie.setMaxAge(60 * 60 * 24 * 14);
+                // cookie.setSecure(true);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                                modelMapper.map(userService.login(user), LoginResDTO.class)),
+                        HttpStatus.OK
+                );
+            }
+            // 유저 정보가 없으면 회원가입을 위해 기본 정보 보내주기
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                            modelMapper.map(user, signupReqDTO.class)),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            System.out.println("e = " + e.getMessage());
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
@@ -195,4 +225,5 @@ public class UserForAllController {
             );
         }
     }
+
 }
