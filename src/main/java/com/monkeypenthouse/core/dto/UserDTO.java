@@ -61,4 +61,22 @@ public class UserDTO {
         private String email;
         private String password;
     }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    public static class FindEmailReqDTO {
+        private String name;
+        private String phoneNum;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    public static class FindEmailResDTO {
+        private String email;
+        private LoginType loginType;
+    }
 }

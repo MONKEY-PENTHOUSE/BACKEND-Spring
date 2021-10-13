@@ -214,4 +214,9 @@ public class UserServiceImpl implements UserService {
             return null;
         }
     }
+
+    @Override
+    public Optional<User> findEmail(User user) {
+        return userRepository.findByNameAndPhoneNum(user.getName(), user.getPhoneNum());
+    }
 }
