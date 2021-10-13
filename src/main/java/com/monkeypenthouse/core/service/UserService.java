@@ -35,4 +35,6 @@ public interface UserService {
     // 카카오톡 인증 후 회원 정보 조회
     // 유저 정보가 없을 시 비어있는 유저 리턴
     User authKakao(String code) throws Exception;
+
+    User authNaver(String s, String code) throws Exception;
 }

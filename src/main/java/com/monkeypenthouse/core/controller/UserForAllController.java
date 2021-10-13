@@ -16,6 +16,7 @@ import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
@@ -176,6 +177,45 @@ public class UserForAllController {
     public ResponseEntity<DefaultRes<?>> authKakao(@RequestParam("code") String code, HttpServletResponse response) {
         try {
             User user = userService.authKakao(code);
+            // 유저 정보가 있으면 로그인 처리
+            if (user.getId() != null) {
+                Tokens tokens = userService.login(user);
+                Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
+                cookie.setMaxAge(60 * 60 * 24 * 14);
+                // cookie.setSecure(true);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                                modelMapper.map(userService.login(user), LoginResDTO.class)),
+                        HttpStatus.OK
+                );
+            }
+            // 유저 정보가 없으면 회원가입을 위해 기본 정보 보내주기
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                            modelMapper.map(user, signupReqDTO.class)),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            System.out.println("e = " + e.getMessage());
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @GetMapping(value = "/auth/naver")
+    @ResponseBody
+    public ResponseEntity<DefaultRes<?>> authNaver(@RequestParam("code") String code,
+                                                   @RequestParam("state") String state,
+                                                   @RequestParam("error") @Nullable String error,
+                                                   @RequestParam("error_description") @Nullable String errorDescription,
+                                                   HttpServletResponse response) {
+        try {
+            User user = userService.authNaver(code, state);
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
