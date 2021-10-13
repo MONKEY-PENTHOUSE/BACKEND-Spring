@@ -37,4 +37,6 @@ public interface UserService {
     User authKakao(String code) throws Exception;
 
     User authNaver(String s, String code) throws Exception;
+
+    Optional<User> findEmail(User user);
 }

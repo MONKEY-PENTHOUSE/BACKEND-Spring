@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/user/all/")
@@ -261,6 +262,32 @@ public class UserForAllController {
             System.out.println(e.getMessage());
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.REISSUE_FAIL),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @GetMapping(value = "/find-email")
+    public ResponseEntity<DefaultRes<?>> findEmail(@RequestBody FindEmailReqDTO userDTO) {
+        try {
+            User user = modelMapper.map(userDTO, User.class);
+            Optional<User> optionalUser = userService.findEmail(user);
+
+            if (optionalUser.isPresent()) {
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER,
+                                modelMapper.map(optionalUser.get(), FindEmailResDTO.class)),
+                        HttpStatus.OK
+                );
+            } else {
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.NOT_FOUND_USER),
+                        HttpStatus.UNAUTHORIZED
+                );
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
