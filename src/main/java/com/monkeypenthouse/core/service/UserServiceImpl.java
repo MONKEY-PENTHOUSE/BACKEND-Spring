@@ -3,11 +3,13 @@ package com.monkeypenthouse.core.service;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.monkeypenthouse.core.connect.KakaoConnecter;
+import com.monkeypenthouse.core.connect.NaverConnecter;
 import com.monkeypenthouse.core.dao.LoginType;
 import com.monkeypenthouse.core.dao.RefreshToken;
 import com.monkeypenthouse.core.dao.Tokens;
 import com.monkeypenthouse.core.dao.User;
 import com.monkeypenthouse.core.dto.KakaoUserDTO;
+import com.monkeypenthouse.core.dto.NaverUserDTO;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
 import com.monkeypenthouse.core.repository.RefreshTokenRepository;
 import com.monkeypenthouse.core.repository.UserRepository;
@@ -42,6 +44,7 @@ public class UserServiceImpl implements UserService {
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final KakaoConnecter kakaoConnecter;
+    private final NaverConnecter naverConnecter;
 
     // 회원 추가
     @Override
@@ -169,7 +172,42 @@ public class UserServiceImpl implements UserService {
                     .email(finalKakaoUser.getKakao_account().getEmail())
                     .password(UUID.randomUUID().toString())
                     .loginType(LoginType.KAKAO)
-                    .kakaoId(finalKakaoUser.getId())
+                    .build());
+        } catch (Exception e) {
+            System.out.println("회원 정보를 찾는데 실패했습니다.");
+            return null;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User authNaver(String code, String state) {
+        NaverUserDTO naverUser = null;
+        NaverResDTO tokens = null;
+        try {
+            tokens = naverConnecter.getToken(code, state);
+        } catch (Exception e) {
+            System.out.println("토큰 정보 가져오는데 실패했습니다. : " + e.getMessage());
+            return null;
+        }
+
+        try {
+            naverUser = naverConnecter.getUserInfo(tokens.getAccess_token());
+        } catch (Exception e) {
+            System.out.println("카카오 유저 정보를 가져오는데 실패했습니다. : " + e.getMessage());
+            return null;
+        }
+        try {
+            Optional<User> optionalUser = userRepository.findByEmail(naverUser.getResponse().getEmail());
+
+            NaverUserDTO finalNaverUser = naverUser;
+            return optionalUser.orElseGet(() -> User.builder()
+                    .name(finalNaverUser.getResponse().getNickname())
+                    .gender(finalNaverUser.getResponse().getGender().equals("F") ? 0 : 1)
+                    .email(finalNaverUser.getResponse().getEmail())
+                    .password(UUID.randomUUID().toString())
+                    .phoneNum(finalNaverUser.getResponse().getMobile().replace("-", ""))
+                    .loginType(LoginType.NAVER)
                     .build());
         } catch (Exception e) {
             System.out.println("회원 정보를 찾는데 실패했습니다.");

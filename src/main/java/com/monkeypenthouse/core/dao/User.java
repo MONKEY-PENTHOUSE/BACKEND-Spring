@@ -71,7 +71,4 @@ public class User {
     @Enumerated(EnumType.ORDINAL)
     @Column(name="life_style")
     private LifeStyle lifeStyle;
-
-    @Column(name="kakao_id")
-    private Long kakaoId;
 }
