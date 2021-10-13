@@ -23,4 +23,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByName(String name);
 
     Optional<User> findByNameAndPhoneNum(String name, String phoneNum);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE User u SET u.password = :password WHERE u.id = :id")
+    int updatePassword(@Param("password") String password,
+                      @Param("id") Long id);
 }

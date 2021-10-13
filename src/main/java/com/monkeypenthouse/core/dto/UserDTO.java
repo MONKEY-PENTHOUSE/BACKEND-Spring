@@ -76,7 +76,17 @@ public class UserDTO {
     @NoArgsConstructor
     @Data
     public static class FindEmailResDTO {
+        private Long id;
         private String email;
         private LoginType loginType;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    public static class ChangePwReqDTO {
+        private Long id;
+        private String password;
     }
 }
