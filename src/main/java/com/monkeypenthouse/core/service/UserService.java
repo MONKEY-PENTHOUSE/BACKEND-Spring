@@ -39,4 +39,6 @@ public interface UserService {
     User authNaver(String s, String code) throws Exception;
 
     Optional<User> findEmail(User user);
+
+    int changePassword(User user) throws Exception ;
 }

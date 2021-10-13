@@ -38,13 +38,6 @@ public class UserForAllController {
     public ResponseEntity<DefaultRes<?>> signUp(@RequestBody signupReqDTO userDTO) {
         try {
             User user = modelMapper.map(userDTO, User.class);
-
-            // 비밀번호 암호화
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            // userRole : USER
-            user.setAuthority(Authority.USER);
-
-            log.info(user);
             // 회원 추가
             user = userService.add(user);
 
@@ -293,4 +286,28 @@ public class UserForAllController {
         }
     }
 
+    @PostMapping(value = "/change-pw")
+    public ResponseEntity<DefaultRes<?>> changePassword(@RequestBody ChangePwReqDTO userDTO) {
+        try {
+            User user = modelMapper.map(userDTO, User.class);
+            int result = userService.changePassword(user);
+
+            if (result == 1) {
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.UPDATE_USER),
+                        HttpStatus.OK
+                );
+            } else {
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.NOT_FOUND_USER),
+                        HttpStatus.UNAUTHORIZED
+                );
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 }

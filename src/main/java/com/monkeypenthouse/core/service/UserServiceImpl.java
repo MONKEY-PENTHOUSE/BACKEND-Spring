@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.monkeypenthouse.core.connect.KakaoConnecter;
 import com.monkeypenthouse.core.connect.NaverConnecter;
-import com.monkeypenthouse.core.dao.LoginType;
-import com.monkeypenthouse.core.dao.RefreshToken;
-import com.monkeypenthouse.core.dao.Tokens;
-import com.monkeypenthouse.core.dao.User;
+import com.monkeypenthouse.core.dao.*;
 import com.monkeypenthouse.core.dto.KakaoUserDTO;
 import com.monkeypenthouse.core.dto.NaverUserDTO;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
@@ -18,16 +15,12 @@ import com.monkeypenthouse.core.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -50,6 +43,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User add(User user) throws Exception {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setAuthority(Authority.USER);
         return userRepository.save(user);
     }
 
@@ -218,5 +213,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> findEmail(User user) {
         return userRepository.findByNameAndPhoneNum(user.getName(), user.getPhoneNum());
+    }
+
+    @Override
+    @Transactional
+    public int changePassword(User user) throws Exception {
+        return userRepository.updatePassword(
+                passwordEncoder.encode(user.getPassword()),
+                user.getId());
     }
 }
