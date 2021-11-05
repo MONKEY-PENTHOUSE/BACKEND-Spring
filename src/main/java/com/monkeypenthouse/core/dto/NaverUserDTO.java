@@ -21,7 +21,7 @@ public class NaverUserDTO {
     @Data
     public static class Response {
         private String id;
-        private String nickname;
+        private String name;
         private String gender;
         private String email;
         private String mobile;
