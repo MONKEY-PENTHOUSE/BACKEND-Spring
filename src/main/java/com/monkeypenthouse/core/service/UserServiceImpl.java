@@ -197,11 +197,13 @@ public class UserServiceImpl implements UserService {
 
             NaverUserDTO finalNaverUser = naverUser;
             return optionalUser.orElseGet(() -> User.builder()
-                    .name(finalNaverUser.getResponse().getNickname())
-                    .gender(finalNaverUser.getResponse().getGender().equals("F") ? 0 : 1)
+                    .name(finalNaverUser.getResponse().getName())
+                    .gender(finalNaverUser.getResponse().getGender() == null ?
+                            2 : finalNaverUser.getResponse().getGender().equals("F") ? 0 : 1)
                     .email(finalNaverUser.getResponse().getEmail())
                     .password(UUID.randomUUID().toString())
-                    .phoneNum(finalNaverUser.getResponse().getMobile().replace("-", ""))
+                    .phoneNum(finalNaverUser.getResponse().getMobile() == null ?
+                            null : finalNaverUser.getResponse().getMobile().replace("-", ""))
                     .loginType(LoginType.NAVER)
                     .build());
         } catch (Exception e) {
