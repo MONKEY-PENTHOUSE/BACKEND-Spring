@@ -161,7 +161,7 @@ public class UserServiceImpl implements UserService {
             Optional<User> optionalUser = userRepository.findByEmail(kakaoUser.getKakao_account().getEmail());
 
             KakaoUserDTO finalKakaoUser = kakaoUser;
-            System.out.println("finalKakaoUser = " + finalKakaoUser);
+
             return optionalUser.orElseGet(() -> User.builder()
                     .name(finalKakaoUser.getKakao_account().getProfile().getNickname())
                     .gender(finalKakaoUser.getKakao_account().isHas_gender() ? finalKakaoUser.getKakao_account().getGender().equals("female") ? 0 : 1 : 2)
