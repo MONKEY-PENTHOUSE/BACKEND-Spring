@@ -21,16 +21,16 @@ public class RoomServiceTest {
     @Autowired
     private RoomService roomService;
 
-    @Test
-    @DisplayName("유저에게 빈 방을 할당")
-    public void giveUserRoom() throws Exception {
-        User user = userRepository.findById(2L).get();
-
-        Room room = roomService.giveVoidRoomForUser(user);
-
-        System.out.println("user.getRoom() = " + user.getRoom());
-        System.out.println("room = " + room);
-        Assertions.assertThat(user.getRoom()).isEqualTo(room);
-    }
+//    @Test
+//    @DisplayName("유저에게 빈 방을 할당")
+//    public void giveUserRoom() throws Exception {
+//        User user = userRepository.findById(2L).get();
+//
+//        Room room = roomService.giveVoidRoomForUser(user);
+//
+//        System.out.println("user.getRoom() = " + user.getRoom());
+//        System.out.println("room = " + room);
+//        Assertions.assertThat(user.getRoom()).isEqualTo(room);
+//    }
 
 }
