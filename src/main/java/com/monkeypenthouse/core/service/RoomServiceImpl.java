@@ -22,7 +22,7 @@ public class RoomServiceImpl implements RoomService {
     public Room giveVoidRoomForUser(User user) throws Exception {
         roomRepository.updateUserIdForVoidRoom(user.getId(), user.getAuthority());
         Optional<Room> roomOptional = roomRepository.findByUserId(user.getId());
-        Room room = roomOptional.orElseThrow(() -> new RuntimeException("빈 방이 없습니."));
+        Room room = roomOptional.orElseThrow(() -> new RuntimeException("빈 방이 없습니다."));
         userRepository.updateRoomId(user.getId(), room);
         return room;
     }

@@ -66,6 +66,25 @@ public class UserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
+    public static class LoginResDTO {
+        private Long id;
+        private String name;
+        @DateTimeFormat(pattern = "yyyy-MM-dd")
+        private LocalDate birth;
+        // 0: 여성, 1: 남성
+        private int gender;
+        private String email;
+        private String phoneNum;
+        private String roomId;
+        private String grantType;
+        private String accessToken;
+        private Long accessTokenExpiresIn;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
     public static class FindEmailReqDTO {
         private String name;
         private String phoneNum;
