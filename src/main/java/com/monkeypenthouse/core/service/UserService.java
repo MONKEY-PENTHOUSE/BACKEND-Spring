@@ -15,6 +15,9 @@ public interface UserService {
     User getById(Long id) throws Exception;
 
     // 이메일에 따른 조회
+    User getUserByEmail(String email) throws Exception;
+
+    // 이메일에 따른 조회
     User getUserByEmailAndLoginType(String email, LoginType loginType) throws Exception;
 
     // 특정 이메일의 회원이 존해자는지 확인

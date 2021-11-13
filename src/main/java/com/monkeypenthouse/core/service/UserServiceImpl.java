@@ -57,6 +57,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserByEmail(String email) throws Exception {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("유저 정보 없습니다."));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public User getUserByEmailAndLoginType(String email, LoginType loginType) throws Exception {
         return userRepository.findByEmailAndLoginType(email, loginType)

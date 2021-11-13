@@ -12,16 +12,6 @@ public class TokenDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class LoginResDTO {
-        private String grantType;
-        private String accessToken;
-        private Long accessTokenExpiresIn;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class ReissueReqDTO {
         private String accessToken;
     }

@@ -144,26 +144,33 @@ public class UserForAllController {
     @PostMapping(value = "/login")
     @ResponseBody
     public ResponseEntity<DefaultRes<?>> loginLocal(@RequestBody LoginReqDTO userDTO, HttpServletResponse response) {
-        try {
             User user = modelMapper.map(userDTO, User.class);
             Tokens tokens = userService.login(user);
             Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
             cookie.setMaxAge(60 * 60 * 24 * 14);
-            // cookie.setSecure(true);
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             response.addCookie(cookie);
+
+        try {
+            User optionalUser = userService.getUserByEmail(userDTO.getEmail());
+            LoginResDTO loginResDTO = modelMapper.map(optionalUser, LoginResDTO.class);
+            loginResDTO.setGrantType(tokens.getGrantType());
+            loginResDTO.setAccessToken(tokens.getAccessToken());
+            loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
+
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
-                            modelMapper.map(userService.login(user), LoginResDTO.class)),
-                    HttpStatus.OK
-            );
+                            loginResDTO
+                    ), HttpStatus.OK);
         } catch (Exception e) {
+            System.out.println("e = " + e);
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.LOGIN_FAIL),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+
     }
 
     @GetMapping(value = "/auth/kakao")
