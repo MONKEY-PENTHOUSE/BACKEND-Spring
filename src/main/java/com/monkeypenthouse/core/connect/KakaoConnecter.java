@@ -64,7 +64,7 @@ public class KakaoConnecter {
         }
     }
 
-    public KakaoUserDTO getUserInfo(String code, String accessToken) {
+    public KakaoUserDTO getUserInfo(String accessToken) {
         KakaoUserDTO kakaoUser = null;
         // 회원정보 받아오기
         RestTemplate rt = new RestTemplate();

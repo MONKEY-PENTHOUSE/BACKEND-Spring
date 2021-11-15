@@ -173,31 +173,37 @@ public class UserForAllController {
 
     }
 
-    @GetMapping(value = "/auth/kakao")
+    @GetMapping(value = "/login/kakao")
     @ResponseBody
-    public ResponseEntity<DefaultRes<?>> authKakao(@RequestParam("code") String code, HttpServletResponse response) {
+    public ResponseEntity<DefaultRes<?>> authKakao(@RequestParam("token") String token, HttpServletResponse response) {
         try {
-            User user = userService.authKakao(code);
+            User user = userService.authKakao(token);
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
+                LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
                 Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
                 cookie.setMaxAge(60 * 60 * 24 * 14);
                 // cookie.setSecure(true);
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
                 response.addCookie(cookie);
+
+                loginResDTO.setGrantType(tokens.getGrantType());
+                loginResDTO.setAccessToken(tokens.getAccessToken());
+                loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
+
                 return new ResponseEntity<>(
                         DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
-                                modelMapper.map(userService.login(user), LoginResDTO.class)),
+                                loginResDTO),
                         HttpStatus.OK
                 );
             }
             // 유저 정보가 없으면 회원가입을 위해 기본 정보 보내주기
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                    DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.SIGN_UP_REQUIRED,
                             modelMapper.map(user, signupReqDTO.class)),
-                    HttpStatus.OK
+                    HttpStatus.UNAUTHORIZED
             );
         } catch (Exception e) {
             System.out.println("e = " + e.getMessage());
@@ -208,7 +214,7 @@ public class UserForAllController {
         }
     }
 
-    @GetMapping(value = "/auth/naver")
+    @GetMapping(value = "/login/naver")
     @ResponseBody
     public ResponseEntity<DefaultRes<?>> authNaver(@RequestParam("code") String code,
                                                    @RequestParam("state") String state,
@@ -255,7 +261,7 @@ public class UserForAllController {
 
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.REISSUE_SUCCESS,
-                            modelMapper.map(userService.reissue(tokens), LoginResDTO.class)),
+                            modelMapper.map(userService.reissue(tokens), ReissueResDTO.class)),
                     HttpStatus.OK
             );
         } catch (Exception e) {

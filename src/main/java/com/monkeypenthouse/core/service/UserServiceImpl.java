@@ -147,24 +147,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public User authKakao(String code) {
+    public User authKakao(String token) throws Exception {
         KakaoUserDTO kakaoUser = null;
-        KakaoResDTO tokens = null;
-        try {
-            tokens = kakaoConnecter.getToken(code);
-        } catch (Exception e) {
-            System.out.println("토큰 정보 가져오는데 실패했습니다. : " + e.getMessage());
-            return null;
-        }
+//        KakaoResDTO tokens = null;
+//        try {
+//            tokens = kakaoConnecter.getToken(code);
+//        } catch (Exception e) {
+//            System.out.println("토큰 정보 가져오는데 실패했습니다. : " + e.getMessage());
+//            return null;
+//        }
 
         try {
-            kakaoUser = kakaoConnecter.getUserInfo(code, tokens.getAccess_token());
+            kakaoUser = kakaoConnecter.getUserInfo(token);
         } catch (Exception e) {
-            System.out.println("카카오 유저 정보를 가져오는데 실패했습니다. : " + e.getMessage());
-            return null;
+            throw new RuntimeException("카카오 유저 정보를 가져오는데 실패했습니다. : " + e.getMessage());
         }
         try {
-            Optional<User> optionalUser = userRepository.findByEmail(kakaoUser.getKakao_account().getEmail());
+            Optional<User> optionalUser = userRepository.findByEmailAndLoginType(kakaoUser.getKakao_account().getEmail(), LoginType.KAKAO);
 
             KakaoUserDTO finalKakaoUser = kakaoUser;
 
@@ -176,8 +175,7 @@ public class UserServiceImpl implements UserService {
                     .loginType(LoginType.KAKAO)
                     .build());
         } catch (Exception e) {
-            System.out.println("회원 정보를 찾는데 실패했습니다.");
-            return null;
+            throw new RuntimeException("회원 정보를 찾는데 실패했습니다. : " + e.getMessage());
         }
     }
 
@@ -200,7 +198,7 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         try {
-            Optional<User> optionalUser = userRepository.findByEmail(naverUser.getResponse().getEmail());
+            Optional<User> optionalUser = userRepository.findByEmailAndLoginType(naverUser.getResponse().getEmail(), LoginType.NAVER);
 
             NaverUserDTO finalNaverUser = naverUser;
             return optionalUser.orElseGet(() -> User.builder()
