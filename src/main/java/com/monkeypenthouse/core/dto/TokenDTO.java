@@ -20,6 +20,16 @@ public class TokenDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class ReissueResDTO {
+        private String grantType;
+        private String accessToken;
+        private Long accessTokenExpiresIn;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class KakaoResDTO {
         private String access_token;
         private String token_type;
