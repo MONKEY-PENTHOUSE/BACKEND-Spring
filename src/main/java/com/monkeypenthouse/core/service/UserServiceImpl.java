@@ -160,7 +160,7 @@ public class UserServiceImpl implements UserService {
         try {
             kakaoUser = kakaoConnecter.getUserInfo(token);
         } catch (Exception e) {
-            throw new RuntimeException("카카오 유저 정보를 가져오는데 실패했습니다. : " + e.getMessage());
+            throw new Exception("유효하지 않은 토큰");
         }
         try {
             Optional<User> optionalUser = userRepository.findByEmailAndLoginType(kakaoUser.getKakao_account().getEmail(), LoginType.KAKAO);
