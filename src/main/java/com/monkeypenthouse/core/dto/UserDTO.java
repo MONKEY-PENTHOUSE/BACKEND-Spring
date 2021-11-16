@@ -34,7 +34,6 @@ public class UserDTO {
         private int infoReceviable;
         private LifeStyle lifeStyle;
         private LoginType loginType;
-        private Long kakaoId;
     }
 
     @Builder
