@@ -177,7 +177,20 @@ public class UserForAllController {
     @ResponseBody
     public ResponseEntity<DefaultRes<?>> authKakao(@RequestParam("token") String token, HttpServletResponse response) {
         try {
-            User user = userService.authKakao(token);
+            User user;
+            try {
+                user = userService.authKakao(token);
+            } catch (Exception e) {
+                if (e.getMessage().equals("유효하지 않은 토큰")) {
+                    return new ResponseEntity<>(
+                            DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.UNAUTHORIZED_TOKEN),
+                            HttpStatus.UNAUTHORIZED
+                    );
+                } else {
+                    throw e;
+                }
+            }
+
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
@@ -201,9 +214,9 @@ public class UserForAllController {
             }
             // 유저 정보가 없으면 회원가입을 위해 기본 정보 보내주기
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.SIGN_UP_REQUIRED,
+                    DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.SIGN_UP_REQUIRED,
                             modelMapper.map(user, signupReqDTO.class)),
-                    HttpStatus.UNAUTHORIZED
+                    HttpStatus.FORBIDDEN
             );
         } catch (Exception e) {
             System.out.println("e = " + e.getMessage());
