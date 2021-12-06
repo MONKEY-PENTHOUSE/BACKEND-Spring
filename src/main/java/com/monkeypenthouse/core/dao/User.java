@@ -38,7 +38,7 @@ public class User {
 
     // 0 : 여자
     // 1: 남자
-    @Column(nullable=false)
+    @Column()
     private int gender;
 
     @Column(unique = true, length=50, nullable=false)
@@ -49,9 +49,6 @@ public class User {
 
     @Column(name="phone_num", unique = true, length=20, nullable=false)
     private String phoneNum;
-
-    @Column(name="collect_personal_info", nullable=false)
-    private int personalInfoCollectable;
 
     @Column(name="receive_info", nullable=false)
     private int infoReceivable;
