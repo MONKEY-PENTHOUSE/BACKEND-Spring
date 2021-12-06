@@ -17,12 +17,6 @@ public class DefaultRes<T> {
 
     private T data;
 
-    public DefaultRes(final int statusCode, final String reponseMessage) {
-        this.statusCode = statusCode;
-        this.responseMessage = reponseMessage;
-        this.data = null;
-    }
-
     public static<T> DefaultRes<T> res(final int statusCode, final String responseMessage) {
         return res(statusCode, responseMessage, null);
     }

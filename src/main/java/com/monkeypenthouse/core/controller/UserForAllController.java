@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
+import com.monkeypenthouse.core.common.SocialLoginRes;
 import com.monkeypenthouse.core.dao.*;
 import com.monkeypenthouse.core.dto.RoomDTO.*;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
@@ -173,17 +174,18 @@ public class UserForAllController {
 
     }
 
-    @GetMapping(value = "/login/kakao")
+    @PostMapping(value = "/login/kakao")
     @ResponseBody
-    public ResponseEntity<DefaultRes<?>> authKakao(@RequestParam("token") String token, HttpServletResponse response) {
+    public ResponseEntity<SocialLoginRes<?>> authKakao(@RequestBody Map<String, String> map, HttpServletResponse response) {
         try {
+            String token= map.get("token");
             User user;
             try {
                 user = userService.authKakao(token);
             } catch (Exception e) {
                 if (e.getMessage().equals("유효하지 않은 토큰")) {
                     return new ResponseEntity<>(
-                            DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.UNAUTHORIZED_TOKEN),
+                            SocialLoginRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.UNAUTHORIZED_TOKEN, false),
                             HttpStatus.UNAUTHORIZED
                     );
                 } else {
@@ -207,27 +209,27 @@ public class UserForAllController {
                 loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
 
                 return new ResponseEntity<>(
-                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
-                                loginResDTO),
+                        SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                                loginResDTO, true),
                         HttpStatus.OK
                 );
             }
             // 유저 정보가 없으면 회원가입을 위해 기본 정보 보내주기
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.SIGN_UP_REQUIRED,
-                            modelMapper.map(user, signupReqDTO.class)),
-                    HttpStatus.FORBIDDEN
+                    SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.ADDITIONAL_INFO_REQUIRED,
+                            modelMapper.map(user, signupReqDTO.class), false),
+                    HttpStatus.OK
             );
         } catch (Exception e) {
             System.out.println("e = " + e.getMessage());
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    SocialLoginRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR, false),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
     }
 
-    @GetMapping(value = "/login/naver")
+    @PostMapping(value = "/login/naver")
     @ResponseBody
     public ResponseEntity<DefaultRes<?>> authNaver(@RequestParam("code") String code,
                                                    @RequestParam("state") String state,
