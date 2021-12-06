@@ -29,8 +29,6 @@ public class UserDTO {
         private String password;
         private String phoneNum;
         // 1: 동의 0: 비동의
-        private int personalInfoCollectable;
-        // 1: 동의 0: 비동의
         private int infoReceviable;
         private LifeStyle lifeStyle;
         private LoginType loginType;
