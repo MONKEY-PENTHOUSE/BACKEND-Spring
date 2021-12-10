@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.dto;
 
+import com.monkeypenthouse.core.dao.Authority;
 import com.monkeypenthouse.core.dao.LifeStyle;
 import com.monkeypenthouse.core.dao.LoginType;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,7 @@ public class UserDTO {
         // 1: 동의 0: 비동의
         private int infoReceviable;
         private LifeStyle lifeStyle;
+        private Authority authority;
         private LoginType loginType;
     }
 
