@@ -27,7 +27,7 @@ public interface UserService {
     boolean checkNameDuplicate(String name) throws Exception;
 
     // 로그인
-    Tokens login(User user);
+    Tokens login(User user) throws Exception;
 
     // accessToken 재발급
     Tokens reissue(Tokens tokens);

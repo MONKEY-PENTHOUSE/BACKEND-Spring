@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.monkeypenthouse.core.dao.Authority;
 import com.monkeypenthouse.core.dao.LifeStyle;
 import com.monkeypenthouse.core.dao.LoginType;
@@ -22,7 +23,7 @@ public class UserDTO {
     @Data
     public static class signupReqDTO {
         private String name;
-        @DateTimeFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "yyyy.MM.dd")
         private LocalDate birth;
         // 0: 여성, 1: 남성
         private int gender;
@@ -43,7 +44,7 @@ public class UserDTO {
     public static class MyUserResDTO {
         private Long id;
         private String name;
-        @DateTimeFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "yyyy.MM.dd")
         private LocalDate birth;
         // 0: 여성, 1: 남성
         private int gender;
@@ -68,7 +69,7 @@ public class UserDTO {
     public static class LoginResDTO {
         private Long id;
         private String name;
-        @DateTimeFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "yyyy.MM.dd")
         private LocalDate birth;
         // 0: 여성, 1: 남성
         private int gender;
@@ -79,6 +80,7 @@ public class UserDTO {
         private String accessToken;
         private Long accessTokenExpiresIn;
         private String refreshToken;
+        private Long refreshTokenExpiresIn;
     }
 
     @Builder

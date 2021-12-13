@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -145,12 +146,15 @@ public class UserForAllController {
     @ResponseBody
     public ResponseEntity<DefaultRes<?>> loginLocal(@RequestBody LoginReqDTO userDTO, HttpServletResponse response) {
             User user = modelMapper.map(userDTO, User.class);
-            Tokens tokens = userService.login(user);
-            Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
-            cookie.setMaxAge(60 * 60 * 24 * 14);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            response.addCookie(cookie);
+            Tokens tokens;
+        try {
+            tokens = userService.login(user);
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.LOGIN_FAIL),
+                    HttpStatus.UNAUTHORIZED
+            );
+        }
 
         try {
             User optionalUser = userService.getUserByEmail(userDTO.getEmail());
@@ -158,6 +162,8 @@ public class UserForAllController {
             loginResDTO.setGrantType(tokens.getGrantType());
             loginResDTO.setAccessToken(tokens.getAccessToken());
             loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
+            loginResDTO.setRefreshToken(tokens.getRefreshToken());
+            loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
 
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
@@ -166,7 +172,7 @@ public class UserForAllController {
         } catch (Exception e) {
             System.out.println("e = " + e);
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.LOGIN_FAIL),
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
@@ -196,16 +202,12 @@ public class UserForAllController {
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
                 LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
-                Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
-                cookie.setMaxAge(60 * 60 * 24 * 14);
-                // cookie.setSecure(true);
-                cookie.setHttpOnly(true);
-                cookie.setPath("/");
-                response.addCookie(cookie);
 
                 loginResDTO.setGrantType(tokens.getGrantType());
                 loginResDTO.setAccessToken(tokens.getAccessToken());
                 loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
+                loginResDTO.setRefreshToken(tokens.getRefreshToken());
+                loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
 
                 return new ResponseEntity<>(
                         SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
