@@ -78,6 +78,7 @@ public class UserDTO {
         private String grantType;
         private String accessToken;
         private Long accessTokenExpiresIn;
+        private String refreshToken;
     }
 
     @Builder
