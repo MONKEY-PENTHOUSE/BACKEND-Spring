@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Tokens login(User user) {
+    public Tokens login(User user) throws Exception {
         // 1. Login ID/PW를 기반으로 authenticationToken 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
 
