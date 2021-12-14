@@ -45,11 +45,11 @@ public class UserForAllController {
 
             // 회원에게 빈방 주기
             Room room = roomService.giveVoidRoomForUser(user);
-            SignUpRoomDTO roomDTO = SignUpRoomDTO.builder()
-                    .id(room.getId())
-                    .build();
+            signupResDTO userResDTO = modelMapper.map(user, signupResDTO.class);
+            userResDTO.setRoomId(room.getId());
+
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.CREATED.value(), ResponseMessage.CREATED_USER, roomDTO),
+                    DefaultRes.res(HttpStatus.CREATED.value(), ResponseMessage.CREATED_USER, userResDTO),
                     HttpStatus.CREATED
             );
         } catch (Exception e) {
