@@ -32,9 +32,24 @@ public class UserDTO {
         private String phoneNum;
         // 1: 동의 0: 비동의
         private int infoReceviable;
-        private LifeStyle lifeStyle;
         private Authority authority;
         private LoginType loginType;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    public static class signupResDTO {
+        private Long id;
+        private String name;
+        @JsonFormat(pattern = "yyyy.MM.dd")
+        private LocalDate birth;
+        // 0: 여성, 1: 남성
+        private int gender;
+        private String email;
+        private String phoneNum;
+        private String roomId;
     }
 
     @Builder
@@ -77,6 +92,7 @@ public class UserDTO {
         private String phoneNum;
         private String roomId;
         private String grantType;
+        private LifeStyle lifeStyle;
         private String accessToken;
         private Long accessTokenExpiresIn;
         private String refreshToken;
