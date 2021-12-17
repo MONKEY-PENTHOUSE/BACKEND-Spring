@@ -149,13 +149,6 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public User authKakao(String token) throws Exception {
         KakaoUserDTO kakaoUser = null;
-//        KakaoResDTO tokens = null;
-//        try {
-//            tokens = kakaoConnecter.getToken(code);
-//        } catch (Exception e) {
-//            System.out.println("토큰 정보 가져오는데 실패했습니다. : " + e.getMessage());
-//            return null;
-//        }
 
         try {
             kakaoUser = kakaoConnecter.getUserInfo(token);
@@ -181,21 +174,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public User authNaver(String code, String state) {
+    public User authNaver(String token) throws Exception {
         NaverUserDTO naverUser = null;
-        NaverResDTO tokens = null;
-        try {
-            tokens = naverConnecter.getToken(code, state);
-        } catch (Exception e) {
-            System.out.println("토큰 정보 가져오는데 실패했습니다. : " + e.getMessage());
-            return null;
-        }
 
         try {
-            naverUser = naverConnecter.getUserInfo(tokens.getAccess_token());
+            naverUser = naverConnecter.getUserInfo(token);
         } catch (Exception e) {
-            System.out.println("카카오 유저 정보를 가져오는데 실패했습니다. : " + e.getMessage());
-            return null;
+            throw new Exception("유효하지 않은 토큰");
         }
         try {
             Optional<User> optionalUser = userRepository.findByEmailAndLoginType(naverUser.getResponse().getEmail(), LoginType.NAVER);
@@ -212,8 +197,7 @@ public class UserServiceImpl implements UserService {
                     .loginType(LoginType.NAVER)
                     .build());
         } catch (Exception e) {
-            System.out.println("회원 정보를 찾는데 실패했습니다.");
-            return null;
+            throw new RuntimeException("회원 정보를 찾는데 실패했습니다. : " + e.getMessage());
         }
     }
 

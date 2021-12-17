@@ -54,7 +54,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public boolean checkAuthNum(String phoneNum, String authNum) {
+    public boolean checkAuthNum(String phoneNum, String authNum) throws Exception {
         Optional<SmsAuthNum> numOptional = smsAuthNumRepository.findById(phoneNum);
         if (numOptional.isPresent()) {
             return authNum.equals(numOptional.get().getAuthNum());
