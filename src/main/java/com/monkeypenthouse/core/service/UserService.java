@@ -43,5 +43,7 @@ public interface UserService {
 
     Optional<User> findEmail(User user);
 
-    int changePassword(User user) throws Exception ;
+    int updatePassword(User user) throws Exception ;
+
+    int updateLifeStyle(User user) throws Exception ;
 }

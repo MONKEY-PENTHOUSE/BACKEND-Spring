@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.repository;
 
+import com.monkeypenthouse.core.dao.LifeStyle;
 import com.monkeypenthouse.core.dao.LoginType;
 import com.monkeypenthouse.core.dao.Room;
 import com.monkeypenthouse.core.dao.User;
@@ -27,5 +28,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying(clearAutomatically = true)
     @Query("UPDATE User u SET u.password = :password WHERE u.id = :id")
     int updatePassword(@Param("password") String password,
-                      @Param("id") Long id);
+                      @Param("id") Long id) throws Exception;
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE User u SET u.lifeStyle = :lifeStyle WHERE u.id = :id")
+    int updateLifeStyle(@Param("lifeStyle") LifeStyle lifeStyle, Long id) throws Exception;
 }

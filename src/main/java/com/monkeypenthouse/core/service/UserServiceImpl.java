@@ -208,9 +208,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public int changePassword(User user) throws Exception {
+    public int updatePassword(User user) throws Exception {
         return userRepository.updatePassword(
                 passwordEncoder.encode(user.getPassword()),
+                user.getId());
+    }
+
+    @Override
+    @Transactional
+    public int updateLifeStyle(User user) throws Exception {
+        return userRepository.updateLifeStyle(
+                user.getLifeStyle(),
                 user.getId());
     }
 }
