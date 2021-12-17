@@ -125,10 +125,11 @@ public class UserForAllController {
         }
     }
 
-    @GetMapping(value = "/check-sms-auth")
-    public ResponseEntity<DefaultRes<?>> checkSmsAuth(@RequestParam("phoneNum") String phoneNum,
-                                                      @RequestParam("authNum") String authNum) {
+    @PostMapping(value = "/check-sms-auth")
+    public ResponseEntity<DefaultRes<?>> checkSmsAuth(@RequestBody Map<String, String> map) {
         try {
+            String phoneNum = map.get("phoneNum");
+            String authNum = map.get("authNum");
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER,
                             messageService.checkAuthNum(phoneNum, authNum)),
