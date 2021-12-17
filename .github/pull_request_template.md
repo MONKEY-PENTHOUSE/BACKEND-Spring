@@ -2,12 +2,12 @@
 
 ## Type
 
-- [] Code Review
-- [] New Feature
-- [] Bug Fix
-- [] CI/CD
-- [] Set Up
-- [] Small Correction
+- [ ] Code Review
+- [ ] New Feature
+- [ ] Bug Fix
+- [ ] CI/CD
+- [ ] Set Up
+- [ ] Small Correction
 
 ## 개요
 
