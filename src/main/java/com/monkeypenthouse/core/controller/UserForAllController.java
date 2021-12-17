@@ -4,7 +4,6 @@ import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.common.SocialLoginRes;
 import com.monkeypenthouse.core.dao.*;
-import com.monkeypenthouse.core.dto.RoomDTO.*;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
 import com.monkeypenthouse.core.dto.UserDTO.*;
 import com.monkeypenthouse.core.service.MessageService;
@@ -14,12 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Nullable;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.Optional;
@@ -135,6 +131,31 @@ public class UserForAllController {
                             messageService.checkAuthNum(phoneNum, authNum)),
                     HttpStatus.OK
             );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PatchMapping(value = "/life-style")
+    public ResponseEntity<DefaultRes<?>> updateLifeStyle(@RequestBody UpdateLSReqDTO userDTO) {
+        try {
+            User user = modelMapper.map(userDTO, User.class);
+            int result = userService.updateLifeStyle(user);
+
+            if (result == 1) {
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.UPDATE_USER),
+                        HttpStatus.OK
+                );
+            } else {
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.NOT_FOUND_USER),
+                        HttpStatus.UNAUTHORIZED
+                );
+            }
         } catch (Exception e) {
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
@@ -328,11 +349,11 @@ public class UserForAllController {
         }
     }
 
-    @PostMapping(value = "/change-pw")
-    public ResponseEntity<DefaultRes<?>> changePassword(@RequestBody ChangePwReqDTO userDTO) {
+    @PatchMapping(value = "/password")
+    public ResponseEntity<DefaultRes<?>> updatePassword(@RequestBody UpdatePWReqDTO userDTO) {
         try {
             User user = modelMapper.map(userDTO, User.class);
-            int result = userService.changePassword(user);
+            int result = userService.updatePassword(user);
 
             if (result == 1) {
                 return new ResponseEntity<>(

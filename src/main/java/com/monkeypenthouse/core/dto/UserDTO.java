@@ -122,8 +122,17 @@ public class UserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    public static class ChangePwReqDTO {
+    public static class UpdatePWReqDTO {
         private Long id;
         private String password;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    public static class UpdateLSReqDTO {
+        private Long id;
+        private LifeStyle lifeStyle;
     }
 }
