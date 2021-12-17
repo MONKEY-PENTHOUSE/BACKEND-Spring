@@ -233,38 +233,50 @@ public class UserForAllController {
 
     @PostMapping(value = "/login/naver")
     @ResponseBody
-    public ResponseEntity<DefaultRes<?>> authNaver(@RequestParam("code") String code,
-                                                   @RequestParam("state") String state,
-                                                   @RequestParam("error") @Nullable String error,
-                                                   @RequestParam("error_description") @Nullable String errorDescription,
+    public ResponseEntity<DefaultRes<?>> authNaver(@RequestBody Map<String, String> map,
                                                    HttpServletResponse response) {
         try {
-            User user = userService.authNaver(code, state);
+            String token = map.get("token");
+            User user;
+            try {
+                user = userService.authNaver(token);
+            } catch (Exception e) {
+                if (e.getMessage().equals("유효하지 않은 토큰")) {
+                    return new ResponseEntity<>(
+                            SocialLoginRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.UNAUTHORIZED_TOKEN, false),
+                            HttpStatus.UNAUTHORIZED
+                    );
+                } else {
+                    throw e;
+                }
+            }
+
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
-                Cookie cookie = new Cookie("refreshToken", tokens.getRefreshToken());
-                cookie.setMaxAge(60 * 60 * 24 * 14);
-                // cookie.setSecure(true);
-                cookie.setHttpOnly(true);
-                cookie.setPath("/");
-                response.addCookie(cookie);
+                LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
+
+                loginResDTO.setGrantType(tokens.getGrantType());
+                loginResDTO.setAccessToken(tokens.getAccessToken());
+                loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
+                loginResDTO.setRefreshToken(tokens.getRefreshToken());
+                loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
                 return new ResponseEntity<>(
-                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
-                                modelMapper.map(userService.login(user), LoginResDTO.class)),
+                        SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                                loginResDTO, true),
                         HttpStatus.OK
                 );
             }
             // 유저 정보가 없으면 회원가입을 위해 기본 정보 보내주기
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
-                            modelMapper.map(user, signupReqDTO.class)),
+                    SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.ADDITIONAL_INFO_REQUIRED,
+                            modelMapper.map(user, signupReqDTO.class), false),
                     HttpStatus.OK
             );
         } catch (Exception e) {
             System.out.println("e = " + e.getMessage());
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    SocialLoginRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR, false),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
