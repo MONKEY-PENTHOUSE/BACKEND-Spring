@@ -1,15 +1,24 @@
-## 이슈번호
+# #ISSUE NUM - TITLE
 
-#이슈번호 - 이슈제목
+## Type
 
-## 작업 내역
+- [] Code Review
+- [] New Feature
+- [] Bug Fix
+- [] CI/CD
+- [] Set Up
+- [] Small Correction
 
-- first
-- second
-- third
+## 개요
 
-## 리뷰받고 싶은 포인트
+- 내용 1
+- 내용 2
 
-- first
-- second
-- third
+## 작업 내용
+
+- 작업 내용 1
+- 작업 내용 2
+
+## 코드 리뷰시 참고 사항
+- 참고 사항 1
+- 참고 사항 2
