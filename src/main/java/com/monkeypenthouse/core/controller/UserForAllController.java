@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -55,6 +56,33 @@ public class UserForAllController {
             );
         }
     }
+
+    /* 회워가입 테스트 용 */
+    @DeleteMapping(value="/", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<DefaultRes<?>> delete(@RequestBody Map<String, String> map) {
+        try {
+            String email = map.get("email");
+            try {
+                // 회원 삭제
+                userService.deleteByEmail(email);
+            } catch (NoSuchElementException e) {
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.NOT_FOUND_USER),
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.DELETE_USER),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
 
     @GetMapping(value = "/check-id-duplication")
     public ResponseEntity<DefaultRes<?>> checkIdDuplicate(@RequestParam("email") String email) {

@@ -26,4 +26,9 @@ public class RoomServiceImpl implements RoomService {
         userRepository.updateRoomId(user.getId(), room);
         return room;
     }
+
+    @Override
+    public void returnRoomFromUser(Long id) throws Exception {
+        roomRepository.deleteUserId(null);
+    }
 }

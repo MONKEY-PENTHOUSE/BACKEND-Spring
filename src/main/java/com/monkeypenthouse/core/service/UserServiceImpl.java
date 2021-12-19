@@ -9,6 +9,7 @@ import com.monkeypenthouse.core.dto.KakaoUserDTO;
 import com.monkeypenthouse.core.dto.NaverUserDTO;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
 import com.monkeypenthouse.core.repository.RefreshTokenRepository;
+import com.monkeypenthouse.core.repository.RoomRepository;
 import com.monkeypenthouse.core.repository.UserRepository;
 import com.monkeypenthouse.core.security.SecurityUtil;
 import com.monkeypenthouse.core.security.TokenProvider;
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final UserRepository userRepository;
+    private final RoomRepository roomRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -220,5 +222,14 @@ public class UserServiceImpl implements UserService {
         return userRepository.updateLifeStyle(
                 user.getLifeStyle(),
                 user.getId());
+    }
+
+    @Override
+    @Transactional
+    public void deleteByEmail(String email) throws Exception {
+        Long id = userRepository.findByEmail(email).orElseThrow().getId();
+        System.out.println("id = " + id);
+        roomRepository.deleteUserId(id);
+        userRepository.deleteById(id);
     }
 }
