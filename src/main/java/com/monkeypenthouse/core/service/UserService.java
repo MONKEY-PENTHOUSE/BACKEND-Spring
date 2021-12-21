@@ -21,10 +21,10 @@ public interface UserService {
     User getUserByEmailAndLoginType(String email, LoginType loginType) throws Exception;
 
     // 특정 이메일의 회원이 존해자는지 확인
-    boolean checkIdDuplicate(String email) throws Exception;
+    boolean checkEmailDuplicate(String email) throws Exception;
 
-    // 특정 이메일의 회원이 존해자는지 확인
-    boolean checkNameDuplicate(String name) throws Exception;
+    // 특정 전화번호를 가진 회원이 존해자는지 확인
+    boolean checkPhoneNumDuplicate(String phoneNum) throws Exception;
 
     // 로그인
     Tokens login(User user) throws Exception;
@@ -39,13 +39,18 @@ public interface UserService {
     // 유저 정보가 없을 시 비어있는 유저 리턴
     User authKakao(String token) throws Exception;
 
+    // 네이버 인증 후 회원 정보 조회
     User authNaver(String token) throws Exception;
 
+    // 유저의 이메일 찾기
     Optional<User> findEmail(User user);
 
+    // 유저의 비밀번호 수정
     int updatePassword(User user) throws Exception;
 
+    // 유저의 라이프스타일 수정
     int updateLifeStyle(User user) throws Exception;
 
+    // 특정 이메일을 가진 회원 삭제
     void deleteByEmail(String email) throws Exception;
 }
