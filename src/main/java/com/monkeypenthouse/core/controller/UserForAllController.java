@@ -37,16 +37,27 @@ public class UserForAllController {
     public ResponseEntity<DefaultRes<?>> signUp(@RequestBody signupReqDTO userDTO) {
         try {
             User user = modelMapper.map(userDTO, User.class);
-            // 회원 추가
-            user = userService.add(user);
-
-            // 회원에게 빈방 주기
-            Room room = roomService.giveVoidRoomForUser(user);
-            signupResDTO userResDTO = modelMapper.map(user, signupResDTO.class);
-            userResDTO.setRoomId(room.getId());
-
+            try {
+                user = userService.add(user);
+            } catch (Exception e) {
+                switch (e.getMessage()) {
+                    case "회원 정보 중복":
+                        return new ResponseEntity<>(
+                                DefaultRes.res(HttpStatus.CONFLICT.value(), ResponseMessage.DUPLICATE_USER),
+                                HttpStatus.CONFLICT
+                        );
+                    case "빈 방 없음":
+                        return new ResponseEntity<>(
+                                DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.NO_MORE_ROOM),
+                                HttpStatus.FORBIDDEN
+                        );
+                    default:
+                        throw e;
+                }
+            }
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.CREATED.value(), ResponseMessage.CREATED_USER, userResDTO),
+                    DefaultRes.res(HttpStatus.CREATED.value(), ResponseMessage.CREATED_USER,
+                            modelMapper.map(user, signupResDTO.class)),
                     HttpStatus.CREATED
             );
         } catch (Exception e) {
@@ -87,7 +98,7 @@ public class UserForAllController {
     @GetMapping(value = "/check-id-duplication")
     public ResponseEntity<DefaultRes<?>> checkIdDuplicate(@RequestParam("email") String email) {
         try {
-            boolean exist = userService.checkIdDuplicate(email);
+            boolean exist = userService.checkEmailDuplicate(email);
             if (exist) {
                 return new ResponseEntity<>(
                         DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, true),
@@ -107,33 +118,42 @@ public class UserForAllController {
         }
     }
 
-    @GetMapping(value = "/check-name-duplication")
-    public ResponseEntity<DefaultRes<?>> checkNameDuplicate(@RequestParam("name") String name) {
-        try {
-            boolean exist = userService.checkNameDuplicate(name);
-            if (exist) {
-                return new ResponseEntity<>(
-                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, true),
-                        HttpStatus.OK
-                );
-            } else {
-                return new ResponseEntity<>(
-                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, false),
-                        HttpStatus.OK
-                );
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
+//    @GetMapping(value = "/check-name-duplication")
+//    public ResponseEntity<DefaultRes<?>> checkNameDuplicate(@RequestParam("name") String name) {
+//        try {
+//            boolean exist = userService.checkNameDuplicate(name);
+//            if (exist) {
+//                return new ResponseEntity<>(
+//                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, true),
+//                        HttpStatus.OK
+//                );
+//            } else {
+//                return new ResponseEntity<>(
+//                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, false),
+//                        HttpStatus.OK
+//                );
+//            }
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(
+//                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+//                    HttpStatus.INTERNAL_SERVER_ERROR
+//            );
+//        }
+//    }
 
     @PostMapping(value = "/sms-auth")
     public ResponseEntity<DefaultRes<?>> smsAuth(@RequestBody Map<String, String> map) {
         try {
+
             String phoneNum = map.get("phoneNum");
+
+            if (userService.checkPhoneNumDuplicate(phoneNum)) {
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.DUPLICATE_PHONE_NUM),
+                        HttpStatus.FORBIDDEN
+                );
+            }
+
             messageService.sendSMS(phoneNum);
 
             return new ResponseEntity<>(

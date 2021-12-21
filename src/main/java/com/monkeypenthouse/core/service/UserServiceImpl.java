@@ -16,6 +16,7 @@ import com.monkeypenthouse.core.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -45,9 +46,23 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User add(User user) throws Exception {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setAuthority(Authority.USER);
-        return userRepository.save(user);
+        try {
+            // 회원 정보 저장
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setAuthority(Authority.USER);
+            user = userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new DataIntegrityViolationException("회원 정보 중복");
+        }
+
+        // 회원에게 빈 방 주기
+        roomRepository.updateUserIdForVoidRoom(user.getId(), user.getAuthority());
+        Optional<Room> roomOptional = roomRepository.findByUserId(user.getId());
+        Room room = roomOptional.orElseThrow(() -> new Exception("빈 방 없음"));
+        userRepository.updateRoomId(user.getId(), room);
+
+        user.setRoom(room);
+        return user;
     }
 
     // Id로 회원 조회
@@ -73,15 +88,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean checkIdDuplicate(String email) throws Exception {
+    public boolean checkEmailDuplicate(String email) throws Exception {
         return userRepository.existsByEmail(email);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public boolean checkNameDuplicate(String name) throws Exception {
-        return userRepository.existsByName(name);
+    public boolean checkPhoneNumDuplicate(String phoneNum) throws Exception {
+        return userRepository.existsByPhoneNum(phoneNum);
     }
+
 
     @Override
     @Transactional
