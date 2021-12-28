@@ -14,6 +14,7 @@ public class TokenDTO {
     @AllArgsConstructor
     public static class ReissueReqDTO {
         private String accessToken;
+        private String refreshToken;
     }
 
     @Data
