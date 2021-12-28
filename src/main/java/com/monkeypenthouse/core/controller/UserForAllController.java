@@ -14,9 +14,11 @@ import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -34,8 +36,9 @@ public class UserForAllController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody signupReqDTO userDTO) throws Exception {
+    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody @Valid signupReqDTO userDTO) throws Exception {
         User user = modelMapper.map(userDTO, User.class);
+        user.setAuthority(Authority.USER);
         try {
             user = userService.add(user);
         } catch (Exception e) {
@@ -151,7 +154,7 @@ public class UserForAllController {
     }
 
     @PatchMapping(value = "/life-style")
-    public ResponseEntity<DefaultRes<?>> updateLifeStyle(@RequestBody UpdateLSReqDTO userDTO) throws Exception {
+    public ResponseEntity<DefaultRes<?>> updateLifeStyle(@RequestBody @Valid UpdateLSReqDTO userDTO) throws Exception {
         User user = modelMapper.map(userDTO, User.class);
         int result = userService.updateLifeStyle(user);
 
@@ -170,7 +173,7 @@ public class UserForAllController {
 
     @PostMapping(value = "/login")
     @ResponseBody
-    public ResponseEntity<DefaultRes<?>> loginLocal(@RequestBody LoginReqDTO userDTO, HttpServletResponse response) throws Exception {
+    public ResponseEntity<DefaultRes<?>> loginLocal(@RequestBody @Valid LoginReqDTO userDTO, HttpServletResponse response) throws Exception {
         User user = modelMapper.map(userDTO, User.class);
         Tokens tokens;
         try {
@@ -282,9 +285,8 @@ public class UserForAllController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<DefaultRes<?>> reissue(@CookieValue("refreshToken") String refreshToken, @RequestBody ReissueReqDTO tokenDTO) throws Exception {
+    public ResponseEntity<DefaultRes<?>> reissue(@RequestBody ReissueReqDTO tokenDTO) throws Exception {
         Tokens tokens = modelMapper.map(tokenDTO, Tokens.class);
-        tokens.setRefreshToken(refreshToken);
 
         return new ResponseEntity<>(
                 DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.REISSUE_SUCCESS,
@@ -294,7 +296,7 @@ public class UserForAllController {
     }
 
     @GetMapping(value = "/find-email")
-    public ResponseEntity<DefaultRes<?>> findEmail(@RequestBody FindEmailReqDTO userDTO) throws Exception {
+    public ResponseEntity<DefaultRes<?>> findEmail(@RequestBody @Valid FindEmailReqDTO userDTO) throws Exception {
         User user = modelMapper.map(userDTO, User.class);
         Optional<User> optionalUser = userService.findEmail(user);
 
@@ -313,7 +315,7 @@ public class UserForAllController {
     }
 
     @PatchMapping(value = "/password")
-    public ResponseEntity<DefaultRes<?>> updatePassword(@RequestBody UpdatePWReqDTO userDTO) throws Exception {
+    public ResponseEntity<DefaultRes<?>> updatePassword(@RequestBody @Valid UpdatePWReqDTO userDTO) throws Exception {
         User user = modelMapper.map(userDTO, User.class);
         int result = userService.updatePassword(user);
 
