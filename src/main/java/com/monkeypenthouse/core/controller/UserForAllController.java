@@ -228,7 +228,7 @@ public class UserForAllController {
 
         try {
             User userLoggedIn = userService.getUserByEmail(userDTO.getEmail());
-            // 회원가입 후 라이프 스타일 테스트를 하기 전 상태일 때
+            // 라이프스타일 테스트 전 회원 처리
             if (userLoggedIn.getLifeStyle() == null) {
                 SignupResDTO signupResDTO = modelMapper.map(userLoggedIn, SignupResDTO.class);
                 return new ResponseEntity<>(
@@ -280,7 +280,7 @@ public class UserForAllController {
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
-                // 회원가입 후 라이프 스타일 테스트를 하기 전 상태일 때
+                // 라이프스타일 테스트 전 회원 처리
                 if (user.getLifeStyle() == null) {
                     SignupResDTO signupResDTO = modelMapper.map(user, SignupResDTO.class);
                     return new ResponseEntity<>(
@@ -339,6 +339,7 @@ public class UserForAllController {
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
+                // 라이프스타일 테스트 전 회원 처리
                 if (user.getLifeStyle() == null) {
                     SignupResDTO signupResDTO = modelMapper.map(user, SignupResDTO.class);
                     return new ResponseEntity<>(
