@@ -57,7 +57,7 @@ public class UserForAllController {
             }
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.CREATED.value(), ResponseMessage.CREATED_USER,
-                            modelMapper.map(user, signupResDTO.class)),
+                            modelMapper.map(user, SignupResDTO.class)),
                     HttpStatus.CREATED
             );
         } catch (Exception e) {
@@ -227,8 +227,17 @@ public class UserForAllController {
         }
 
         try {
-            User optionalUser = userService.getUserByEmail(userDTO.getEmail());
-            LoginResDTO loginResDTO = modelMapper.map(optionalUser, LoginResDTO.class);
+            User userLoggedIn = userService.getUserByEmail(userDTO.getEmail());
+            // 라이프스타일 테스트 전 회원 처리
+            if (userLoggedIn.getLifeStyle() == null) {
+                SignupResDTO signupResDTO = modelMapper.map(userLoggedIn, SignupResDTO.class);
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
+                                signupResDTO
+                        ), HttpStatus.FORBIDDEN);
+            }
+
+            LoginResDTO loginResDTO = modelMapper.map(userLoggedIn, LoginResDTO.class);
             loginResDTO.setGrantType(tokens.getGrantType());
             loginResDTO.setAccessToken(tokens.getAccessToken());
             loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
@@ -271,8 +280,15 @@ public class UserForAllController {
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
+                // 라이프스타일 테스트 전 회원 처리
+                if (user.getLifeStyle() == null) {
+                    SignupResDTO signupResDTO = modelMapper.map(user, SignupResDTO.class);
+                    return new ResponseEntity<>(
+                            SocialLoginRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
+                                    signupResDTO, false),
+                            HttpStatus.FORBIDDEN);
+                }
                 LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
-
                 loginResDTO.setGrantType(tokens.getGrantType());
                 loginResDTO.setAccessToken(tokens.getAccessToken());
                 loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
@@ -323,6 +339,14 @@ public class UserForAllController {
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
                 Tokens tokens = userService.login(user);
+                // 라이프스타일 테스트 전 회원 처리
+                if (user.getLifeStyle() == null) {
+                    SignupResDTO signupResDTO = modelMapper.map(user, SignupResDTO.class);
+                    return new ResponseEntity<>(
+                            SocialLoginRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
+                                    signupResDTO, false),
+                            HttpStatus.FORBIDDEN);
+                }
                 LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
 
                 loginResDTO.setGrantType(tokens.getGrantType());

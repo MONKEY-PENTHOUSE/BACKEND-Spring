@@ -19,4 +19,5 @@ public class ResponseMessage {
     public static final String REISSUE_SUCCESS = "재발급 성공";
     public static final String REISSUE_FAIL = "재발급 실패";
     public static final String ADDITIONAL_INFO_REQUIRED = "추가 정보 입력 필요";
+    public static final String LIFESTYLE_TEST_NEEDED = "라이프 스타일 테스트 필요";
 }
