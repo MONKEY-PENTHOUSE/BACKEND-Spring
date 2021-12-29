@@ -40,7 +40,7 @@ public class UserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    public static class signupResDTO {
+    public static class SignupResDTO {
         private Long id;
         private String name;
         @JsonFormat(pattern = "yyyy.MM.dd")
@@ -135,4 +135,5 @@ public class UserDTO {
         private Long id;
         private LifeStyle lifeStyle;
     }
+
 }
