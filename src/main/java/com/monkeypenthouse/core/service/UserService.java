@@ -4,6 +4,7 @@ import com.monkeypenthouse.core.dao.LoginType;
 import com.monkeypenthouse.core.dao.Tokens;
 import com.monkeypenthouse.core.dao.User;
 
+import java.util.Map;
 import java.util.Optional;
 
 public interface UserService {
@@ -27,7 +28,7 @@ public interface UserService {
     boolean checkPhoneNumDuplicate(String phoneNum) throws Exception;
 
     // 로그인
-    Tokens login(User user) throws Exception;
+    Map<String, Object> login(User user) throws Exception;
 
     // accessToken 재발급
     Tokens reissue(Tokens tokens);
