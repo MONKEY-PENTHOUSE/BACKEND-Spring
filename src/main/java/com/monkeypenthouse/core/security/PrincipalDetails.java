@@ -54,4 +54,8 @@ public class PrincipalDetails implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public User getUserInfo() {
+        return user;
+    }
 }
