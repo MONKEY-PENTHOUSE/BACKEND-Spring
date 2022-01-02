@@ -5,6 +5,7 @@ import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.common.SocialLoginRes;
 import com.monkeypenthouse.core.dao.*;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
+import com.monkeypenthouse.core.dto.UserDTO;
 import com.monkeypenthouse.core.dto.UserDTO.*;
 import com.monkeypenthouse.core.service.MessageService;
 import com.monkeypenthouse.core.service.RoomService;
@@ -215,29 +216,22 @@ public class UserForAllController {
     @PostMapping(value = "/login")
     @ResponseBody
     public ResponseEntity<DefaultRes<?>> loginLocal(@RequestBody LoginReqDTO userDTO, HttpServletResponse response) {
-            User user = modelMapper.map(userDTO, User.class);
-            Tokens tokens;
+        User user = modelMapper.map(userDTO, User.class);
+        Tokens tokens;
         try {
-            tokens = userService.login(user);
-        } catch (Exception e) {
-            return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.LOGIN_FAIL),
-                    HttpStatus.UNAUTHORIZED
-            );
-        }
-
-        try {
-            User userLoggedIn = userService.getUserByEmail(userDTO.getEmail());
-            // 라이프스타일 테스트 전 회원 처리
-            if (userLoggedIn.getLifeStyle() == null) {
-                SignupResDTO signupResDTO = modelMapper.map(userLoggedIn, SignupResDTO.class);
+            Map<String, Object> map = userService.login(user);
+            // 유저 정보 DTO에 담기
+            User loggedInUser = (User) map.get("user");
+            if ((tokens = (Tokens) map.get("tokens")) == null) {
+                // 토큰 정보가 없으면 라이프스타일 미완료 유저 -> Forbidden 처리
+                UserDTO.SignupResDTO signupResDTO = modelMapper.map(loggedInUser, UserDTO.SignupResDTO.class);
                 return new ResponseEntity<>(
                         DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
                                 signupResDTO
                         ), HttpStatus.FORBIDDEN);
             }
-
-            LoginResDTO loginResDTO = modelMapper.map(userLoggedIn, LoginResDTO.class);
+            // 토큰 정보가 있으면 토큰 정보 전송 및 로그인 완료 처리
+            UserDTO.LoginResDTO loginResDTO = modelMapper.map(loggedInUser, UserDTO.LoginResDTO.class);
             loginResDTO.setGrantType(tokens.getGrantType());
             loginResDTO.setAccessToken(tokens.getAccessToken());
             loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
@@ -248,14 +242,21 @@ public class UserForAllController {
                     DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
                             loginResDTO
                     ), HttpStatus.OK);
+
         } catch (Exception e) {
             System.out.println("e = " + e);
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
-                    HttpStatus.INTERNAL_SERVER_ERROR
+                    DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.LOGIN_FAIL),
+                    HttpStatus.UNAUTHORIZED
             );
         }
-
+//        } catch (Exception e) {
+//            System.out.println("e = " + e);
+//            return new ResponseEntity<>(
+//                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+//                    HttpStatus.INTERNAL_SERVER_ERROR
+//            );
+//        }
     }
 
     @PostMapping(value = "/login/kakao")
@@ -279,16 +280,19 @@ public class UserForAllController {
 
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
-                Tokens tokens = userService.login(user);
-                // 라이프스타일 테스트 전 회원 처리
-                if (user.getLifeStyle() == null) {
-                    SignupResDTO signupResDTO = modelMapper.map(user, SignupResDTO.class);
+                Map<String, Object> result = userService.login(user);
+                User loggedInUser = (User) result.get("user");
+                Tokens tokens;
+                if ((tokens = (Tokens) result.get("tokens")) == null) {
+                    // 토큰 정보가 없으면 라이프스타일 미완료 유저 -> Forbidden 처리
+                    UserDTO.SignupResDTO signupResDTO = modelMapper.map(loggedInUser, UserDTO.SignupResDTO.class);
                     return new ResponseEntity<>(
                             SocialLoginRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
                                     signupResDTO, false),
                             HttpStatus.FORBIDDEN);
                 }
-                LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
+                // 토큰 정보가 있으면 토큰 정보 전송 및 로그인 완료 처리
+                UserDTO.LoginResDTO loginResDTO = modelMapper.map(loggedInUser, UserDTO.LoginResDTO.class);
                 loginResDTO.setGrantType(tokens.getGrantType());
                 loginResDTO.setAccessToken(tokens.getAccessToken());
                 loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
@@ -338,22 +342,25 @@ public class UserForAllController {
 
             // 유저 정보가 있으면 로그인 처리
             if (user.getId() != null) {
-                Tokens tokens = userService.login(user);
-                // 라이프스타일 테스트 전 회원 처리
-                if (user.getLifeStyle() == null) {
-                    SignupResDTO signupResDTO = modelMapper.map(user, SignupResDTO.class);
+                Map<String, Object> result = userService.login(user);
+                User loggedInUser = (User) result.get("user");
+                Tokens tokens;
+                if ((tokens = (Tokens) result.get("tokens")) == null) {
+                    // 토큰 정보가 없으면 라이프스타일 미완료 유저 -> Forbidden 처리
+                    UserDTO.SignupResDTO signupResDTO = modelMapper.map(loggedInUser, UserDTO.SignupResDTO.class);
                     return new ResponseEntity<>(
                             SocialLoginRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
                                     signupResDTO, false),
                             HttpStatus.FORBIDDEN);
                 }
-                LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
-
+                // 토큰 정보가 있으면 토큰 정보 전송 및 로그인 완료 처리
+                UserDTO.LoginResDTO loginResDTO = modelMapper.map(loggedInUser, UserDTO.LoginResDTO.class);
                 loginResDTO.setGrantType(tokens.getGrantType());
                 loginResDTO.setAccessToken(tokens.getAccessToken());
                 loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
                 loginResDTO.setRefreshToken(tokens.getRefreshToken());
                 loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
+
                 return new ResponseEntity<>(
                         SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
                                 loginResDTO, true),
