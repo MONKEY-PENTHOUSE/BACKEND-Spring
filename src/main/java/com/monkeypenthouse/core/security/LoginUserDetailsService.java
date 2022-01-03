@@ -32,12 +32,6 @@ public class LoginUserDetailsService implements UserDetailsService {
 
     // DB에 User 값이 존재한다면 UserDetails 객체로 만들어 리턴
     private UserDetails createUserDetails(User user) {
-//        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(user.getAuthority().name());
-//        return new org.springframework.security.core.userdetails.User(
-//                String.valueOf(user.getEmail()),
-//                user.getPassword(),
-//                Collections.singleton(grantedAuthority)
-//        );
         return new PrincipalDetails(user);
     }
 
