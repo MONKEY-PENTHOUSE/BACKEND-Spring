@@ -1,9 +1,6 @@
 package com.monkeypenthouse.core.config;
 
-import com.monkeypenthouse.core.security.JwtAccessDeniedHandler;
-import com.monkeypenthouse.core.security.JwtAuthenticationEntryPoint;
-import com.monkeypenthouse.core.security.LoginUserDetailsService;
-import com.monkeypenthouse.core.security.TokenProvider;
+import com.monkeypenthouse.core.security.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -39,6 +37,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        JwtFilter customFilter = new JwtFilter(tokenProvider);
 
         // csrf 비활성
         http.httpBasic().disable()
@@ -66,7 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // JwtFilter를 addFilterBefore로 등록했던 JwtSecurityConfig 클래스를 적용
         .and()
-        .apply(new JwtSecurityConfig(tokenProvider));
+        .addFilterBefore(customFilter, UsernamePasswordAuthenticationFilter.class);
 
         http.formLogin();
     }
