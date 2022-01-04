@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @NoArgsConstructor
 @AllArgsConstructor
-public class NaverConnecter {
+public class NaverConnector {
     @Value("${naver.authorization-grant-type}")
     private String AUTHORIZATION_GRANT_TYPE;
     @Value("${naver.client-id}")
@@ -64,7 +64,6 @@ public class NaverConnecter {
     }
 
     public NaverUserDTO getUserInfo(String accessToken) {
-        NaverUserDTO naverUser = null;
         // 회원정보 받아오기
         RestTemplate rt = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

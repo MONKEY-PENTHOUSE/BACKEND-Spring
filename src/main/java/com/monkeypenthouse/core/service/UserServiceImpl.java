@@ -1,16 +1,10 @@
 package com.monkeypenthouse.core.service;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.monkeypenthouse.core.common.DefaultRes;
-import com.monkeypenthouse.core.common.ResponseMessage;
-import com.monkeypenthouse.core.connect.KakaoConnecter;
-import com.monkeypenthouse.core.connect.NaverConnecter;
+import com.monkeypenthouse.core.connect.KakaoConnector;
+import com.monkeypenthouse.core.connect.NaverConnector;
 import com.monkeypenthouse.core.dao.*;
 import com.monkeypenthouse.core.dto.KakaoUserDTO;
 import com.monkeypenthouse.core.dto.NaverUserDTO;
-import com.monkeypenthouse.core.dto.TokenDTO.*;
-import com.monkeypenthouse.core.dto.UserDTO;
 import com.monkeypenthouse.core.repository.RefreshTokenRepository;
 import com.monkeypenthouse.core.repository.RoomRepository;
 import com.monkeypenthouse.core.repository.UserRepository;
@@ -21,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -47,8 +39,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final KakaoConnecter kakaoConnecter;
-    private final NaverConnecter naverConnecter;
+    private final KakaoConnector kakaoConnector;
+    private final NaverConnector naverConnector;
 
     // 회원 추가
     @Override
@@ -183,10 +175,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public User authKakao(String token) throws Exception {
-        KakaoUserDTO kakaoUser = null;
-
+        KakaoUserDTO kakaoUser;
         try {
-            kakaoUser = kakaoConnecter.getUserInfo(token);
+            kakaoUser = kakaoConnector.getUserInfo(token);
         } catch (Exception e) {
             throw new Exception("유효하지 않은 토큰");
         }
@@ -210,10 +201,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public User authNaver(String token) throws Exception {
-        NaverUserDTO naverUser = null;
+        NaverUserDTO naverUser;
 
         try {
-            naverUser = naverConnecter.getUserInfo(token);
+            naverUser = naverConnector.getUserInfo(token);
         } catch (Exception e) {
             throw new Exception("유효하지 않은 토큰");
         }
