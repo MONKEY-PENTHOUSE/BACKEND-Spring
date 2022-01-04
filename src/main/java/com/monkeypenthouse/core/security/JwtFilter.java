@@ -1,6 +1,5 @@
 package com.monkeypenthouse.core.security;
 
-import com.monkeypenthouse.core.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

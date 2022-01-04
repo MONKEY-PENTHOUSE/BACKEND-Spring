@@ -1,7 +1,6 @@
 package com.monkeypenthouse.core.controller;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
 import org.springframework.http.HttpStatus;
@@ -14,9 +13,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @ControllerAdvice
 public class ExceptionController {

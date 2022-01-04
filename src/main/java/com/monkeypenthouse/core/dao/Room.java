@@ -25,6 +25,6 @@ public class Room {
     @Column(name = "user_role", nullable = false, updatable = false)
     private Authority authority;
 
-    @Column(name = "user_id", nullable = true, unique = true)
+    @Column(name = "user_id", unique = true)
     private Long userId;
 }

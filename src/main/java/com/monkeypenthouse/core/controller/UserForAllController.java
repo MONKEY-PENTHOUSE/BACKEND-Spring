@@ -15,7 +15,6 @@ import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -31,10 +30,8 @@ import java.util.Optional;
 public class UserForAllController {
 
     private final UserService userService;
-    private final RoomService roomService;
     private final MessageService messageService;
     private final ModelMapper modelMapper;
-    private final PasswordEncoder passwordEncoder;
 
     @PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DefaultRes<?>> signUp(@RequestBody @Valid signupReqDTO userDTO) throws Exception {
@@ -157,7 +154,7 @@ public class UserForAllController {
 
     @PostMapping(value = "/login")
     @ResponseBody
-    public ResponseEntity<DefaultRes<?>> loginLocal(@RequestBody @Valid LoginReqDTO userDTO, HttpServletResponse response) throws Exception {
+    public ResponseEntity<DefaultRes<?>> loginLocal(@RequestBody @Valid LoginReqDTO userDTO) throws Exception {
         User user = modelMapper.map(userDTO, User.class);
         Tokens tokens;
         try {
@@ -195,7 +192,7 @@ public class UserForAllController {
 
     @PostMapping(value = "/login/kakao")
     @ResponseBody
-    public ResponseEntity<SocialLoginRes<?>> authKakao(@RequestBody Map<String, String> map, HttpServletResponse response) throws Exception {
+    public ResponseEntity<SocialLoginRes<?>> authKakao(@RequestBody Map<String, String> map) throws Exception {
         String token= map.get("token");
         User user;
         try {
@@ -247,8 +244,7 @@ public class UserForAllController {
 
     @PostMapping(value = "/login/naver")
     @ResponseBody
-    public ResponseEntity<DefaultRes<?>> authNaver(@RequestBody Map<String, String> map,
-                                                   HttpServletResponse response) throws Exception {
+    public ResponseEntity<DefaultRes<?>> authNaver(@RequestBody Map<String, String> map) throws Exception {
         try {
             String token = map.get("token");
             User user;

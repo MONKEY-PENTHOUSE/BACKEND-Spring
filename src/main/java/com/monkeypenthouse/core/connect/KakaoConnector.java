@@ -20,7 +20,7 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoConnecter {
+public class KakaoConnector {
     @Value("${kakao.authorization-grant-type}")
     private String AUTHORIZATION_GRANT_TYPE;
     @Value("${kakao.client-id}")
@@ -65,7 +65,6 @@ public class KakaoConnecter {
     }
 
     public KakaoUserDTO getUserInfo(String accessToken) {
-        KakaoUserDTO kakaoUser = null;
         // 회원정보 받아오기
         RestTemplate rt = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
