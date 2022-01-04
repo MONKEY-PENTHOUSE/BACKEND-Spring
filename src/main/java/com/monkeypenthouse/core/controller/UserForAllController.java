@@ -5,6 +5,7 @@ import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.common.SocialLoginRes;
 import com.monkeypenthouse.core.dao.*;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
+import com.monkeypenthouse.core.dto.UserDTO;
 import com.monkeypenthouse.core.dto.UserDTO.*;
 import com.monkeypenthouse.core.service.MessageService;
 import com.monkeypenthouse.core.service.RoomService;
@@ -37,31 +38,37 @@ public class UserForAllController {
 
     @PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DefaultRes<?>> signUp(@RequestBody @Valid signupReqDTO userDTO) throws Exception {
-        User user = modelMapper.map(userDTO, User.class);
-        user.setAuthority(Authority.USER);
         try {
-            user = userService.add(user);
-        } catch (Exception e) {
-            switch (e.getMessage()) {
-                case "회원 정보 중복":
-                    return new ResponseEntity<>(
-                            DefaultRes.res(HttpStatus.CONFLICT.value(), ResponseMessage.DUPLICATE_USER),
-                            HttpStatus.CONFLICT
-                    );
-                case "빈 방 없음":
-                    return new ResponseEntity<>(
-                            DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.NO_MORE_ROOM),
-                            HttpStatus.FORBIDDEN
-                    );
-                default:
-                    throw e;
+            User user = modelMapper.map(userDTO, User.class);
+            try {
+                user = userService.add(user);
+            } catch (Exception e) {
+                switch (e.getMessage()) {
+                    case "회원 정보 중복":
+                        return new ResponseEntity<>(
+                                DefaultRes.res(HttpStatus.CONFLICT.value(), ResponseMessage.DUPLICATE_USER),
+                                HttpStatus.CONFLICT
+                        );
+                    case "빈 방 없음":
+                        return new ResponseEntity<>(
+                                DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.NO_MORE_ROOM),
+                                HttpStatus.FORBIDDEN
+                        );
+                    default:
+                        throw e;
+                }
             }
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.CREATED.value(), ResponseMessage.CREATED_USER,
+                            modelMapper.map(user, SignupResDTO.class)),
+                    HttpStatus.CREATED
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
-        return new ResponseEntity<>(
-                DefaultRes.res(HttpStatus.CREATED.value(), ResponseMessage.CREATED_USER,
-                        modelMapper.map(user, signupResDTO.class)),
-                HttpStatus.CREATED
-        );
     }
 
     /* 회원가입 테스트 용 */
@@ -99,29 +106,6 @@ public class UserForAllController {
             );
         }
     }
-
-//    @GetMapping(value = "/check-name-duplication")
-//    public ResponseEntity<DefaultRes<?>> checkNameDuplicate(@RequestParam("name") String name) {
-//        try {
-//            boolean exist = userService.checkNameDuplicate(name);
-//            if (exist) {
-//                return new ResponseEntity<>(
-//                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, true),
-//                        HttpStatus.OK
-//                );
-//            } else {
-//                return new ResponseEntity<>(
-//                        DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, false),
-//                        HttpStatus.OK
-//                );
-//            }
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(
-//                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
-//                    HttpStatus.INTERNAL_SERVER_ERROR
-//            );
-//        }
-//    }
 
     @PostMapping(value = "/sms-auth")
     public ResponseEntity<DefaultRes<?>> smsAuth(@RequestBody Map<String, String> map) throws Exception {
@@ -177,25 +161,36 @@ public class UserForAllController {
         User user = modelMapper.map(userDTO, User.class);
         Tokens tokens;
         try {
-            tokens = userService.login(user);
+            Map<String, Object> map = userService.login(user);
+            // 유저 정보 DTO에 담기
+            User loggedInUser = (User) map.get("user");
+            if ((tokens = (Tokens) map.get("tokens")) == null) {
+                // 토큰 정보가 없으면 라이프스타일 미완료 유저 -> Forbidden 처리
+                UserDTO.SignupResDTO signupResDTO = modelMapper.map(loggedInUser, UserDTO.SignupResDTO.class);
+                return new ResponseEntity<>(
+                        DefaultRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
+                                signupResDTO
+                        ), HttpStatus.FORBIDDEN);
+            }
+            // 토큰 정보가 있으면 토큰 정보 전송 및 로그인 완료 처리
+            UserDTO.LoginResDTO loginResDTO = modelMapper.map(loggedInUser, UserDTO.LoginResDTO.class);
+            loginResDTO.setGrantType(tokens.getGrantType());
+            loginResDTO.setAccessToken(tokens.getAccessToken());
+            loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
+            loginResDTO.setRefreshToken(tokens.getRefreshToken());
+            loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
+
+            return new ResponseEntity<>(
+                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
+                            loginResDTO
+                    ), HttpStatus.OK);
+
         } catch (Exception e) {
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.LOGIN_FAIL),
                     HttpStatus.UNAUTHORIZED
             );
         }
-        User optionalUser = userService.getUserByEmail(userDTO.getEmail());
-        LoginResDTO loginResDTO = modelMapper.map(optionalUser, LoginResDTO.class);
-        loginResDTO.setGrantType(tokens.getGrantType());
-        loginResDTO.setAccessToken(tokens.getAccessToken());
-        loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
-        loginResDTO.setRefreshToken(tokens.getRefreshToken());
-        loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
-
-        return new ResponseEntity<>(
-                DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
-                        loginResDTO
-                ), HttpStatus.OK);
     }
 
     @PostMapping(value = "/login/kakao")
@@ -215,17 +210,26 @@ public class UserForAllController {
                 throw e;
             }
         }
-
-        // 유저 정보가 있으면 로그인 처리
-        if (user.getId() != null) {
-            Tokens tokens = userService.login(user);
-            LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
-
-            loginResDTO.setGrantType(tokens.getGrantType());
-            loginResDTO.setAccessToken(tokens.getAccessToken());
-            loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
-            loginResDTO.setRefreshToken(tokens.getRefreshToken());
-            loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
+            // 유저 정보가 있으면 로그인 처리
+            if (user.getId() != null) {
+                Map<String, Object> result = userService.login(user);
+                User loggedInUser = (User) result.get("user");
+                Tokens tokens;
+                if ((tokens = (Tokens) result.get("tokens")) == null) {
+                    // 토큰 정보가 없으면 라이프스타일 미완료 유저 -> Forbidden 처리
+                    UserDTO.SignupResDTO signupResDTO = modelMapper.map(loggedInUser, UserDTO.SignupResDTO.class);
+                    return new ResponseEntity<>(
+                            SocialLoginRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
+                                    signupResDTO, false),
+                            HttpStatus.FORBIDDEN);
+                }
+                // 토큰 정보가 있으면 토큰 정보 전송 및 로그인 완료 처리
+                UserDTO.LoginResDTO loginResDTO = modelMapper.map(loggedInUser, UserDTO.LoginResDTO.class);
+                loginResDTO.setGrantType(tokens.getGrantType());
+                loginResDTO.setAccessToken(tokens.getAccessToken());
+                loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
+                loginResDTO.setRefreshToken(tokens.getRefreshToken());
+                loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
 
             return new ResponseEntity<>(
                     SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
@@ -245,31 +249,43 @@ public class UserForAllController {
     @ResponseBody
     public ResponseEntity<DefaultRes<?>> authNaver(@RequestBody Map<String, String> map,
                                                    HttpServletResponse response) throws Exception {
-        String token = map.get("token");
-        User user;
         try {
-            user = userService.authNaver(token);
-        } catch (Exception e) {
-            if (e.getMessage().equals("유효하지 않은 토큰")) {
-                return new ResponseEntity<>(
-                        SocialLoginRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.UNAUTHORIZED_TOKEN, false),
-                        HttpStatus.UNAUTHORIZED
-                );
-            } else {
-                throw e;
+            String token = map.get("token");
+            User user;
+            try {
+                user = userService.authNaver(token);
+            } catch (Exception e) {
+                if (e.getMessage().equals("유효하지 않은 토큰")) {
+                    return new ResponseEntity<>(
+                            SocialLoginRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.UNAUTHORIZED_TOKEN, false),
+                            HttpStatus.UNAUTHORIZED
+                    );
+                } else {
+                    throw e;
+                }
             }
-        }
 
-        // 유저 정보가 있으면 로그인 처리
-        if (user.getId() != null) {
-            Tokens tokens = userService.login(user);
-            LoginResDTO loginResDTO = modelMapper.map(user, LoginResDTO.class);
-
+            // 유저 정보가 있으면 로그인 처리
+            if (user.getId() != null) {
+                Map<String, Object> result = userService.login(user);
+                User loggedInUser = (User) result.get("user");
+                Tokens tokens;
+                if ((tokens = (Tokens) result.get("tokens")) == null) {
+                    // 토큰 정보가 없으면 라이프스타일 미완료 유저 -> Forbidden 처리
+                    UserDTO.SignupResDTO signupResDTO = modelMapper.map(loggedInUser, UserDTO.SignupResDTO.class);
+                    return new ResponseEntity<>(
+                            SocialLoginRes.res(HttpStatus.FORBIDDEN.value(), ResponseMessage.LIFESTYLE_TEST_NEEDED,
+                                    signupResDTO, false),
+                            HttpStatus.FORBIDDEN);
+                }
+            // 토큰 정보가 있으면 토큰 정보 전송 및 로그인 완료 처리
+            UserDTO.LoginResDTO loginResDTO = modelMapper.map(loggedInUser, UserDTO.LoginResDTO.class);
             loginResDTO.setGrantType(tokens.getGrantType());
             loginResDTO.setAccessToken(tokens.getAccessToken());
             loginResDTO.setAccessTokenExpiresIn(tokens.getAccessTokenExpiresIn());
             loginResDTO.setRefreshToken(tokens.getRefreshToken());
             loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
+
             return new ResponseEntity<>(
                     SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS,
                             loginResDTO, true),
@@ -282,6 +298,13 @@ public class UserForAllController {
                         modelMapper.map(user, signupReqDTO.class), false),
                 HttpStatus.OK
         );
+    } catch (Exception e) {
+            System.out.println("e = " + e.getMessage());
+            return new ResponseEntity<>(
+                    SocialLoginRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR, false),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
     @PostMapping("/reissue")

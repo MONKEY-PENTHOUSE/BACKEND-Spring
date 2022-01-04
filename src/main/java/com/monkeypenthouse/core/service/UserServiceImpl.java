@@ -2,21 +2,27 @@ package com.monkeypenthouse.core.service;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.monkeypenthouse.core.common.DefaultRes;
+import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.connect.KakaoConnecter;
 import com.monkeypenthouse.core.connect.NaverConnecter;
 import com.monkeypenthouse.core.dao.*;
 import com.monkeypenthouse.core.dto.KakaoUserDTO;
 import com.monkeypenthouse.core.dto.NaverUserDTO;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
+import com.monkeypenthouse.core.dto.UserDTO;
 import com.monkeypenthouse.core.repository.RefreshTokenRepository;
 import com.monkeypenthouse.core.repository.RoomRepository;
 import com.monkeypenthouse.core.repository.UserRepository;
+import com.monkeypenthouse.core.security.PrincipalDetails;
 import com.monkeypenthouse.core.security.SecurityUtil;
 import com.monkeypenthouse.core.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -24,6 +30,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -76,7 +84,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByEmail(String email) throws Exception {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("유저 정보 없습니다."));
+                .orElseThrow(() -> new Exception("유저 정보 없습니다."));
     }
 
     @Override
@@ -101,7 +109,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Tokens login(User user) throws Exception {
+    public Map<String, Object> login(User user) throws Exception {
         // 1. Login ID/PW를 기반으로 authenticationToken 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
 
@@ -109,18 +117,27 @@ public class UserServiceImpl implements UserService {
         // authentication 메서드가 실행이 될 때 CustomUserDetailService에서 만들었던 loadUserByUser
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        // 3. 인증 정보를 기반으로 JWT 토큰
-        Tokens tokens = tokenProvider.generateTokens(authentication);
+        // 3. 인증 정보에서 유저 정보 가져오기
+        User loggedInUser = ((PrincipalDetails) authentication.getPrincipal()).getUserInfo();
 
-        // 4. RefreshToken 저장
-        RefreshToken refreshToken = RefreshToken.builder()
-                .key(authentication.getName())
-                .value(tokens.getRefreshToken())
-                .build();
+        Map<String, Object> map = new HashMap<>();
 
-        refreshTokenRepository.save(refreshToken);
+        // 라이프스타일 테스트 미완료 회원 처리
+        if (loggedInUser.getLifeStyle() == null) {
+            map.put("user", loggedInUser);
+        } else {
+            // 4. 인증 정보를 토대로 JWT 토큰, RefreshToken 저장
+            Tokens tokens = tokenProvider.generateTokens(authentication);
+            RefreshToken refreshToken = RefreshToken.builder()
+                    .key(authentication.getName())
+                    .value(tokens.getRefreshToken())
+                    .build();
+            refreshTokenRepository.save(refreshToken);
 
-        return tokens;
+            map.put("user", loggedInUser);
+            map.put("tokens", tokens);
+        }
+        return map;
     }
 
     @Override
