@@ -62,7 +62,7 @@ public class UserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    public static class signupResDTO {
+    public static class SignupResDTO {
         private Long id;
         private String name;
         @JsonFormat(pattern = "yyyy.MM.dd")
@@ -171,4 +171,5 @@ public class UserDTO {
         @NotNull(message = "라이프 스타일은 필수 입력값입니다.")
         private LifeStyle lifeStyle;
     }
+
 }

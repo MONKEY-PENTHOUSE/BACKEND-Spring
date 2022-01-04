@@ -21,4 +21,5 @@ public class ResponseMessage {
     public static final String ADDITIONAL_INFO_REQUIRED = "추가 정보 입력 필요";
     public static final String INVALID_INPUTS = "유효하지 않은 요청 정보";
     public static final String JSON_PARSING_ERROR = "메시지 파싱 오류";
+    public static final String LIFESTYLE_TEST_NEEDED = "라이프 스타일 테스트 필요";
 }

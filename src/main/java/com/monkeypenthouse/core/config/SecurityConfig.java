@@ -2,11 +2,13 @@ package com.monkeypenthouse.core.config;
 
 import com.monkeypenthouse.core.security.JwtAccessDeniedHandler;
 import com.monkeypenthouse.core.security.JwtAuthenticationEntryPoint;
+import com.monkeypenthouse.core.security.LoginUserDetailsService;
 import com.monkeypenthouse.core.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,19 +38,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    public void configure(WebSecurity web) {
-        web.ignoring()
-                // 모두에게 접근 가능한 요청 설정
-                .antMatchers("/favicon.ico");
-    }
-
-    @Override
     protected void configure(HttpSecurity http) throws Exception {
 
         // csrf 비활성
         http.httpBasic().disable()
         .cors().configurationSource(corsConfigurationSource())
-
         .and()
         .csrf().disable()
 
