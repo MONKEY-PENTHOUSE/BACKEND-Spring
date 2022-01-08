@@ -69,11 +69,10 @@ public class UserForAllController {
         }
     }
 
-    /* 회워가입 테스트 용 */
+    /* 회원가입 테스트 용 */
     @DeleteMapping(value="/", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<DefaultRes<?>> delete(@RequestBody Map<String, String> map) {
+    public ResponseEntity<DefaultRes<?>> delete(@RequestParam("email") String email) {
         try {
-            String email = map.get("email");
             try {
                 // 회원 삭제
                 userService.deleteByEmail(email);
