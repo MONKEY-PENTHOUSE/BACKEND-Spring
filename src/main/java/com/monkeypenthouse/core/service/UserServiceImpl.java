@@ -18,9 +18,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -70,7 +72,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public User getById(Long id) throws Exception {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("유저 정보 없습니다."));
+                .orElseThrow(() -> new Exception("유저 정보 없습니다."));
     }
 
     @Override
@@ -134,23 +136,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Tokens reissue(Tokens tokens) {
-        // 1. refreshToken 검증
-        if (!tokenProvider.validateToken(tokens.getRefreshToken())) {
-            throw new RuntimeException("Refresh Token이 유효하지 않습니다.");
-        }
+    public Tokens reissue(String refreshToken) throws Exception {
 
-        // 2. accessToken에서 UserID 가져오기
-        Authentication authentication = tokenProvider.getAuthentication(tokens.getAccessToken());
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // 3. 저장소에서 UserID를 기반으로 RefreshToken 값 가져옴
-        RefreshToken refreshToken = refreshTokenRepository.findById(authentication.getName())
+        RefreshToken savedRefreshToken = refreshTokenRepository.findById(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("로그아웃된 사용자입니다."));
 
         // 4. refreshToken 일치하는지 검사
-        if (!refreshToken.getValue().equals(tokens.getRefreshToken())) {
-            System.out.println("tokens.getRefreshToken = " + tokens.getRefreshToken());
-            System.out.println("refreshToken.getValue() = " + refreshToken.getValue());
+        if (!savedRefreshToken.getValue().equals(refreshToken.substring(7))) {
             throw new RuntimeException("토큰의 유저 정보가 일치하지 않습니다.");
         }
 
@@ -158,7 +153,7 @@ public class UserServiceImpl implements UserService {
         Tokens newTokens = tokenProvider.generateTokens(authentication);
 
         // 6. 저장소 정보 업데이트
-        RefreshToken newRefreshToken = refreshToken.updateValue(tokens.getRefreshToken());
+        RefreshToken newRefreshToken = savedRefreshToken.updateValue(newTokens.getRefreshToken());
         refreshTokenRepository.save(newRefreshToken);
 
         // 토큰 발급

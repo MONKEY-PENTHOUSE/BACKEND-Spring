@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
+import com.monkeypenthouse.core.dto.TokenDTO;
 import com.monkeypenthouse.core.dto.UserDTO.*;
 import com.monkeypenthouse.core.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,15 @@ public class UserController {
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<DefaultRes<?>> reissue(@RequestHeader("Authorization") String refreshToken) throws Exception {
+
+        return new ResponseEntity<>(
+                DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.REISSUE_SUCCESS,
+                        modelMapper.map(userService.reissue(refreshToken), TokenDTO.ReissueResDTO.class)),
+                HttpStatus.OK
+        );
     }
 }

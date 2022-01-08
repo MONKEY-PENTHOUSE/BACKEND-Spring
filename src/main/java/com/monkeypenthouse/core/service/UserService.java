@@ -9,7 +9,14 @@ import java.util.Optional;
 
 public interface UserService {
 
-    // 회원가입
+
+    /**
+     * Add user.
+     *
+     * @param user the user
+     * @return the user
+     * @throws Exception the exception
+     */
     User add(User user) throws Exception;
 
     // id에 따른 조회
@@ -31,7 +38,7 @@ public interface UserService {
     Map<String, Object> login(User user) throws Exception;
 
     // accessToken 재발급
-    Tokens reissue(Tokens tokens);
+    Tokens reissue(String refreshToken) throws Exception;
 
     // 현재 SecurityContext에 있는 유저 정보 가져오기
     User getMyInfo() throws Exception;

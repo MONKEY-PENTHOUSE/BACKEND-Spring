@@ -22,7 +22,7 @@ public class UserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    public static class signupReqDTO {
+    public static class SignupReqDTO {
 
         @NotBlank(message = "이름은 필수 입력값입니다.")
         private String name;

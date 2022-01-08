@@ -34,7 +34,7 @@ public class UserForAllController {
     private final ModelMapper modelMapper;
 
     @PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody @Valid signupReqDTO userDTO) throws Exception {
+    public ResponseEntity<DefaultRes<?>> signUp(@RequestBody @Valid SignupReqDTO userDTO) throws Exception {
         try {
             User user = modelMapper.map(userDTO, User.class);
             try {
@@ -183,6 +183,7 @@ public class UserForAllController {
                     ), HttpStatus.OK);
 
         } catch (Exception e) {
+            System.out.println("e.getClass() = " + e.getClass());
             return new ResponseEntity<>(
                     DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.LOGIN_FAIL),
                     HttpStatus.UNAUTHORIZED
@@ -237,7 +238,7 @@ public class UserForAllController {
         // 유저 정보가 없으면 회원가입을 위해 기본 정보 보내주기
         return new ResponseEntity<>(
                 SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.ADDITIONAL_INFO_REQUIRED,
-                        modelMapper.map(user, signupReqDTO.class), false),
+                        modelMapper.map(user, SignupReqDTO.class), false),
                 HttpStatus.OK
         );
     }
@@ -291,7 +292,7 @@ public class UserForAllController {
         // 유저 정보가 없으면 회원가입을 위해 기본 정보 보내주기
         return new ResponseEntity<>(
                 SocialLoginRes.res(HttpStatus.OK.value(), ResponseMessage.ADDITIONAL_INFO_REQUIRED,
-                        modelMapper.map(user, signupReqDTO.class), false),
+                        modelMapper.map(user, SignupReqDTO.class), false),
                 HttpStatus.OK
         );
     } catch (Exception e) {
@@ -301,17 +302,6 @@ public class UserForAllController {
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
-    }
-
-    @PostMapping("/reissue")
-    public ResponseEntity<DefaultRes<?>> reissue(@RequestBody ReissueReqDTO tokenDTO) throws Exception {
-        Tokens tokens = modelMapper.map(tokenDTO, Tokens.class);
-
-        return new ResponseEntity<>(
-                DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.REISSUE_SUCCESS,
-                        modelMapper.map(userService.reissue(tokens), ReissueResDTO.class)),
-                HttpStatus.OK
-        );
     }
 
     @GetMapping(value = "/find-email")
