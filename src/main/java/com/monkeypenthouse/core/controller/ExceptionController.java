@@ -46,6 +46,17 @@ public class ExceptionController {
             );
 
     }
+
+//    // 예상가능한 Exception 처리
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<DefaultRes<?>> handleExpectedException(final Exception e) {
+//        System.out.println("e = " + e);
+//        return new ResponseEntity<>(
+//                DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
+//                HttpStatus.INTERNAL_SERVER_ERROR
+//        );
+//    }
+
     // 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<DefaultRes<?>> handleAll(final Exception e) {
