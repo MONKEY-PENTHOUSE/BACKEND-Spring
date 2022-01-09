@@ -25,6 +25,7 @@ public class UserDTO {
     public static class SignupReqDTO {
 
         @NotBlank(message = "이름은 필수 입력값입니다.")
+        @Pattern(regexp = "^[가-힣|A-Za-z|1-9]{1,10}$")
         private String name;
 
         @JsonFormat(pattern = "yyyy.MM.dd")
@@ -42,6 +43,7 @@ public class UserDTO {
         private String email;
 
         @NotBlank(message = "비밀번호는 필수 입력값입니다.")
+        @Pattern(regexp = "^(?=.*[$@!%*#?&A-Za-z])[A-Za-z0-9$@$!%*#?&]{8,16}$")
         private String password;
 
         @NotBlank(message = "전화번호는 필수 입력값입니다.")
