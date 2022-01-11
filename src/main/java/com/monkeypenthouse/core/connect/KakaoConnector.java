@@ -20,7 +20,7 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoConnecter {
+public class KakaoConnector {
     @Value("${kakao.authorization-grant-type}")
     private String AUTHORIZATION_GRANT_TYPE;
     @Value("${kakao.client-id}")
@@ -64,8 +64,7 @@ public class KakaoConnecter {
         }
     }
 
-    public KakaoUserDTO getUserInfo(String accessToken) {
-        KakaoUserDTO kakaoUser = null;
+    public KakaoUserDTO getUserInfo(String accessToken) throws Exception {
         // 회원정보 받아오기
         RestTemplate rt = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -81,10 +80,6 @@ public class KakaoConnecter {
         );
         ObjectMapper obMapper = new ObjectMapper();
 
-        try {
-            return obMapper.readValue(response.getBody(), KakaoUserDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("유저 정보 파싱 에러 : " + e.getMessage());
-        }
+        return obMapper.readValue(response.getBody(), KakaoUserDTO.class);
     }
 }

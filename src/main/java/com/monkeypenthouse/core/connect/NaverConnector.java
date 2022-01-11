@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @NoArgsConstructor
 @AllArgsConstructor
-public class NaverConnecter {
+public class NaverConnector {
     @Value("${naver.authorization-grant-type}")
     private String AUTHORIZATION_GRANT_TYPE;
     @Value("${naver.client-id}")
@@ -63,8 +63,7 @@ public class NaverConnecter {
         }
     }
 
-    public NaverUserDTO getUserInfo(String accessToken) {
-        NaverUserDTO naverUser = null;
+    public NaverUserDTO getUserInfo(String accessToken) throws Exception {
         // 회원정보 받아오기
         RestTemplate rt = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -79,10 +78,8 @@ public class NaverConnecter {
                 String.class
         );
         ObjectMapper obMapper = new ObjectMapper();
-        try {
-            return obMapper.readValue(response.getBody(), NaverUserDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("유저 정보 파싱 에러 : " + e.getMessage());
-        }
+
+        return obMapper.readValue(response.getBody(), NaverUserDTO.class);
+
     }
 }
