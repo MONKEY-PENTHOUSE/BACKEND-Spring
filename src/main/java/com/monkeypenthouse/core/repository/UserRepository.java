@@ -28,9 +28,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying(clearAutomatically = true)
     @Query("UPDATE User u SET u.password = :password WHERE u.id = :id")
     int updatePassword(@Param("password") String password,
-                      @Param("id") Long id) throws Exception;
+                      @Param("id") Long id);
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE User u SET u.lifeStyle = :lifeStyle WHERE u.id = :id")
-    int updateLifeStyle(@Param("lifeStyle") LifeStyle lifeStyle, Long id) throws Exception;
+    int updateLifeStyle(@Param("lifeStyle") LifeStyle lifeStyle, Long id);
 }

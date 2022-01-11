@@ -1,26 +1,26 @@
 package com.monkeypenthouse.core.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 public class TokenDTO {
 
-    @Data
     @Builder
+    @Getter
+    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ReissueReqDTO {
+    public static class ReissueReqDTO extends TokenDTO {
         private String accessToken;
+        private String refreshToken;
     }
 
-    @Data
     @Builder
+    @Getter
+    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ReissueResDTO {
+    public static class ReissueResDTO extends TokenDTO {
         private String grantType;
         private String accessToken;
         private Long accessTokenExpiresIn;
@@ -28,11 +28,12 @@ public class TokenDTO {
         private Long refreshTokenExpiresIn;
     }
 
-    @Data
     @Builder
+    @Getter
+    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class KakaoResDTO {
+    public static class KakaoResDTO extends TokenDTO {
         private String access_token;
         private String token_type;
         private String refresh_token;
@@ -41,11 +42,12 @@ public class TokenDTO {
         private int refresh_token_expires_in;
     }
 
-    @Data
     @Builder
+    @Getter
+    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class NaverResDTO {
+    public static class NaverResDTO extends TokenDTO {
         private String access_token;
         private String token_type;
         private String refresh_token;

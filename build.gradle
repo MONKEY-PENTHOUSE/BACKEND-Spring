@@ -30,6 +30,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-json'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation group: 'com.google.guava', name: 'guava', version: '28.1-jre'
 	implementation group: 'org.msgpack', name: 'jackson-dataformat-msgpack', version: '0.8.18'
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
