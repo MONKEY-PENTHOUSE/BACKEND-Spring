@@ -1,13 +1,17 @@
 package com.monkeypenthouse.core.exception;
 
+import org.springframework.http.HttpStatus;
+
 public class ExpectedException extends Exception {
 
-    private final int statusCode;
+    private final HttpStatus statusCode;
 
-    public ExpectedException(int statusCode, String message) {
+    public ExpectedException(HttpStatus statusCode, String message) {
         super(message);
         this.statusCode = statusCode;
     }
 
-
+    public HttpStatus getStatusCode() {
+        return statusCode;
+    }
 }

@@ -63,7 +63,7 @@ public class NaverConnector {
         }
     }
 
-    public NaverUserDTO getUserInfo(String accessToken) {
+    public NaverUserDTO getUserInfo(String accessToken) throws Exception {
         // 회원정보 받아오기
         RestTemplate rt = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -78,10 +78,8 @@ public class NaverConnector {
                 String.class
         );
         ObjectMapper obMapper = new ObjectMapper();
-        try {
-            return obMapper.readValue(response.getBody(), NaverUserDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("유저 정보 파싱 에러 : " + e.getMessage());
-        }
+
+        return obMapper.readValue(response.getBody(), NaverUserDTO.class);
+
     }
 }

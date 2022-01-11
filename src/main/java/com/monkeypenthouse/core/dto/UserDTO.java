@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.monkeypenthouse.core.dao.Authority;
 import com.monkeypenthouse.core.dao.LifeStyle;
 import com.monkeypenthouse.core.dao.LoginType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
@@ -19,10 +16,11 @@ import java.time.LocalDate;
 public class UserDTO {
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class SignupReqDTO {
+    public static class SignupReqDTO extends UserDTO {
 
         @NotBlank(message = "이름은 필수 입력값입니다.")
         @Pattern(regexp = "^[가-힣|A-Za-z|1-9]{1,10}$")
@@ -61,10 +59,11 @@ public class UserDTO {
     }
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class SignupResDTO {
+    public static class SignupResDTO extends UserDTO {
         private Long id;
         private String name;
         @JsonFormat(pattern = "yyyy.MM.dd")
@@ -77,10 +76,11 @@ public class UserDTO {
     }
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class MyUserResDTO {
+    public static class MyUserResDTO extends UserDTO {
         private Long id;
         private String name;
         @JsonFormat(pattern = "yyyy.MM.dd")
@@ -93,24 +93,27 @@ public class UserDTO {
     }
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class LoginReqDTO {
+    public static class LoginReqDTO extends UserDTO {
 
         @NotEmpty(message = "이메일은 필수 입력값입니다.")
         @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,6}$", message = "이메일 형식에 맞지 않습니다.")
         private String email;
 
         @NotBlank(message = "비밀번호는 필수 입력값입니다.")
+        @Pattern(regexp = "^(?=.*[$@!%*#?&A-Za-z])[A-Za-z0-9$@$!%*#?&]{8,16}$")
         private String password;
     }
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class LoginResDTO {
+    public static class LoginResDTO extends UserDTO {
         private Long id;
         private String name;
         @JsonFormat(pattern = "yyyy.MM.dd")
@@ -129,10 +132,11 @@ public class UserDTO {
     }
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class FindEmailReqDTO {
+    public static class FindEmailReqDTO extends UserDTO{
 
         @NotBlank(message = "이름은 필수 입력값입니다.")
         private String name;
@@ -143,31 +147,35 @@ public class UserDTO {
     }
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class FindEmailResDTO {
+    public static class FindEmailResDTO extends UserDTO {
         private Long id;
         private String email;
         private LoginType loginType;
     }
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class UpdatePWReqDTO {
+    public static class UpdatePWReqDTO extends UserDTO {
         @NotNull(message = "id는 필수 입력값입니다.")
         private Long id;
         @NotBlank(message = "비밀번호는 필수 입력값입니다.")
+        @Pattern(regexp = "^(?=.*[$@!%*#?&A-Za-z])[A-Za-z0-9$@$!%*#?&]{8,16}$")
         private String password;
     }
 
     @Builder
+    @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
-    public static class UpdateLSReqDTO {
+    public static class UpdateLSReqDTO extends UserDTO {
         @NotNull(message = "id는 필수 입력값입니다.")
         private Long id;
         @NotNull(message = "라이프 스타일은 필수 입력값입니다.")

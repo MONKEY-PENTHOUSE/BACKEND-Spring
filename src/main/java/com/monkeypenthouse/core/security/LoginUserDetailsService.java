@@ -21,19 +21,14 @@ public class LoginUserDetailsService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username)
+        UserDetails user = userRepository.findByEmail(username)
                 .map(this::createUserDetails)
                 .orElseThrow(() -> new UsernameNotFoundException(username + " -> 를 찾을 수 없습니다."));
+        return user;
     }
 
     // DB에 User 값이 존재한다면 UserDetails 객체로 만들어 리턴
     private UserDetails createUserDetails(User user) {
-//        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(user.getAuthority().name());
-//        return new org.springframework.security.core.userdetails.User(
-//                String.valueOf(user.getEmail()),
-//                user.getPassword(),
-//                Collections.singleton(grantedAuthority)
-//        );
         return new PrincipalDetails(user);
     }
 
