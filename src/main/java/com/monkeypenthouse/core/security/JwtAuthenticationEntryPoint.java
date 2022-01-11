@@ -22,10 +22,11 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         String exception = (String)request.getAttribute("exception");
 
         if (exception == null) {
-            DefaultRes<?> responseObj = DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), ResponseMessage.NO_TOKEN);
+            DefaultRes<?> responseObj = DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), "인증되지 않은 회원입니다.");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             String json = new ObjectMapper().writeValueAsString(responseObj);
 
+            response.setContentType("application/json; charset=utf-8");
             response.getWriter().write(json);
             response.flushBuffer();
         } else {
@@ -33,6 +34,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             String json = new ObjectMapper().writeValueAsString(responseObj);
 
+            response.setContentType("application/json; charset=utf-8");
             response.getWriter().write(json);
             response.flushBuffer();
         }

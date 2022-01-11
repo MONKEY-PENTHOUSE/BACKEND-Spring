@@ -22,26 +22,23 @@ public class UserController {
     private final ModelMapper modelMapper;
 
     @GetMapping("/me")
-    public ResponseEntity<DefaultRes<?>> getMyUserInfo() {
-        try {
+    public ResponseEntity<DefaultRes<?>> getMyUserInfo() throws Exception {
             MyUserResDTO myUser = modelMapper.map(userService.getMyInfo(), MyUserResDTO.class);
             return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.READ_USER, myUser),
+                    DefaultRes.res(
+                            HttpStatus.OK.value(),
+                            ResponseMessage.READ_USER,
+                            myUser),
                     HttpStatus.OK
             );
-        } catch (Exception e) {
-            return new ResponseEntity<>(
-                    DefaultRes.res(HttpStatus.INTERNAL_SERVER_ERROR.value(), ResponseMessage.INTERNAL_SERVER_ERROR),
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
     }
 
     @PostMapping("/reissue")
     public ResponseEntity<DefaultRes<?>> reissue(@RequestHeader("Authorization") String refreshToken) throws Exception {
-
         return new ResponseEntity<>(
-                DefaultRes.res(HttpStatus.OK.value(), ResponseMessage.REISSUE_SUCCESS,
+                DefaultRes.res(
+                        HttpStatus.OK.value(),
+                        ResponseMessage.REISSUE_SUCCESS,
                         modelMapper.map(userService.reissue(refreshToken), TokenDTO.ReissueResDTO.class)),
                 HttpStatus.OK
         );

@@ -1,16 +1,38 @@
 package com.monkeypenthouse.core.exception;
 
+import com.monkeypenthouse.core.dao.User;
+import com.monkeypenthouse.core.dto.UserDTO;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+
+import java.util.Optional;
+
 public class AuthFailedException extends ExpectedException {
 
+    protected User user;
+
     public AuthFailedException() {
-        super(401, "회원 인증에 실패하였습니다.");
+        super(HttpStatus.UNAUTHORIZED, "회원 인증에 실패하였습니다.");
     }
 
     public AuthFailedException(String message) {
-        super(401, message);
+        super(HttpStatus.UNAUTHORIZED, message);
     }
 
-    public AuthFailedException(int statusCode, String message) {
+    public AuthFailedException(HttpStatus statusCode, String message) {
         super(statusCode, message);
+    }
+
+    public Optional<User> getUser() {
+        return Optional.ofNullable(user);
+    }
+
+    public Optional<? extends UserDTO> getUserDTO(ModelMapper modelMapper) {
+       if (user != null) {
+           return Optional.of(modelMapper.map(user, UserDTO.class));
+       } else {
+           return Optional.empty();
+       }
     }
 }

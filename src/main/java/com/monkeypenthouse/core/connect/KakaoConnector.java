@@ -64,7 +64,7 @@ public class KakaoConnector {
         }
     }
 
-    public KakaoUserDTO getUserInfo(String accessToken) {
+    public KakaoUserDTO getUserInfo(String accessToken) throws Exception {
         // 회원정보 받아오기
         RestTemplate rt = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -80,10 +80,6 @@ public class KakaoConnector {
         );
         ObjectMapper obMapper = new ObjectMapper();
 
-        try {
-            return obMapper.readValue(response.getBody(), KakaoUserDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("유저 정보 파싱 에러 : " + e.getMessage());
-        }
+        return obMapper.readValue(response.getBody(), KakaoUserDTO.class);
     }
 }
