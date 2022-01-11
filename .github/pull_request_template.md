@@ -2,8 +2,8 @@
 
 ## Type
 
-- [ ] Code Review
 - [ ] New Feature
+- [ ] Refactor
 - [ ] Bug Fix
 - [ ] CI/CD
 - [ ] Set Up
