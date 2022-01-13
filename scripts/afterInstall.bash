@@ -1,2 +1,2 @@
-docker pull gmlwls3520/monkeypenthouse-spring:latest
-docker run --publish 80:80 -i --detach --name monkeypenthouse gmlwls3520/monkeypenthouse-spring
+docker pull monkeypenthouse/api-server-spring:v1
+docker run --publish 80:80 -i --detach --name api-server-spring monkeypenthouse/api-server-spring:v1
