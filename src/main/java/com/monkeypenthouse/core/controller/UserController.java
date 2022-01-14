@@ -4,6 +4,7 @@ import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.dto.TokenDTO;
 import com.monkeypenthouse.core.dto.UserDTO.*;
+import com.monkeypenthouse.core.security.SecurityUtil;
 import com.monkeypenthouse.core.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -40,6 +41,17 @@ public class UserController {
                         HttpStatus.OK.value(),
                         ResponseMessage.REISSUE_SUCCESS,
                         modelMapper.map(userService.reissue(refreshToken), TokenDTO.ReissueResDTO.class)),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<DefaultRes<?>> logout() throws Exception {
+        userService.logout();
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.OK.value(),
+                        ResponseMessage.LOGOUT_SUCCESS),
                 HttpStatus.OK
         );
     }
