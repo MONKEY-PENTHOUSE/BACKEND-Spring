@@ -60,4 +60,7 @@ public interface UserService {
 
     // 특정 이메일을 가진 회원 삭제
     void deleteByEmail(String email)  throws DataNotFoundException;
+
+    // 로그아웃
+    void logout() throws Exception;
 }
