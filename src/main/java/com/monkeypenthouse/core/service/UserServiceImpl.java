@@ -281,4 +281,10 @@ public class UserServiceImpl implements UserService {
         roomRepository.deleteUserId(id);
         userRepository.deleteById(id);
     }
+
+    @Override
+    public void logout() throws Exception {
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        refreshTokenRepository.deleteById(authentication.getName());
+    }
 }
