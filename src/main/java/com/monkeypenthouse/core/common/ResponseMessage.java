@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.common;
 
 public class ResponseMessage {
     public static final String LOGIN_SUCCESS = "로그인에 성공하였습니다.";
+    public static final String LOGOUT_SUCCESS = "로그아웃에 성공하였습니다.";
     public static final String READ_USER = "회원 정보를 정상적으로 조회하였습니다.";
     public static final String CREATED_USER = "회원가입이 완료되었습니다.";
     public static final String UPDATE_USER = "회원 정보를 정상적으로 수정하였습니다.";
