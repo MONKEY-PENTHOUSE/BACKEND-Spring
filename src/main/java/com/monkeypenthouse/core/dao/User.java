@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Builder
@@ -26,15 +27,17 @@ public class User {
     private String name;
 
     @CreatedDate
-    @Column(name="created_at", updatable=false)
+    @Column(name="created_at", updatable=false, nullable=false)
     private LocalDateTime createdDateTime;
 
     @LastModifiedDate
     @Column(name="last_modified_at")
     private LocalDateTime lastModifiedDateTime;
 
+    @Temporal(TemporalType.DATE)
     @Column(nullable=false)
-    private LocalDate birth;
+    private Date birth;
+
 
     // 0 : 여자
     // 1: 남자
