@@ -23,7 +23,7 @@ public class LoginUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserDetails user = userRepository.findByEmail(username)
                 .map(this::createUserDetails)
-                .orElseThrow(() -> new UsernameNotFoundException(username + " -> 를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UsernameNotFoundException("해당 이메일을 가진 회원이 존재하지 않습니다."));
         return user;
     }
 
