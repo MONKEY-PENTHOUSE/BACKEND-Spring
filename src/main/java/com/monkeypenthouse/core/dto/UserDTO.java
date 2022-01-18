@@ -12,6 +12,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.Date;
 
 public class UserDTO {
 
@@ -28,7 +29,7 @@ public class UserDTO {
 
         @JsonFormat(pattern = "yyyy.MM.dd")
         @NotNull(message = "생일은 필수 입력값입니다.")
-        private LocalDate birth;
+        private Date birth;
 
         // 0: 여성, 1: 남성
         @Max(value = 1)
