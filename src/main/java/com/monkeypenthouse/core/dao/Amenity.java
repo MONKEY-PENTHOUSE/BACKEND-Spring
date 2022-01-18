@@ -55,9 +55,16 @@ public class Amenity {
     @Column(name="detail", length=50, nullable=false)
     private String detail;
 
-    @Column( nullable=false)
-    private boolean achieved;
+    // 0 : 모집 중
+    // 1 : 모집 마감
+    @Column(nullable=false)
+    private int closed;
 
     @Column(name="thumbnail_name")
     private String thumbnailName;
+
+    // 0 : 추천 X
+    // 1 : 추천 O
+    @Column(nullable = false)
+    private boolean recommended;
 }
