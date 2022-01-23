@@ -46,9 +46,9 @@ public class ExceptionController {
     protected ResponseEntity<DefaultRes<?>> handleDataNotFoundException(DataNotFoundException e) {
         return new ResponseEntity<>(
                 DefaultRes.res(
-                        e.getStatusCode().value(),
+                        e.getHttpStatus().value(),
                         e.getMessage()),
-                e.getStatusCode()
+                e.getHttpStatus()
         );
     }
 
@@ -69,19 +69,19 @@ public class ExceptionController {
         if (e.getUserDTO(modelMapper).isPresent()) {
             return new ResponseEntity<>(
                     SocialLoginRes.res(
-                            e.getStatusCode().value(),
+                            e.getHttpStatus().value(),
                             e.getMessage(),
                             e.getUserDTO(modelMapper),
                             false),
-                    e.getStatusCode()
+                    e.getHttpStatus()
                     );
         } else {
             return new ResponseEntity<>(
                     SocialLoginRes.res(
-                            e.getStatusCode().value(),
+                            e.getHttpStatus().value(),
                             e.getMessage(),
                             false),
-                    e.getStatusCode()
+                    e.getHttpStatus()
             );
         }
     }
@@ -92,17 +92,17 @@ public class ExceptionController {
         if (e.getUserDTO(modelMapper).isPresent()) {
             return new ResponseEntity<>(
                     DefaultRes.res(
-                            e.getStatusCode().value(),
+                            e.getHttpStatus().value(),
                             e.getMessage(),
                             e.getUserDTO(modelMapper)),
-                    e.getStatusCode()
+                    e.getHttpStatus()
             );
         } else {
             return new ResponseEntity<>(
                     SocialLoginRes.res(
-                            e.getStatusCode().value(),
+                            e.getHttpStatus().value(),
                             e.getMessage()),
-                    e.getStatusCode()
+                    e.getHttpStatus()
             );
         }
     }
@@ -147,9 +147,9 @@ public class ExceptionController {
     public ResponseEntity<DefaultRes<?>> handleExpectedException(ExpectedException e) {
         return new ResponseEntity<>(
                 DefaultRes.res(
-                        e.getStatusCode().value(),
+                        e.getHttpStatus().value(),
                         e.getMessage()),
-                e.getStatusCode()
+                e.getHttpStatus()
         );
     }
 
