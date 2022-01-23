@@ -20,9 +20,10 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
 
         String exception = (String)request.getAttribute("exception");
+        String servletPath = request.getServletPath();
 
         if (exception == null) {
-            DefaultRes<?> responseObj = DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), "인증되지 않은 회원입니다.");
+            DefaultRes<?> responseObj = DefaultRes.res(servletPath.equals("/user/reissue") ? 4012 : 4011, "토큰이 없습니다.");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             String json = new ObjectMapper().writeValueAsString(responseObj);
 
@@ -30,7 +31,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             response.getWriter().write(json);
             response.flushBuffer();
         } else {
-            DefaultRes<?> responseObj = DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), exception);
+            DefaultRes<?> responseObj = DefaultRes.res(servletPath.equals("/user/reissue") ? 4012 : 4011, exception);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             String json = new ObjectMapper().writeValueAsString(responseObj);
 
