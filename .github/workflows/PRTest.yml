@@ -1,8 +1,8 @@
 name: PR Test
  
 on:
-  push:
-    branches: [ cicd/25 ] # master branch에 PR을 보낼 때 실행
+  pull_request:
+    branches: [ main ] # master branch에 PR을 보낼 때 실행
  
 jobs:
   test:
@@ -36,15 +36,20 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      
-#       - name: Set up MySQL
-#         run: |
-#           sudo /etc/init.d/mysql start
-#           mysql -e 'CREATE DATABASE monkpentdb;' -u test -p test
  
       # Gradle wrapper 파일 실행 권한주기
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      - name: cache
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
  
       # Gradle test를 실행한다
       - name: Test with Gradle
