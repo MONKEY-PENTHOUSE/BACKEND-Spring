@@ -7,6 +7,28 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    services:
+      mysql:   
+        image: mysql:5.7  
+        env:   
+          MYSQL_USER: root
+          MYSQL_PASSWORD: 1111
+          MYSQL_ROOT_PASSWORD: 1111
+          MYSQL_DATABASE: monkpentdb
+        ports:
+          - 3306:3306
+        options: >- 
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+          
     steps:
       - uses: actions/checkout@v2
  
@@ -18,7 +40,7 @@ jobs:
       - name: Set up MySQL
         run: |
           sudo /etc/init.d/mysql start
-          mysql -e 'CREATE DATABASE monkpentdb;' -u root -p root
+          mysql -e 'CREATE DATABASE monkpentdb;' -u root -p 1111
  
       # Gradle wrapper 파일 실행 권한주기
       - name: Grant execute permission for gradlew
