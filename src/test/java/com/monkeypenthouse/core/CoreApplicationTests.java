@@ -15,8 +15,6 @@ class CoreApplicationTests {
 
 	@Test
 	void contextLoads() {
-		assertThat(userService.checkEmailDuplicate("gmlwls3520@naver.com"), is(false));
-		//
 	}
 
 }
