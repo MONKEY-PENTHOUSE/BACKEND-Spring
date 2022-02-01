@@ -12,9 +12,9 @@ jobs:
       mysql:   
         image: mysql:5.7  
         env:   
-          MYSQL_USER: root
-          MYSQL_PASSWORD: 1111
-          MYSQL_ROOT_PASSWORD: 1111
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+          MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: monkpentdb
         ports:
           - 3306:3306
@@ -40,7 +40,7 @@ jobs:
       - name: Set up MySQL
         run: |
           sudo /etc/init.d/mysql start
-          mysql -e 'CREATE DATABASE monkpentdb;' -u root -p 1111
+          mysql -e 'CREATE DATABASE monkpentdb;' -u test -p test
  
       # Gradle wrapper 파일 실행 권한주기
       - name: Grant execute permission for gradlew
