@@ -1,5 +1,3 @@
-delete from user;
-delete from room;
 insert into room (id, user_role) values ("A0001", 1);
 insert into room (id, user_role) values ("A0002", 1);
 insert into room (id, user_role) values ("A0003", 1);
