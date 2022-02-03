@@ -18,8 +18,8 @@ import lombok.extern.log4j.Log4j2;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -112,9 +112,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Map<String, Object> login(User user) throws AuthenticationException, AuthFailedException {
 
-        userRepository.findByEmail(user.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("해당 이메일을 가진 회원이 존재하지 않습니다."));
-
         // 1. Login ID/PW를 기반으로 authenticationToken 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
 
@@ -122,7 +119,16 @@ public class UserServiceImpl implements UserService {
         // 2. 실제로 검증이 이뤄지는 부분
         // authentication 메서드가 실행이 될 때 CustomUserDetailService에서 만들었던 loadUserByUser
         try {
-            authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+            ProviderManager providerManager = (ProviderManager) authenticationManagerBuilder.getObject();
+
+            for (AuthenticationProvider provider : providerManager.getProviders()) {
+                if (provider instanceof DaoAuthenticationProvider) {
+                    ((DaoAuthenticationProvider) provider).setHideUserNotFoundExceptions(false);
+                }
+            }
+
+            authentication = providerManager.authenticate(authenticationToken);
+
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
         }
@@ -156,11 +162,11 @@ public class UserServiceImpl implements UserService {
 
         // 3. 저장소에서 UserID를 기반으로 RefreshToken 값 가져옴
         RefreshToken savedRefreshToken = refreshTokenRepository.findById(authentication.getName())
-                .orElseThrow(() -> new AuthFailedException("로그인된 사용자가 아닙니다."));
+                .orElseThrow(() -> new AuthFailedException(401, "로그인된 사용자가 아닙니다."));
 
         // 4. refreshToken 일치하는지 검사
         if (!savedRefreshToken.getValue().equals(refreshToken.substring(7))) {
-            throw new AuthFailedException("토큰이 일치하지 않습니다.");
+            throw new AuthFailedException(401, "토큰이 일치하지 않습니다.");
         }
 
         // 5. 새로운 토큰 생성

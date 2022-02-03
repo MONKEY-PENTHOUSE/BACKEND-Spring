@@ -20,24 +20,26 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
 
         String exception = (String)request.getAttribute("exception");
+        String servletPath = request.getServletPath();
+        String json = null;
 
         if (exception == null) {
-            DefaultRes<?> responseObj = DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), "인증되지 않은 회원입니다.");
+            DefaultRes<?> responseObj = DefaultRes.res(401, "토큰이 없습니다.");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            String json = new ObjectMapper().writeValueAsString(responseObj);
-
-            response.setContentType("application/json; charset=utf-8");
-            response.getWriter().write(json);
-            response.flushBuffer();
+            json = new ObjectMapper().writeValueAsString(responseObj);
+        } else if (exception.equals("토큰이 만료되었습니다.")) {
+            DefaultRes<?> responseObj = DefaultRes.res(servletPath.equals("/user/reissue") ? 4012 : 4011, exception);
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            json = new ObjectMapper().writeValueAsString(responseObj);
         } else {
-            DefaultRes<?> responseObj = DefaultRes.res(HttpStatus.UNAUTHORIZED.value(), exception);
+            DefaultRes<?> responseObj = DefaultRes.res(401, exception);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            String json = new ObjectMapper().writeValueAsString(responseObj);
-
-            response.setContentType("application/json; charset=utf-8");
-            response.getWriter().write(json);
-            response.flushBuffer();
+            json = new ObjectMapper().writeValueAsString(responseObj);
         }
-
+        response.setContentType("application/json; charset=utf-8");
+        response.getWriter().write(json);
+        response.flushBuffer();
     }
+
+
 }
