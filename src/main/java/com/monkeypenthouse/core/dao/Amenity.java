@@ -31,34 +31,18 @@ public class Amenity {
     @Column(nullable=false)
     private String address;
 
+    @Column(name="deadline_date", nullable=false)
+    private LocalDate deadlineDate;
+
+    @Column(name="start_date_time", nullable=false)
+    private LocalDate startDateTime;
+
     @CreatedDate
-    @Column(name="registered_at", updatable=false, nullable=false)
-    private LocalDateTime registeredDateTime;
-
-    @LastModifiedDate
-    @Column(name="last_modified_at")
-    private LocalDateTime lastModifiedDateTime;
-
-    @Column(name="deadline_date_time", nullable=false)
-    private LocalDateTime deadlineDateTime;
-
-    @Column(name="event_date_time", nullable=false)
-    private LocalDateTime eventDateTime;
-
-    @Column(name="achieve_rate", nullable=false)
-    private int achieveRate;
-
-    @Enumerated(EnumType.ORDINAL)
-    @Column(nullable=false)
-    private Category category;
+    @Column(name="created_at", updatable=false, nullable=false)
+    private LocalDateTime createdAt;
 
     @Column(name="detail", length=50, nullable=false)
     private String detail;
-
-    // 0 : 모집 중
-    // 1 : 모집 마감
-    @Column(nullable=false)
-    private int closed;
 
     @Column(name="thumbnail_name")
     private String thumbnailName;
@@ -67,4 +51,21 @@ public class Amenity {
     // 1 : 추천 O
     @Column(nullable = false)
     private boolean recommended;
+
+    @Column(name="min_person_num", nullable = false)
+    private int minPersonNum;
+
+    @Column(name="min_person_num", nullable = false)
+    private int maxPersonNum;
+
+    // 0 : 모집중
+    // 1 : 모집 마감
+    // 2 : 종료
+    @Column(nullable=false)
+    private int status;
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable=false)
+    private Category category;
+
 }
