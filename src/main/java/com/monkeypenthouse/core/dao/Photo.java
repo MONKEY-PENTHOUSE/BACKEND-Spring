@@ -34,6 +34,6 @@ public class Photo {
     private Amenity amenity;
 
     @CreatedDate
-    @Column(name="registered_at", updatable=false, nullable=false)
-    private LocalDateTime registeredDateTime;
+    @Column(name="created_at", updatable=false, nullable=false)
+    private LocalDateTime createdAt;
 }

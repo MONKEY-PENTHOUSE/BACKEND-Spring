@@ -1,38 +1,27 @@
 package com.monkeypenthouse.core.dao;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-public enum Category {
-    PARTY_ROOM(1), FITNESS_CENTER(2), THEATER(3), CREATIVE_LAB(4);
+import javax.persistence.*;
 
-    private final int value;
+@Entity
+@Builder
+@Table(name="category")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+public class Category {
 
-    private Category(int value) {
-        this.value = value;
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public int getValue() {
-        return value;
-    }
+    @Column(length=10, unique = true, nullable=false)
+    private String name;
 
-    @JsonCreator
-    public static Category from(String s) {
-        return Category.valueOf(s.toUpperCase());
-    }
-
-    @JsonCreator
-    public static Category from(int v) {
-        switch (v) {
-            case 1:
-                return PARTY_ROOM;
-            case 2:
-                return FITNESS_CENTER;
-            case 3:
-                return THEATER;
-            case 4:
-                return CREATIVE_LAB;
-            default:
-                return null;
-        }
-    }
 }
