@@ -34,8 +34,8 @@ public class Amenity {
     @Column(name="deadline_date", nullable=false)
     private LocalDate deadlineDate;
 
-    @Column(name="start_date_time", nullable=false)
-    private LocalDate startDateTime;
+    @Column(name="start_date", nullable=false)
+    private LocalDate startDate;
 
     @CreatedDate
     @Column(name="created_at", updatable=false, nullable=false)
