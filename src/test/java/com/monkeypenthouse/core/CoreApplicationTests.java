@@ -10,9 +10,6 @@ import static org.hamcrest.CoreMatchers.*;
 @SpringBootTest
 class CoreApplicationTests {
 
-	@Autowired
-	UserService userService;
-
 	@Test
 	void contextLoads() {
 	}
