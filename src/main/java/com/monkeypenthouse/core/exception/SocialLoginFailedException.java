@@ -12,8 +12,6 @@ import java.util.Optional;
 public class SocialLoginFailedException extends AuthFailedException {
 
     private final LoginType loginType;
-    @Autowired
-    private ModelMapper modelMapper;
 
     public SocialLoginFailedException(LoginType loginType) {
         super("소셜 로그인(" + loginType.name() + ")에 실패하였습니다. (유효하지 않은 인증 정보)");

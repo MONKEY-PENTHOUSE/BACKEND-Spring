@@ -11,7 +11,7 @@ import com.monkeypenthouse.core.common.DefaultRes;
 @RequestMapping("/")
 public class HomeController {
 
-    @GetMapping("/")
+    @RequestMapping("/")
     public ResponseEntity<DefaultRes<?>> home() {
         return new ResponseEntity<>(
                 DefaultRes.res(HttpStatus.OK.value(), "hello world!"),
