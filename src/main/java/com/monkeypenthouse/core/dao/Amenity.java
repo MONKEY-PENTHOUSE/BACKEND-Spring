@@ -50,12 +50,12 @@ public class Amenity {
     // 0 : 추천 X
     // 1 : 추천 O
     @Column(nullable = false)
-    private boolean recommended;
+    private int recommended;
 
     @Column(name="min_person_num", nullable = false)
     private int minPersonNum;
 
-    @Column(name="min_person_num", nullable = false)
+    @Column(name="max_person_num", nullable = false)
     private int maxPersonNum;
 
     // 0 : 모집중
@@ -64,8 +64,8 @@ public class Amenity {
     @Column(nullable=false)
     private int status;
 
-    @Enumerated(EnumType.ORDINAL)
-    @Column(nullable=false)
+    @ManyToOne
+    @JoinColumn(nullable=false)
     private Category category;
 
 }
