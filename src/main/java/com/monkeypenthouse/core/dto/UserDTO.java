@@ -1,15 +1,10 @@
 package com.monkeypenthouse.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.monkeypenthouse.core.dao.Authority;
 import com.monkeypenthouse.core.dao.LifeStyle;
 import com.monkeypenthouse.core.dao.LoginType;
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
