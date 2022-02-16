@@ -7,7 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Builder
@@ -27,14 +28,14 @@ public class User {
 
     @CreationTimestamp
     @Column(name="created_at", updatable=false)
-    private Timestamp createdDateTime;
+    private LocalDateTime createdDateTime;
 
     @UpdateTimestamp
     @Column(name="last_modified_at")
-    private Timestamp lastModifiedDateTime;
+    private LocalDateTime lastModifiedDateTime;
 
     @Column(nullable=false)
-    private Timestamp birth;
+    private LocalDate birth;
 
     // 0 : 여자
     // 1: 남자
