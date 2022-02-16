@@ -1,8 +1,9 @@
 package com.monkeypenthouse.core.dao;
 
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
@@ -25,11 +26,11 @@ public class User {
     @Column(length=15, nullable=false)
     private String name;
 
-    @CreatedDate
+    @CreationTimestamp
     @Column(name="created_at", updatable=false)
     private LocalDateTime createdDateTime;
 
-    @LastModifiedDate
+    @UpdateTimestamp
     @Column(name="last_modified_at")
     private LocalDateTime lastModifiedDateTime;
 
