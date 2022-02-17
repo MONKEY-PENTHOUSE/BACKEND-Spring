@@ -29,16 +29,22 @@ public class S3Uploader {
         return upload(uploadFile, dirName);
     }
 
+    // File을 정해진 디렉토리 이름 밑에 S3에 저장 요청
     private String upload(File uploadFile, String dirName) {
+        // 파일 이름은 [dirname]/[filename]
         String fileName = dirName + "/" + uploadFile.getName();
         String uploadImageUrl = putS3(uploadFile, fileName);
 
-        removeNewFile(uploadFile); // 로컬에 생성된 File 삭제 (MultipartFile -> File 전환하며 로컬에 파일 생성됨)
+        // 로컬에 생성된 File 삭제 (MultipartFile -> File 전환하며 로컬에 파일 생성됨)
+        removeNewFile(uploadFile);
 
         return uploadImageUrl;
     }
 
+    // 파일을 S3에 업로
     private String putS3(File uploadFile, String fileName) {
+        // bucket에 정해진 filename으로 파일 업로드
+        // public read가 가능하도록 S3 업로드
         amazonS3Client.putObject(
                 new PutObjectRequest(bucket, fileName, uploadFile)
                 .withCannedAcl(CannedAccessControlList.PublicRead)
@@ -46,6 +52,7 @@ public class S3Uploader {
         return amazonS3Client.getUrl(bucket, fileName).toString();
     }
 
+    // 로컬에 생성된 File 삭제
     private void removeNewFile(File targetFile) {
         if(targetFile.delete()) {
             System.out.println("파일이 삭제되었습니다.");
@@ -54,6 +61,7 @@ public class S3Uploader {
         }
     }
 
+    // MultipartFile을 File 형태로 변환
     private Optional<File> convert(MultipartFile file) throws IOException {
         File convertFile = new File(file.getOriginalFilename());
         if (convertFile.createNewFile()) {
