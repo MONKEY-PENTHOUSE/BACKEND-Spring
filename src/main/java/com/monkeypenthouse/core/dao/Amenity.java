@@ -44,7 +44,7 @@ public class Amenity {
     @Column(name="detail", length=50, nullable=false)
     private String detail;
 
-    @Column(name="thumbnail_name")
+    @Column(name="thumbnail_name", nullable = false)
     private String thumbnailName;
 
     // 0 : 추천 X
@@ -61,11 +61,7 @@ public class Amenity {
     // 0 : 모집중
     // 1 : 모집 마감
     // 2 : 종료
-    @Column(nullable=false)
+    @Column(columnDefinition = "integer default 0")
     private int status;
-
-    @ManyToOne
-    @JoinColumn(nullable=false)
-    private Category category;
 
 }
