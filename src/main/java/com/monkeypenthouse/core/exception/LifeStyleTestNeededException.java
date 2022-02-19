@@ -11,7 +11,7 @@ import java.util.Optional;
 public class LifeStyleTestNeededException extends AuthFailedException {
 
     public LifeStyleTestNeededException(User user) {
-        super(HttpStatus.FORBIDDEN, "라이프스타일 테스트 미완료 회원입니다.");
+        super(4001, "라이프스타일 테스트 미완료 회원입니다.");
         super.user = user;
     }
 
