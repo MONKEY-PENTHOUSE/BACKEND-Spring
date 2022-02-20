@@ -29,10 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -198,13 +195,25 @@ public class UserServiceImpl implements UserService {
         }
         Optional<User> optionalUser = userRepository.findByEmailAndLoginType(kakaoUser.getKakao_account().getEmail(), LoginType.KAKAO);
 
+        // 비밀번호 랜덤 문자열 생성 숫자+알파벳
+        int leftLimit = 48; // numeral '0'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 16;
+        Random random = new Random();
+
+        String generatedString = random.ints(leftLimit,rightLimit + 1)
+                .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+
         User loggedInUser = optionalUser
                 .orElseThrow(() -> {
                     User newUser = User.builder()
                         .name(kakaoUser.getKakao_account().getProfile().getNickname())
                         .gender(kakaoUser.getKakao_account().isHas_gender() ? kakaoUser.getKakao_account().getGender().equals("female") ? 0 : 1 : 2)
                         .email(kakaoUser.getKakao_account().isHas_email() ? kakaoUser.getKakao_account().getEmail() : null)
-                        .password(UUID.randomUUID().toString())
+                        .password(generatedString)
                         .loginType(LoginType.KAKAO)
                         .build();
                     return new SocialLoginFailedException(LoginType.KAKAO, newUser);
