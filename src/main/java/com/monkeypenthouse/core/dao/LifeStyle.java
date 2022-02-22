@@ -3,7 +3,7 @@ package com.monkeypenthouse.core.dao;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum LifeStyle {
-    OPTIMIST, ADVENTURER, INVENTOR, LEADER, DREAMER, GUARDIAN, SOCIABLE, ARTIST;
+    ADVENTURER, INVENTOR, DAYDREAMER, SOCIALIZER, OPTIMIST, LEADER, GUARDIAN, ARTIST;
 
     @JsonCreator
     public static LifeStyle from(String s) {

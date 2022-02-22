@@ -64,11 +64,11 @@ public class ExceptionController {
 
     // 소셜 로그인 실패 시
     @ExceptionHandler({ SocialLoginFailedException.class })
-    protected ResponseEntity<SocialLoginRes<?>> handleAuthFailedException(SocialLoginFailedException e) {
+    protected ResponseEntity<SocialLoginRes<?>> handleSocialLoginFailedException(SocialLoginFailedException e) {
         if (e.getUserDTO(modelMapper).isPresent()) {
             return new ResponseEntity<>(
                     SocialLoginRes.res(
-                            e.getHttpStatus().value(),
+                            e.getDetailStatus(),
                             e.getMessage(),
                             e.getUserDTO(modelMapper),
                             false),
@@ -77,7 +77,7 @@ public class ExceptionController {
         } else {
             return new ResponseEntity<>(
                     SocialLoginRes.res(
-                            e.getHttpStatus().value(),
+                            e.getDetailStatus(),
                             e.getMessage(),
                             false),
                     e.getHttpStatus()
@@ -91,7 +91,7 @@ public class ExceptionController {
         if (e.getUserDTO(modelMapper).isPresent()) {
             return new ResponseEntity<>(
                     DefaultRes.res(
-                            e.getHttpStatus().value(),
+                            e.getDetailStatus(),
                             e.getMessage(),
                             e.getUserDTO(modelMapper)),
                     e.getHttpStatus()
@@ -99,7 +99,7 @@ public class ExceptionController {
         } else {
             return new ResponseEntity<>(
                     SocialLoginRes.res(
-                            e.getHttpStatus().value(),
+                            e.getDetailStatus(),
                             e.getMessage()),
                     e.getHttpStatus()
             );
@@ -108,7 +108,7 @@ public class ExceptionController {
 
     // json 파싱 실패시
     @ExceptionHandler({ HttpMessageNotReadableException.class })
-    protected ResponseEntity<DefaultRes<?>> handleMethodArgumentNotValidException(JsonMappingException e) {
+    protected ResponseEntity<DefaultRes<?>> handleHttpMessageNotReadableException(JsonMappingException e) {
         List<String> fieldErrors = new ArrayList<>();
         for (JsonMappingException.Reference fieldError : e.getPath()) {
             fieldErrors.add(fieldError.getFieldName());

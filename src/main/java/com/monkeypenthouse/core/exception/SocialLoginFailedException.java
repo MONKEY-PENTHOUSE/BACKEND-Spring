@@ -20,7 +20,7 @@ public class SocialLoginFailedException extends AuthFailedException {
     }
 
     public SocialLoginFailedException(LoginType loginType, User user) {
-        super(HttpStatus.OK, "추가 정보 입력이 필요합니다.");
+        super(4000, "추가 정보 입력이 필요합니다.");
         super.user = user;
         this.loginType = loginType;
     }
