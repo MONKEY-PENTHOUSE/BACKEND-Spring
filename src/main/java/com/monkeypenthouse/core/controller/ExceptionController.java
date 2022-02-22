@@ -3,7 +3,6 @@ package com.monkeypenthouse.core.controller;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.SocialLoginRes;
-import com.monkeypenthouse.core.dto.UserDTO;
 import com.monkeypenthouse.core.exception.AuthFailedException;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.exception.ExpectedException;
