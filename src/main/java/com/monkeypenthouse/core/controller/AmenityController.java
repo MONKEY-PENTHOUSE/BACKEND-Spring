@@ -28,7 +28,7 @@ public class AmenityController {
     public ResponseEntity<DefaultRes<?>> signUp(
             @RequestPart(value="bannerPhotos", required=false) List<MultipartFile> bannerPhotos,
             @RequestPart(value="detailPhotos", required=false) List<MultipartFile> detailPhotos,
-            @RequestPart(value = "saveReqDTO") SaveReqDTO amenityDTO) throws Exception {
+            @RequestPart(value = "saveReqDTO") @Valid SaveReqDTO amenityDTO) throws Exception {
         amenityService.add(bannerPhotos, detailPhotos, amenityDTO);
         return new ResponseEntity<>(
                 DefaultRes.res(
