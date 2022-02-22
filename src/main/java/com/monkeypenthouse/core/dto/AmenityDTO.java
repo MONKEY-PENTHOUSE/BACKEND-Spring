@@ -45,12 +45,9 @@ public class AmenityDTO {
         private String address;
         @JsonFormat(pattern = "yyyy.MM.dd")
         private LocalDate deadlineDate;
-        @JsonFormat(pattern = "yyyy.MM.dd")
-        private LocalDate startDate;
         private String detail;
         private int recommended;
         private int minPersonNum;
-        private int maxPersonNum;
         private List<String> categories;
         private List<TicketDTO.saveDTO> tickets;
     }
