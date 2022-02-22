@@ -25,17 +25,15 @@ public class AmenityController {
     private final AmenityService amenityService;
 
     @PostMapping(value = "/")
-
     public ResponseEntity<DefaultRes<?>> signUp(
             @RequestPart(value="bannerPhotos", required=false) List<MultipartFile> bannerPhotos,
             @RequestPart(value="detailPhotos", required=false) List<MultipartFile> detailPhotos,
             @RequestPart(value = "saveReqDTO") SaveReqDTO amenityDTO) throws Exception {
-
+        amenityService.add(bannerPhotos, detailPhotos, amenityDTO);
         return new ResponseEntity<>(
                 DefaultRes.res(
                         HttpStatus.CREATED.value(),
-                        ResponseMessage.CREATED_AMENITY,
-                        amenityService.add(bannerPhotos, detailPhotos, amenityDTO)),
+                        ResponseMessage.CREATED_AMENITY),
                 HttpStatus.CREATED
         );
     }

@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -31,14 +32,15 @@ public class S3Uploader {
 
     // File을 정해진 디렉토리 이름 밑에 S3에 저장 요청
     private String upload(File uploadFile, String dirName) {
+        String newFileName = UUID.randomUUID().toString();
         // 파일 이름은 [dirname]/[filename]
-        String fileName = dirName + "/" + uploadFile.getName();
-        String uploadImageUrl = putS3(uploadFile, fileName);
+        String dirFileName = dirName + "/" + newFileName;
+        String uploadImageUrl = putS3(uploadFile, dirFileName);
 
         // 로컬에 생성된 File 삭제 (MultipartFile -> File 전환하며 로컬에 파일 생성됨)
         removeNewFile(uploadFile);
 
-        return uploadImageUrl;
+        return newFileName;
     }
 
     // 파일을 S3에 업로
@@ -47,7 +49,6 @@ public class S3Uploader {
         // public read가 가능하도록 S3 업로드
         amazonS3Client.putObject(
                 new PutObjectRequest(bucket, fileName, uploadFile)
-                .withCannedAcl(CannedAccessControlList.PublicRead)
         );
         return amazonS3Client.getUrl(bucket, fileName).toString();
     }
