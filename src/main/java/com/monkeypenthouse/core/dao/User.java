@@ -37,14 +37,13 @@ public class User {
     @Column(name="last_modified_at")
     private LocalDateTime lastModifiedDateTime;
 
-    @Temporal(TemporalType.DATE)
     @Column(nullable=false)
-    private Date birth;
+    private LocalDate birth;
 
 
     // 0 : 여자
     // 1: 남자
-    @Column()
+    @Column(nullable = false)
     private int gender;
 
     @Column(unique = true, length=50, nullable=false)
