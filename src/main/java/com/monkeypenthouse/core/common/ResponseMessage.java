@@ -10,4 +10,5 @@ public class ResponseMessage {
     public static final String SEND_SMS = "회원 인증 문자를 정상적으로 전송하였습니다.";
     public static final String REISSUE_SUCCESS = "인증 정보 재발급에 성공하였습니다.";
     public static final String CREATED_AMENITY = "어메니티 등록에 성공하였습니다.";
+    public static final String READ_INFO = "정보를 정상적으로 조회하였습니다.";
 }

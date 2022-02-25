@@ -21,7 +21,7 @@ public class AmenityDTO {
         private Long id;
         private String title;
         private String address;
-        private Category category;
+        private List<String> categories;
         private List<String> bannerImages;
         private List<String> detailImages;
         private LocalDate deadlineDate;
