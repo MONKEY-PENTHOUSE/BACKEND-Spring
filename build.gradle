@@ -54,6 +54,8 @@ dependencies {
 
 	// aws cloudfront
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.1.RELEASE'
+	implementation 'net.java.dev.jets3t:jets3t:0.9.4'
+	implementation 'org.bouncycastle:bcprov-jdk16:1.46'
 }
 
 test {
