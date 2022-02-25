@@ -71,7 +71,6 @@ public class UserServiceImpl implements UserService {
 
     // Id로 회원 조회
     @Override
-    @Transactional(readOnly = true)
     public User getById(Long id) throws DataNotFoundException {
         return userRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(User.builder().id(id).build()));
@@ -84,14 +83,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public User getUserByEmailAndLoginType(String email, LoginType loginType) throws DataNotFoundException {
         return userRepository.findByEmailAndLoginType(email, loginType)
                 .orElseThrow(() -> new DataNotFoundException(User.builder().email(email).loginType(loginType).build()));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean checkEmailDuplicate(String email) {
         return userRepository.existsByEmail(email);
     }
@@ -178,14 +175,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public User getMyInfo() throws AuthFailedException {
         return userRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
                 .orElseThrow(() -> new AuthFailedException("회원 정보를 찾지 못했습니다."));
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public User authKakao(String token) throws AuthFailedException {
         KakaoUserDTO kakaoUser;
         try {
@@ -225,13 +221,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public User authNaver(String token) throws AuthFailedException {
         NaverUserDTO naverUser;
         try {
             naverUser = naverConnector.getUserInfo(token);
         } catch (Exception e) {
-            System.out.println("e = " + e);
             throw new SocialLoginFailedException(LoginType.NAVER);
         }
             Optional<User> optionalUser = userRepository.findByEmailAndLoginType(naverUser.getResponse().getEmail(), LoginType.NAVER);

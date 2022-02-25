@@ -1,21 +1,27 @@
 package com.monkeypenthouse.core.service;
 
+import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
 import com.monkeypenthouse.core.dao.*;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.TicketDTO;
+import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.jets3t.service.CloudFrontServiceException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +34,7 @@ public class AmenityServiceImpl implements AmenityService {
     private final AmenityCategoryRepository amenityCategoryRepository;
     private final S3Uploader s3Uploader;
     private final ModelMapper modelMapper;
+    private final CloudFrontManager cloudFrontManager;
 
     @Override
     @Transactional
@@ -116,7 +123,29 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DetailDTO getById(Long id) throws Exception {
-        return null;
+        // 어메니티, 카테고리, 사진 정보를 가져와야함
+        Amenity amenity = amenityRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException(Amenity.builder().id(id).build()));
+        DetailDTO detailDTO = modelMapper.map(amenity, DetailDTO.class);
+
+        List<AmenityCategory> categories = amenityCategoryRepository.findAllByAmenity(amenity);
+        detailDTO.setCategories(categories.stream().map(e -> e.getCategory().getName()).collect(Collectors.toList()));
+
+        List<Photo> photos = photoRepository.findAllByAmenity(amenity);
+        detailDTO.setBannerImages(new ArrayList<>());
+        detailDTO.setDetailImages(new ArrayList<>());
+        // 사진에 대한 signed url 만들기
+        for (Photo photo : photos) {
+            String filename = photo.getType().name().toLowerCase() + "/" + photo.getName();
+            if (photo.getType() == PhotoType.BANNER) {
+                detailDTO.getBannerImages().add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
+            } else {
+                detailDTO.getDetailImages().add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
+            }
+        }
+
+        return detailDTO;
     }
 }

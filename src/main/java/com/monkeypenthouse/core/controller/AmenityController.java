@@ -37,4 +37,15 @@ public class AmenityController {
                 HttpStatus.CREATED
         );
     }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<DefaultRes<?>> signUp(@PathVariable("id") Long id) throws Exception {
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.OK.value(),
+                        ResponseMessage.READ_INFO,
+                        amenityService.getById(id)),
+                HttpStatus.OK
+        );
+    }
 }
