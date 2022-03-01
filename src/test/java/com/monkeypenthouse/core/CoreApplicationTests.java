@@ -10,8 +10,4 @@ import static org.hamcrest.CoreMatchers.*;
 @SpringBootTest
 class CoreApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
 }

@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+*.properties
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -38,3 +39,5 @@ out/
 
 # .DS_Store
 .DS_Store
+
+
