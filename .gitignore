@@ -3,6 +3,7 @@ HELP.md
 application.properties
 application-local.properties
 application-prod.properties
+key-pair.der
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
