@@ -23,7 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByPhoneNum(String phoneNum);
 
-    Optional<User> findByNameAndPhoneNum(String name, String phoneNum);
+    Optional<User> findByPhoneNum(String phoneNum);
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE User u SET u.password = :password WHERE u.id = :id")

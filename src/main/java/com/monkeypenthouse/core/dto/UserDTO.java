@@ -133,9 +133,6 @@ public class UserDTO {
     @NoArgsConstructor
     public static class FindEmailReqDTO extends UserDTO{
 
-        @NotBlank(message = "이름은 필수 입력값입니다.")
-        private String name;
-
         @NotBlank(message = "전화번호는 필수 입력값입니다.")
         @Pattern(regexp = "^\\d{9,11}$")
         private String phoneNum;
