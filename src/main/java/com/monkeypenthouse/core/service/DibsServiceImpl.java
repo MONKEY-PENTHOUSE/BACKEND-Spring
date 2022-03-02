@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.dao.Amenity;
 import com.monkeypenthouse.core.dao.Dibs;
+import com.monkeypenthouse.core.dao.DibsId;
 import com.monkeypenthouse.core.dao.User;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.exception.DibsDuplicatedException;
@@ -36,5 +37,18 @@ public class DibsServiceImpl implements DibsService {
         final Dibs dibs = new Dibs(user, amenity);
 
         dibsRepository.save(dibs);
+    }
+
+    @Override
+    @Transactional
+    public void deleteDibs(UserDetails userDetails, Long amenityId) throws DataNotFoundException {
+        final User user = userService.getUserByEmail(userDetails.getUsername());
+
+        final DibsId dibsId = new DibsId(user.getId(), amenityId);
+
+        final Dibs dibs = dibsRepository.findById(dibsId)
+                .orElseThrow(() -> new DataNotFoundException(Dibs.builder().user(user).build()));
+
+        dibsRepository.delete(dibs);
     }
 }

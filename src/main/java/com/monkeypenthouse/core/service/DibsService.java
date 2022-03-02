@@ -7,4 +7,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public interface DibsService {
     void createDibs(UserDetails userDetails, Long amenityId) throws DataNotFoundException, DibsDuplicatedException;
+
+    void deleteDibs(UserDetails userDetails, Long dibsId) throws DataNotFoundException;
 }

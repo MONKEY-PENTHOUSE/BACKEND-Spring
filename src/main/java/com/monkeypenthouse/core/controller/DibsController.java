@@ -38,4 +38,21 @@ public class DibsController {
                 HttpStatus.OK
         );
     }
+
+    /**
+     * Delete Dibs (찜하기 제거)
+     */
+    @DeleteMapping("/dibs")
+    public ResponseEntity<DefaultRes<?>> deleteDibs(
+            @AuthenticationPrincipal final UserDetails userDetails, @RequestParam final Long amenityId) throws DataNotFoundException {
+
+        dibsService.deleteDibs(userDetails, amenityId);
+
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.OK.value(),
+                        ResponseMessage.DELETED_DIBS),
+                HttpStatus.OK
+        );
+    }
 }

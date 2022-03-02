@@ -12,4 +12,5 @@ public class ResponseMessage {
     public static final String CREATED_AMENITY = "어메니티 등록에 성공하였습니다.";
     public static final String READ_INFO = "정보를 정상적으로 조회하였습니다.";
     public static final String CREATED_DIBS = "찜하기 추가에 성공하였습니다.";
+    public static final String DELETED_DIBS = "찜하기 삭제에 성공하였습니다.";
 }
