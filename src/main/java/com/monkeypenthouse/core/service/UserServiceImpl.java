@@ -252,8 +252,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findEmail(User user) throws AuthFailedException {
-        return userRepository.findByPhoneNum(user.getPhoneNum())
+    public User findEmail(String phoneNum) throws AuthFailedException {
+        return userRepository.findByPhoneNum(phoneNum)
                 .orElseThrow(() -> new AuthFailedException("해당 정보의 회원을 찾을 수 없습니다."));
     }
 

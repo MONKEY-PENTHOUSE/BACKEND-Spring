@@ -17,8 +17,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 @RequiredArgsConstructor
@@ -130,22 +134,42 @@ public class ExceptionController {
         );
     }
 
-    // @valid 유효성 검사 실패시
-    @ExceptionHandler({ MethodArgumentNotValidException.class })
+    // @valid 유효성 검사 실패시 (RequestBody)
+    @ExceptionHandler({ MethodArgumentNotValidException.class})
     protected ResponseEntity<DefaultRes<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        List<String> fieldErrors = new ArrayList<>();
-            BindingResult bindingResult = e.getBindingResult();
-            for (FieldError fieldError : bindingResult.getFieldErrors()) {
-                fieldErrors.add(fieldError.getField());
-            }
 
-            return new ResponseEntity<>(
-                    DefaultRes.res(
-                            HttpStatus.BAD_REQUEST.value(),
-                            "정보가 유효하지 않습니다. (형식을 벗어난 값)",
-                            fieldErrors),
-                    HttpStatus.BAD_REQUEST
-            );
+        BindingResult bindingResult = e.getBindingResult();
+        List<String> errors = bindingResult.getFieldErrors().stream()
+                .map(FieldError::getField)
+                .collect(Collectors.toList());
+
+
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "정보가 유효하지 않습니다. (형식을 벗어난 값)",
+                        errors),
+                HttpStatus.BAD_REQUEST
+        );
+
+    }
+
+    // @valid 유효성 검사 실패시 (RequestParam, PathVariable)
+    @ExceptionHandler({ ConstraintViolationException.class})
+    protected ResponseEntity<DefaultRes<?>> handleMethodArgumentNotValidException(ConstraintViolationException e) {
+
+        Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+        List<String> errors = constraintViolations.stream()
+                .map( cv -> cv == null ? "null" : cv.getPropertyPath().toString())
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "정보가 유효하지 않습니다. (형식을 벗어난 값)",
+                        errors),
+                HttpStatus.BAD_REQUEST
+        );
 
     }
 

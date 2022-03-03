@@ -50,7 +50,7 @@ public interface UserService {
     User authNaver(String token) throws AuthFailedException;
 
     // 유저의 이메일 찾기
-    User findEmail(User user) throws AuthFailedException;
+    User findEmail(String phoneNum) throws AuthFailedException;
 
     // 유저의 비밀번호 수정
     void updatePassword(User user) throws AuthFailedException;

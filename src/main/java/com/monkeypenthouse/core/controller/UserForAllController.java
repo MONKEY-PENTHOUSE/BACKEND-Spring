@@ -15,10 +15,12 @@ import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -27,6 +29,7 @@ import java.util.Optional;
 @RequestMapping("/user/all/")
 @Log4j2
 @RequiredArgsConstructor
+@Validated
 public class UserForAllController {
 
     private final UserService userService;
@@ -193,14 +196,13 @@ public class UserForAllController {
     }
 
     @GetMapping(value = "/find-email")
-    public ResponseEntity<DefaultRes<?>> findEmail(@RequestBody @Valid FindEmailReqDTO userDTO) throws Exception {
-        User user = modelMapper.map(userDTO, User.class);
+    public ResponseEntity<DefaultRes<?>> findEmail(@RequestParam("phoneNum") @Pattern(regexp = "^\\d{9,11}$") String phoneNum) throws Exception {
 
         return new ResponseEntity<>(
                     DefaultRes.res(
                             HttpStatus.OK.value(),
                             ResponseMessage.READ_USER,
-                            modelMapper.map(userService.findEmail(user), FindEmailResDTO.class)),
+                            modelMapper.map(userService.findEmail(phoneNum), FindEmailResDTO.class)),
                     HttpStatus.OK
         );
     }
