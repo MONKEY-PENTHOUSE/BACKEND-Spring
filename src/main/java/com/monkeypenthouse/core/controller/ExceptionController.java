@@ -3,10 +3,7 @@ package com.monkeypenthouse.core.controller;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.SocialLoginRes;
-import com.monkeypenthouse.core.exception.AuthFailedException;
-import com.monkeypenthouse.core.exception.DataNotFoundException;
-import com.monkeypenthouse.core.exception.ExpectedException;
-import com.monkeypenthouse.core.exception.SocialLoginFailedException;
+import com.monkeypenthouse.core.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -48,6 +45,17 @@ public class ExceptionController {
                         e.getHttpStatus().value(),
                         e.getMessage()),
                 e.getHttpStatus()
+        );
+    }
+
+    // 찜하기 중복 요청 시
+    @ExceptionHandler({ DibsDuplicatedException.class })
+    protected ResponseEntity<DefaultRes<?>> handleDibsDuplicatedException(DibsDuplicatedException e) {
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.CONFLICT.value(),
+                        e.getMessage()),
+                HttpStatus.CONFLICT
         );
     }
 

@@ -3,6 +3,7 @@ package com.monkeypenthouse.core.service;
 import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
 import com.monkeypenthouse.core.dao.*;
+import com.monkeypenthouse.core.dto.AmenityDTO;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.TicketDTO;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.jets3t.service.CloudFrontServiceException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +34,8 @@ public class AmenityServiceImpl implements AmenityService {
     private final TicketRepository ticketRepository;
     private final CategoryRepository categoryRepository;
     private final AmenityCategoryRepository amenityCategoryRepository;
+    private final DibsRepository dibsRepository;
+    private final UserService userService;
     private final S3Uploader s3Uploader;
     private final ModelMapper modelMapper;
     private final CloudFrontManager cloudFrontManager;
@@ -147,5 +151,13 @@ public class AmenityServiceImpl implements AmenityService {
         }
 
         return detailDTO;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Amenity> getAmenitiesDibsOn(final UserDetails userDetails) throws DataNotFoundException {
+        final User user = userService.getUserByEmail(userDetails.getUsername());
+
+        return dibsRepository.findAllByUser(user).stream().map(dibs -> dibs.getAmenity()).collect(Collectors.toList());
     }
 }
