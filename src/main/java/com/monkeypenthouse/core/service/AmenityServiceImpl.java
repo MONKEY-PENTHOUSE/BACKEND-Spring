@@ -127,9 +127,9 @@ public class AmenityServiceImpl implements AmenityService {
     @Override
     @Transactional(readOnly = true)
     public DetailDTO getById(Long id) throws Exception {
-        // 어메니티, 카테고리, 사진 정보를 가져와야함
         Amenity amenity = amenityRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(Amenity.builder().id(id).build()));
+
         DetailDTO detailDTO = modelMapper.map(amenity, DetailDTO.class);
 
         List<AmenityCategory> categories = amenityCategoryRepository.findAllByAmenity(amenity);
@@ -160,6 +160,26 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     @Override
+    public Page<ListDTO> getAll(Pageable pageable) throws Exception {
+        Page<ListDTO> pages = amenityRepositoryCustom.findAll(pageable);
+        for (ListDTO dto : pages.getContent()) {
+            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
+            dto.setThumbnailName(signedUrl);
+        }
+        return pages;
+    }
+
+    @Override
+    public Page<ListDTO> getAllByCategory(Long category, Pageable pageable) throws Exception {
+        Page<ListDTO> pages = amenityRepositoryCustom.findAllByCategory(category, pageable);
+        for (ListDTO dto : pages.getContent()) {
+            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
+            dto.setThumbnailName(signedUrl);
+        }
+        return pages;
+    }
+
+    @Override
     public Page<ListDTO> getAllByRecommended(Pageable pageable) throws Exception {
         Page<ListDTO> pages = amenityRepositoryCustom.findAllByRecommended(1, pageable);
         for (ListDTO dto : pages.getContent()) {
@@ -168,4 +188,6 @@ public class AmenityServiceImpl implements AmenityService {
         }
         return pages;
     }
+
+
 }

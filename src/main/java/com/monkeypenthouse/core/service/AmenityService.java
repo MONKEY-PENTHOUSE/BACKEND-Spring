@@ -18,4 +18,8 @@ public interface AmenityService {
     List<Amenity> getAmenitiesDibsOn(UserDetails userDetails) throws DataNotFoundException;
 
     Page<ListDTO> getAllByRecommended(Pageable pageable) throws Exception;
+
+    Page<ListDTO> getAll(Pageable pageable) throws Exception;
+
+    Page<ListDTO> getAllByCategory(Long category, Pageable pageable) throws Exception;
 }

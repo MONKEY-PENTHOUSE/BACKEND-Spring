@@ -18,6 +18,6 @@ public class PageWrapper<T> {
         this.totalPages = page.getTotalPages();
         this.totalContents = page.getTotalElements();
         this.size = page.getNumberOfElements();
-        this.page = page.getNumber();
+        this.page = page.getNumber() + 1;
     }
 }

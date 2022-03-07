@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -55,8 +56,30 @@ public class AmenityController {
         );
     }
 
+    @GetMapping(value = "/recently")
+    public ResponseEntity<DefaultRes<?>> getAll(Pageable pageable) throws Exception {
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.OK.value(),
+                        ResponseMessage.READ_INFO,
+                        new PageWrapper<ListDTO>(amenityService.getAll(pageable))),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping(value = "/category")
+    public ResponseEntity<DefaultRes<?>> getAllByCategory(@Param("category") Long category, Pageable pageable) throws Exception {
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.OK.value(),
+                        ResponseMessage.READ_INFO,
+                        new PageWrapper<ListDTO>(amenityService.getAllByCategory(category, pageable))),
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping(value = "/recommended")
-    public ResponseEntity<DefaultRes<?>> getByRecommended(Pageable pageable) throws Exception {
+    public ResponseEntity<DefaultRes<?>> getAllByRecommended(Pageable pageable) throws Exception {
         return new ResponseEntity<>(
                 DefaultRes.res(
                         HttpStatus.OK.value(),

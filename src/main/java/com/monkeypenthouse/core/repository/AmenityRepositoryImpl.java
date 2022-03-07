@@ -1,11 +1,10 @@
 package com.monkeypenthouse.core.repository;
 
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
-import com.monkeypenthouse.core.entity.Amenity;
-import com.monkeypenthouse.core.entity.QAmenity;
-import com.monkeypenthouse.core.entity.QParticipateIn;
-import com.monkeypenthouse.core.entity.QTicket;
+import com.monkeypenthouse.core.entity.*;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
@@ -29,13 +28,44 @@ public class AmenityRepositoryImpl extends QuerydslRepositorySupport implements 
     @Override
     public Page<ListDTO> findAllByRecommended(int recommended, Pageable pageable) {
         QAmenity amenity = QAmenity.amenity;
+        JPQLQuery<ListDTO> query = getQueryForListDTO().where(amenity.recommended.eq(recommended));
+        long totalCount = queryFactory.selectFrom(amenity).where(amenity.recommended.eq(recommended)).fetchCount();
+        List<ListDTO> results = getQuerydsl().applyPagination(pageable, query).fetch();
+        return new PageImpl<>(results, pageable, totalCount);
+    }
+
+    @Override
+    public Page<ListDTO> findAll(Pageable pageable) {
+        QAmenity amenity = QAmenity.amenity;
+        JPQLQuery<ListDTO> query = getQueryForListDTO();
+        long totalCount = queryFactory.selectFrom(amenity).fetchCount();
+        List<ListDTO> results = getQuerydsl().applyPagination(pageable, query).fetch();
+        return new PageImpl<>(results, pageable, totalCount);
+    }
+
+    @Override
+    public Page<ListDTO> findAllByCategory(Long categoryId, Pageable pageable) {
+        QAmenity amenity = QAmenity.amenity;
+        QAmenityCategory AmenityCategory = QAmenityCategory.amenityCategory;
+        JPQLQuery<ListDTO> query = getQueryForListDTO();
+        query.leftJoin(amenity.categories, AmenityCategory)
+                .where(AmenityCategory.category.id.eq(categoryId));
+        long totalCount = queryFactory.selectFrom(amenity)
+                .leftJoin(amenity.categories, AmenityCategory)
+                .where(AmenityCategory.category.id.eq(categoryId))
+                .fetchCount();
+        List<ListDTO> results = getQuerydsl().applyPagination(pageable, query).fetch();
+        return new PageImpl<>(results, pageable, totalCount);
+    }
+
+    private JPQLQuery<ListDTO> getQueryForListDTO() {
+        QAmenity amenity = QAmenity.amenity;
         QTicket ticket = QTicket.ticket;
         QParticipateIn participateIn = QParticipateIn.participateIn;
 
-        JPQLQuery<ListDTO> query = queryFactory.from(amenity)
+        return queryFactory.from(amenity)
                 .leftJoin(amenity.tickets, ticket)
                 .leftJoin(ticket.participateIns, participateIn)
-                .where(amenity.recommended.eq(1))
                 .groupBy(amenity.id)
                 .select(
                         Projections.fields(
@@ -49,9 +79,6 @@ public class AmenityRepositoryImpl extends QuerydslRepositorySupport implements 
                         )
 
                 );
-        long totalCount = queryFactory.selectFrom(amenity).where(amenity.recommended.eq(1)).fetchCount();
-        List<ListDTO> results = getQuerydsl().applyPagination(pageable, query).fetch();
-        return new PageImpl<>(results, pageable, totalCount);
     }
 
 

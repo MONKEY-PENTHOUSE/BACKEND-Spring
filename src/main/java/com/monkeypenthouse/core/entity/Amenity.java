@@ -1,9 +1,6 @@
 package com.monkeypenthouse.core.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -66,5 +63,10 @@ public class Amenity {
     private int status;
 
     @OneToMany(mappedBy = "amenity")
+    @ToString.Exclude
     private List<Ticket> tickets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "amenity")
+    @ToString.Exclude
+    private List<AmenityCategory> categories = new ArrayList<>();
 }
