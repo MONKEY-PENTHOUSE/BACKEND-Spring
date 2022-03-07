@@ -70,13 +70,15 @@ public class AmenityDTO {
 
     @Builder
     @Getter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
     public static class ListDTO {
-        private int id;
+        private Long id;
         private String title;
         private int minPerson;
         private int maxPerson;
+        private int currentPerson;
         private String thumbnailName;
     }
 }

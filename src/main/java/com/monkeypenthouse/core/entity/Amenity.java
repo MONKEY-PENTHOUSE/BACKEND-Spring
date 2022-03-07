@@ -10,6 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Builder
@@ -63,4 +65,6 @@ public class Amenity {
     @Column(columnDefinition = "integer default 0")
     private int status;
 
+    @OneToMany(mappedBy = "amenity")
+    private List<Ticket> tickets = new ArrayList<>();
 }

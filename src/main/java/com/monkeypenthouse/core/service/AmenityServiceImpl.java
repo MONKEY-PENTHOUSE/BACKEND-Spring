@@ -99,7 +99,7 @@ public class AmenityServiceImpl implements AmenityService {
         for (int i = 0; i < bannerPhotos.size(); i++) {
             String fileName = s3Uploader.upload(bannerPhotos.get(i), "banner");
             if (i == 0) {
-                amenity.setThumbnailName(fileName);
+                amenity.setThumbnailName("banner/" + fileName);
             }
             Photo photo = Photo
                     .builder()
@@ -161,6 +161,11 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     public Page<ListDTO> getAllByRecommended(Pageable pageable) throws Exception {
-        return amenityRepositoryCustom.findAllByRecommended(1, pageable);
+        Page<ListDTO> pages = amenityRepositoryCustom.findAllByRecommended(1, pageable);
+        for (ListDTO dto : pages.getContent()) {
+           String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
+           dto.setThumbnailName(signedUrl);
+        }
+        return pages;
     }
 }

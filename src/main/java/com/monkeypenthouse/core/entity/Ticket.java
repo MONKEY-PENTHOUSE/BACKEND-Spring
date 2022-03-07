@@ -9,6 +9,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Builder
@@ -45,4 +47,7 @@ public class Ticket {
 
     @Column(name="event_date_time", nullable=false)
     private LocalDateTime eventDateTime;
+
+    @OneToMany(mappedBy = "ticket")
+    private List<ParticipateIn> participateIns = new ArrayList<>();
 }
