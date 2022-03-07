@@ -1,8 +1,8 @@
 package com.monkeypenthouse.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.monkeypenthouse.core.dao.LifeStyle;
-import com.monkeypenthouse.core.dao.LoginType;
+import com.monkeypenthouse.core.entity.LifeStyle;
+import com.monkeypenthouse.core.entity.LoginType;
 import lombok.*;
 
 import javax.validation.constraints.*;

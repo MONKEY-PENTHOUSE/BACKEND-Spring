@@ -1,7 +1,6 @@
 package com.monkeypenthouse.core.service;
 
-import com.monkeypenthouse.core.dao.Amenity;
-import com.monkeypenthouse.core.dto.AmenityDTO;
+import com.monkeypenthouse.core.entity.Amenity;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;

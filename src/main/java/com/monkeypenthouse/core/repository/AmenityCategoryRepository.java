@@ -1,8 +1,8 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.dao.Amenity;
-import com.monkeypenthouse.core.dao.AmenityCategory;
-import com.monkeypenthouse.core.dao.AmenityCategoryId;
+import com.monkeypenthouse.core.entity.Amenity;
+import com.monkeypenthouse.core.entity.AmenityCategory;
+import com.monkeypenthouse.core.entity.AmenityCategoryId;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;

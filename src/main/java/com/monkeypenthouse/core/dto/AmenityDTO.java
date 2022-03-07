@@ -1,12 +1,9 @@
 package com.monkeypenthouse.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.monkeypenthouse.core.dao.Category;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.*;
-import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 

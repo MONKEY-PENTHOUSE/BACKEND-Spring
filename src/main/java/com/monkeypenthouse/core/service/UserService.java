@@ -1,8 +1,8 @@
 package com.monkeypenthouse.core.service;
 
-import com.monkeypenthouse.core.dao.LoginType;
-import com.monkeypenthouse.core.dao.Tokens;
-import com.monkeypenthouse.core.dao.User;
+import com.monkeypenthouse.core.entity.LoginType;
+import com.monkeypenthouse.core.entity.Tokens;
+import com.monkeypenthouse.core.entity.User;
 import com.monkeypenthouse.core.exception.AuthFailedException;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.exception.ExpectedException;
@@ -10,7 +10,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.AuthenticationException;
 
 import java.util.Map;
-import java.util.Optional;
 
 public interface UserService {
 

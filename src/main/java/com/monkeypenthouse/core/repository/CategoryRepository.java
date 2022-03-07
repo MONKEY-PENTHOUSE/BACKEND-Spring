@@ -1,6 +1,6 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.dao.Category;
+import com.monkeypenthouse.core.entity.Category;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

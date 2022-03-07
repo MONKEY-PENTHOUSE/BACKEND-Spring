@@ -1,9 +1,9 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.dao.LifeStyle;
-import com.monkeypenthouse.core.dao.LoginType;
-import com.monkeypenthouse.core.dao.Room;
-import com.monkeypenthouse.core.dao.User;
+import com.monkeypenthouse.core.entity.LifeStyle;
+import com.monkeypenthouse.core.entity.LoginType;
+import com.monkeypenthouse.core.entity.Room;
+import com.monkeypenthouse.core.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

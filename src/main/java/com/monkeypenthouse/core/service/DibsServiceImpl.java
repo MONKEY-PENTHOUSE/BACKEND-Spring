@@ -1,14 +1,13 @@
 package com.monkeypenthouse.core.service;
 
-import com.monkeypenthouse.core.dao.Amenity;
-import com.monkeypenthouse.core.dao.Dibs;
-import com.monkeypenthouse.core.dao.DibsId;
-import com.monkeypenthouse.core.dao.User;
+import com.monkeypenthouse.core.entity.Amenity;
+import com.monkeypenthouse.core.entity.Dibs;
+import com.monkeypenthouse.core.entity.DibsId;
+import com.monkeypenthouse.core.entity.User;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.exception.DibsDuplicatedException;
 import com.monkeypenthouse.core.repository.AmenityRepository;
 import com.monkeypenthouse.core.repository.DibsRepository;
-import com.monkeypenthouse.core.security.PrincipalDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;

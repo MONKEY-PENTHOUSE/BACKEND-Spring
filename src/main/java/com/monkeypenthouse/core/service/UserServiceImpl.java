@@ -1,9 +1,8 @@
 package com.monkeypenthouse.core.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.monkeypenthouse.core.connect.KakaoConnector;
 import com.monkeypenthouse.core.connect.NaverConnector;
-import com.monkeypenthouse.core.dao.*;
+import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.KakaoUserDTO;
 import com.monkeypenthouse.core.dto.NaverUserDTO;
 import com.monkeypenthouse.core.exception.*;
@@ -24,7 +23,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -2,8 +2,6 @@ package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
-import com.monkeypenthouse.core.dao.User;
-import com.monkeypenthouse.core.dto.AmenityDTO;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.service.AmenityService;
@@ -11,14 +9,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;

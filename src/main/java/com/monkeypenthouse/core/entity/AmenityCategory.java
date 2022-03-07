@@ -1,30 +1,27 @@
-package com.monkeypenthouse.core.dao;
+package com.monkeypenthouse.core.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 
 @Entity
-@IdClass(DibsId.class)
+@IdClass(AmenityCategoryId.class)
 @Builder
-@Table(name="dibs")
+@Table(name="amenity_category")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Dibs {
-
-    @Id
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
+public class AmenityCategory {
     @Id
     @ManyToOne
     @JoinColumn(name = "amenity_id")
     private Amenity amenity;
 
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 }

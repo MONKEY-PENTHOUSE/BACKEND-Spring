@@ -1,4 +1,4 @@
-package com.monkeypenthouse.core.dao;
+package com.monkeypenthouse.core.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,8 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AmenityCategoryId implements Serializable {
+public class DibsId implements Serializable {
+    private Long user;
     private Long amenity;
-    private Long category;
 }
+

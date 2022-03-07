@@ -1,9 +1,6 @@
-package com.monkeypenthouse.core.dao;
+package com.monkeypenthouse.core.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 
 public enum Authority {
     USER, ADMIN;
