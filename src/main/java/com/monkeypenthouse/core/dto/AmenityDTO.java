@@ -67,4 +67,16 @@ public class AmenityDTO {
         @NotNull(message = "티켓이 한 개 이상 있어야 합니다.")
         private List<TicketDTO.saveDTO> tickets;
     }
+
+    @Builder
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ListDTO {
+        private int id;
+        private String title;
+        private int minPerson;
+        private int maxPerson;
+        private String thumbnailName;
+    }
 }

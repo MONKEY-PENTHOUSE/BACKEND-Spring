@@ -9,6 +9,8 @@ import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ public class AmenityServiceImpl implements AmenityService {
     private final CategoryRepository categoryRepository;
     private final AmenityCategoryRepository amenityCategoryRepository;
     private final DibsRepository dibsRepository;
+    private final AmenityRepositoryCustom amenityRepositoryCustom;
     private final UserService userService;
     private final S3Uploader s3Uploader;
     private final ModelMapper modelMapper;
@@ -154,5 +157,10 @@ public class AmenityServiceImpl implements AmenityService {
         final User user = userService.getUserByEmail(userDetails.getUsername());
 
         return dibsRepository.findAllByUser(user).stream().map(dibs -> dibs.getAmenity()).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<ListDTO> getAllByRecommended(Pageable pageable) throws Exception {
+        return amenityRepositoryCustom.findAllByRecommended(1, pageable);
     }
 }

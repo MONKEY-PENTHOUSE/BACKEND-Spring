@@ -1,8 +1,11 @@
 package com.monkeypenthouse.core.service;
 
+import com.monkeypenthouse.core.dto.AmenityDTO;
 import com.monkeypenthouse.core.entity.Amenity;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,4 +16,6 @@ public interface AmenityService {
     DetailDTO getById(Long id) throws Exception;
 
     List<Amenity> getAmenitiesDibsOn(UserDetails userDetails) throws DataNotFoundException;
+
+    Page<ListDTO> getAllByRecommended(Pageable pageable) throws Exception;
 }
