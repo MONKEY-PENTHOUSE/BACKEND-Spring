@@ -64,6 +64,9 @@ dependencies {
 			"jakarta.persistence:jakarta.persistence-api",
 			"jakarta.annotation:jakarta.annotation-api",
 			"com.querydsl:querydsl-apt:4.4.0:jpa")
+
+	// Swagger
+	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 }
 
 sourceSets {
