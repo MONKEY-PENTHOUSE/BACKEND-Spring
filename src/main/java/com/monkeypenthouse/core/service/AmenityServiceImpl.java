@@ -1,12 +1,16 @@
 package com.monkeypenthouse.core.service;
 
+import com.monkeypenthouse.core.dto.PageDTO;
 import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
+import com.monkeypenthouse.core.dto.querydsl.AmenitySimpleDTO;
+import com.monkeypenthouse.core.dto.querydsl.TicketOfAmenityDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.TicketDTO;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.repository.*;
+import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -32,7 +36,6 @@ public class AmenityServiceImpl implements AmenityService {
     private final CategoryRepository categoryRepository;
     private final AmenityCategoryRepository amenityCategoryRepository;
     private final DibsRepository dibsRepository;
-    private final AmenityRepositoryCustom amenityRepositoryCustom;
     private final UserService userService;
     private final S3Uploader s3Uploader;
     private final ModelMapper modelMapper;
@@ -160,34 +163,77 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     @Override
-    public Page<ListDTO> getAll(Pageable pageable) throws Exception {
-        Page<ListDTO> pages = amenityRepositoryCustom.findAll(pageable);
-        for (ListDTO dto : pages.getContent()) {
+    public GetPageResVo getPage(Pageable pageable) throws Exception {
+        Page<AmenitySimpleDTO> pages = amenityRepository.findAll(pageable);
+        List<AmenitySimpleVo> amenitySimpleVos = new ArrayList<>();
+        for (AmenitySimpleDTO dto : pages.getContent()) {
             String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
-            dto.setThumbnailName(signedUrl);
+            amenitySimpleVos.add(AmenitySimpleVo.builder()
+                    .id(dto.getId())
+                    .title(dto.getTitle())
+                    .minPerson(dto.getMinPerson())
+                    .maxPerson(dto.getMaxPerson())
+                    .currentPerson(dto.getCurrentPerson())
+                    .thumbnailName(signedUrl)
+                    .build());
         }
-        return pages;
+        return new GetPageResVo(pages, amenitySimpleVos);
     }
 
     @Override
-    public Page<ListDTO> getAllByCategory(Long category, Pageable pageable) throws Exception {
-        Page<ListDTO> pages = amenityRepositoryCustom.findAllByCategory(category, pageable);
-        for (ListDTO dto : pages.getContent()) {
+    public GetPageResVo getPageByCategory(Long category, Pageable pageable) throws Exception {
+        Page<AmenitySimpleDTO> pages = amenityRepository.findAllByCategory(category, pageable);
+        List<AmenitySimpleVo> amenitySimpleVos = new ArrayList<>();
+        for (AmenitySimpleDTO dto : pages.getContent()) {
             String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
-            dto.setThumbnailName(signedUrl);
+            amenitySimpleVos.add(AmenitySimpleVo.builder()
+                    .id(dto.getId())
+                    .title(dto.getTitle())
+                    .minPerson(dto.getMinPerson())
+                    .maxPerson(dto.getMaxPerson())
+                    .currentPerson(dto.getCurrentPerson())
+                    .thumbnailName(signedUrl)
+                    .build());
         }
-        return pages;
+        return new GetPageResVo(pages, amenitySimpleVos);
     }
 
     @Override
-    public Page<ListDTO> getAllByRecommended(Pageable pageable) throws Exception {
-        Page<ListDTO> pages = amenityRepositoryCustom.findAllByRecommended(1, pageable);
-        for (ListDTO dto : pages.getContent()) {
+    public GetPageResVo getPageByRecommended(Pageable pageable) throws Exception {
+        Page<AmenitySimpleDTO> pages = amenityRepository.findAllByRecommended(1, pageable);
+        List<AmenitySimpleVo> amenitySimpleVos = new ArrayList<>();
+        for (AmenitySimpleDTO dto : pages.getContent()) {
            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
-           dto.setThumbnailName(signedUrl);
+            amenitySimpleVos.add(AmenitySimpleVo.builder()
+                    .id(dto.getId())
+                    .title(dto.getTitle())
+                    .minPerson(dto.getMinPerson())
+                    .maxPerson(dto.getMaxPerson())
+                    .currentPerson(dto.getCurrentPerson())
+                    .thumbnailName(signedUrl)
+                    .build());
         }
-        return pages;
+        return new GetPageResVo(pages, amenitySimpleVos);
     }
 
+    @Override
+    public GetTicketsOfAmenityResponseVo getTicketsOfAmenity(final Long amenityId) {
 
+        final List<TicketOfAmenityDto> ticketsOfAmenity = amenityRepository.getTicketsOfAmenity(amenityId);
+
+        return GetTicketsOfAmenityResponseVo.builder()
+                .tickets(
+                        ticketsOfAmenity
+                                .stream()
+                                .map(TicketOfAmenityDto -> TicketOfAmenityVo.builder()
+                                        .id(TicketOfAmenityDto.getId())
+                                        .title(TicketOfAmenityDto.getTitle())
+                                        .description(TicketOfAmenityDto.getDescription())
+                                        .price(TicketOfAmenityDto.getPrice())
+                                        .maxCount(TicketOfAmenityDto.getMaxCount())
+                                        .availableCount(TicketOfAmenityDto.getMaxCount()- TicketOfAmenityDto.getReservedCount())
+                                        .build())
+                                .collect(Collectors.toList()))
+                .build();
+    }
 }

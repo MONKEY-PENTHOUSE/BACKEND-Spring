@@ -14,5 +14,6 @@ public class ResponseMessage {
     public static final String CREATED_DIBS = "찜하기 추가에 성공하였습니다.";
     public static final String DELETED_DIBS = "찜하기 삭제에 성공하였습니다.";
     public static final String GET_AMENITY_DIBS_ON = "찜한 어메니티 조회에 성공하였습니다.";
+    public static final String GET_TICKETS_OF_AMENITY = "어메니티 티켓 리스트 조회에 성공하였습니다.";
 
 }

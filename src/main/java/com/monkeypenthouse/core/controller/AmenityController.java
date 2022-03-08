@@ -3,8 +3,8 @@ package com.monkeypenthouse.core.controller;
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.PageWrapper;
 import com.monkeypenthouse.core.common.ResponseMessage;
-import com.monkeypenthouse.core.dto.AmenityDTO;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
+import com.monkeypenthouse.core.dto.GetTicketsOfAmenityResponseDto;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.service.AmenityService;
 import lombok.RequiredArgsConstructor;
@@ -95,7 +95,7 @@ public class AmenityController {
 
         List<DetailDTO> amenityDTOList = amenityService.getAmenitiesDibsOn(userDetails)
                 .stream()
-                .map(amenity -> modelMapper.map(amenity,DetailDTO.class))
+                .map(amenity -> modelMapper.map(amenity, DetailDTO.class))
                 .collect(Collectors.toList());
 
         return new ResponseEntity<>(
@@ -103,6 +103,22 @@ public class AmenityController {
                         HttpStatus.OK.value(),
                         ResponseMessage.GET_AMENITY_DIBS_ON,
                         amenityDTOList),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping(value = "/{id}/tickets")
+    public ResponseEntity<DefaultRes<?>> getTicketsOfAmenity(@PathVariable("id") final Long amenityId)
+            throws DataNotFoundException {
+
+        final GetTicketsOfAmenityResponseDto responseDto =
+                GetTicketsOfAmenityResponseDto.of(amenityService.getTicketsOfAmenity(amenityId));
+
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.OK.value(),
+                        ResponseMessage.GET_TICKETS_OF_AMENITY,
+                        responseDto),
                 HttpStatus.OK
         );
     }

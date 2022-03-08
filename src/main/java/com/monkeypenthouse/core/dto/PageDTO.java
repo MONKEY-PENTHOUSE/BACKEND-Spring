@@ -1,4 +1,4 @@
-package com.monkeypenthouse.core.common;
+package com.monkeypenthouse.core.dto;
 
 import lombok.Getter;
 import org.springframework.data.domain.Page;
@@ -15,6 +15,14 @@ public class PageWrapper<T> {
 
     public PageWrapper(Page<T> page) {
         this.content = page.getContent();
+        this.totalPages = page.getTotalPages();
+        this.totalContents = page.getTotalElements();
+        this.size = page.getNumberOfElements();
+        this.page = page.getNumber() + 1;
+    }
+
+    public PageWrapper(Page<?> page, List<T> content) {
+        this.content = content;
         this.totalPages = page.getTotalPages();
         this.totalContents = page.getTotalElements();
         this.size = page.getNumberOfElements();

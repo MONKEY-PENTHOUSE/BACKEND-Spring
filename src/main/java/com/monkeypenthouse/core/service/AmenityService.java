@@ -1,10 +1,13 @@
 package com.monkeypenthouse.core.service;
 
-import com.monkeypenthouse.core.dto.AmenityDTO;
+import com.monkeypenthouse.core.dto.PageDTO;
 import com.monkeypenthouse.core.entity.Amenity;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
-import org.springframework.data.domain.Page;
+import com.monkeypenthouse.core.vo.AmenitySimpleVo;
+import com.monkeypenthouse.core.vo.GetPageResVo;
+import com.monkeypenthouse.core.vo.GetTicketsOfAmenityResponseVo;
+import com.monkeypenthouse.core.vo.PageVo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +20,10 @@ public interface AmenityService {
 
     List<Amenity> getAmenitiesDibsOn(UserDetails userDetails) throws DataNotFoundException;
 
-    Page<ListDTO> getAllByRecommended(Pageable pageable) throws Exception;
+    GetPageResVo getPageByRecommended(Pageable pageable) throws Exception;
 
-    Page<ListDTO> getAll(Pageable pageable) throws Exception;
+    GetPageResVo getPage(Pageable pageable) throws Exception;
 
-    Page<ListDTO> getAllByCategory(Long category, Pageable pageable) throws Exception;
+    GetPageResVo getPageByCategory(Long category, Pageable pageable) throws Exception;
+    GetTicketsOfAmenityResponseVo getTicketsOfAmenity(Long amenityId);
 }
