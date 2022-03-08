@@ -1,31 +1,20 @@
 package com.monkeypenthouse.core.dto;
 
-import lombok.Getter;
+import com.monkeypenthouse.core.vo.AmenitySimpleVo;
+import com.monkeypenthouse.core.vo.GetTicketsOfAmenityResponseVo;
+import com.monkeypenthouse.core.vo.PageVo;
+import lombok.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
-
+import java.util.stream.Collectors;
 @Getter
-public class PageWrapper<T> {
-    private final List<T> content;
-    private final int totalPages;
-    private final Long totalContents;
-    private final int size;
-    private final int page;
-
-    public PageWrapper(Page<T> page) {
-        this.content = page.getContent();
-        this.totalPages = page.getTotalPages();
-        this.totalContents = page.getTotalElements();
-        this.size = page.getNumberOfElements();
-        this.page = page.getNumber() + 1;
-    }
-
-    public PageWrapper(Page<?> page, List<T> content) {
-        this.content = content;
-        this.totalPages = page.getTotalPages();
-        this.totalContents = page.getTotalElements();
-        this.size = page.getNumberOfElements();
-        this.page = page.getNumber() + 1;
-    }
+@RequiredArgsConstructor
+@AllArgsConstructor
+public abstract class PageDTO<T> {
+    private List<T> content;
+    private int totalPages;
+    private Long totalContents;
+    private int size;
+    private int page;
 }

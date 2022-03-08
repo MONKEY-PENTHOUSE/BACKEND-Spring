@@ -1,12 +1,15 @@
 package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.common.DefaultRes;
-import com.monkeypenthouse.core.common.PageWrapper;
+import com.monkeypenthouse.core.dto.AmenitySimpleDTO;
+import com.monkeypenthouse.core.dto.GetPageResDTO;
+import com.monkeypenthouse.core.dto.PageDTO;
 import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.GetTicketsOfAmenityResponseDto;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.service.AmenityService;
+import com.monkeypenthouse.core.vo.AmenitySimpleVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -57,34 +60,40 @@ public class AmenityController {
     }
 
     @GetMapping(value = "/recently")
-    public ResponseEntity<DefaultRes<?>> getAll(Pageable pageable) throws Exception {
+    public ResponseEntity<DefaultRes<?>> getPage(Pageable pageable) throws Exception {
+        final GetPageResDTO responseDto =
+                GetPageResDTO.of(amenityService.getPage(pageable));
         return new ResponseEntity<>(
                 DefaultRes.res(
                         HttpStatus.OK.value(),
                         ResponseMessage.READ_INFO,
-                        new PageWrapper<ListDTO>(amenityService.getAll(pageable))),
+                        responseDto),
                 HttpStatus.OK
         );
     }
 
     @GetMapping(value = "/category")
-    public ResponseEntity<DefaultRes<?>> getAllByCategory(@Param("category") Long category, Pageable pageable) throws Exception {
+    public ResponseEntity<DefaultRes<?>> getPageByCategory(@Param("category") Long category, Pageable pageable) throws Exception {
+        final GetPageResDTO responseDto =
+                GetPageResDTO.of(amenityService.getPageByCategory(category, pageable));
         return new ResponseEntity<>(
                 DefaultRes.res(
                         HttpStatus.OK.value(),
                         ResponseMessage.READ_INFO,
-                        new PageWrapper<ListDTO>(amenityService.getAllByCategory(category, pageable))),
+                        responseDto),
                 HttpStatus.OK
         );
     }
 
     @GetMapping(value = "/recommended")
-    public ResponseEntity<DefaultRes<?>> getAllByRecommended(Pageable pageable) throws Exception {
+    public ResponseEntity<DefaultRes<?>> getPageByRecommended(Pageable pageable) throws Exception {
+        final GetPageResDTO responseDto =
+                GetPageResDTO.of(amenityService.getPageByRecommended(pageable));
         return new ResponseEntity<>(
                 DefaultRes.res(
                         HttpStatus.OK.value(),
                         ResponseMessage.READ_INFO,
-                        new PageWrapper<ListDTO>(amenityService.getAllByRecommended(pageable))),
+                        responseDto),
                 HttpStatus.OK
         );
     }

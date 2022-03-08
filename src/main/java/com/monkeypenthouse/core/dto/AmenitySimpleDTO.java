@@ -1,11 +1,17 @@
-package com.monkeypenthouse.core.dto.querydsl;
+package com.monkeypenthouse.core.dto;
 
+import com.monkeypenthouse.core.vo.AmenitySimpleVo;
+import com.monkeypenthouse.core.vo.TicketOfAmenityVo;
 import com.querydsl.core.annotations.QueryProjection;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Builder
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AmenitySimpleDTO {
     private Long id;
     private String title;
@@ -14,13 +20,15 @@ public class AmenitySimpleDTO {
     private int currentPerson;
     private String thumbnailName;
 
-    @QueryProjection
-    public AmenitySimpleDTO(Long id, String title, int minPerson, int maxPerson, int currentPerson, String thumbnailName) {
-        this.id = id;
-        this.title = title;
-        this.minPerson = minPerson;
-        this.maxPerson = maxPerson;
-        this.currentPerson = currentPerson;
-        this.thumbnailName = thumbnailName;
+    public static AmenitySimpleDTO of(AmenitySimpleVo vo) {
+        return builder()
+                .id(vo.getId())
+                .title(vo.getTitle())
+                .minPerson(vo.getMinPerson())
+                .maxPerson(vo.getMaxPerson())
+                .currentPerson(vo.getCurrentPerson())
+                .thumbnailName(vo.getThumbnailName())
+                .build();
     }
+
 }

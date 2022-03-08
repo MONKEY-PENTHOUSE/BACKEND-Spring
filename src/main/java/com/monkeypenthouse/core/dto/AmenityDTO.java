@@ -73,7 +73,7 @@ public class AmenityDTO {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class ListDTO {
+    public static class SimpleDTO {
         private Long id;
         private String title;
         private int minPerson;

@@ -1,4 +1,4 @@
-package com.monkeypenthouse.core.dto;
+package com.monkeypenthouse.core.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,17 +9,16 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 @Getter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageDTO<T> {
-    private final List<T> content;
-    private final int totalPages;
-    private final Long totalContents;
-    private final int size;
-    private final int page;
+public abstract class PageVo<T> {
+    private List<T> content;
+    private int totalPages;
+    private Long totalContents;
+    private int size;
+    private int page;
 
-    public PageDTO(Page<T> page) {
+    public PageVo(Page<T> page) {
         this.content = page.getContent();
         this.totalPages = page.getTotalPages();
         this.totalContents = page.getTotalElements();
@@ -27,7 +26,7 @@ public class PageDTO<T> {
         this.page = page.getNumber() + 1;
     }
 
-    public PageDTO(Page<?> page, List<T> content) {
+    public PageVo(Page<?> page, List<T> content) {
         this.content = content;
         this.totalPages = page.getTotalPages();
         this.totalContents = page.getTotalElements();
