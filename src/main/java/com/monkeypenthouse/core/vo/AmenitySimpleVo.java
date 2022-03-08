@@ -10,9 +10,9 @@ import java.time.LocalDate;
 public class AmenitySimpleVo {
     private Long id;
     private String title;
-    private int minPerson;
-    private int maxPerson;
-    private int currentPerson;
+    private int minPersonNum;
+    private int maxPersonNum;
+    private int currentPersonNum;
     private String thumbnailName;
     private String address;
     private LocalDate startDate;

@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-public class GetPageResDTO extends PageDTO<AmenitySimpleDTO> {
+public class GetPageResponseDTO extends PageDTO<AmenitySimpleDTO> {
 
-    public GetPageResDTO(List<AmenitySimpleDTO> content, int totalPages, Long totalContents, int size, int page) {
+    public GetPageResponseDTO(List<AmenitySimpleDTO> content, int totalPages, Long totalContents, int size, int page) {
         super(content, totalPages, totalContents, size, page);
     }
-    public static GetPageResDTO of(GetPageResponseVo vo) {
-        vo.getContent();
-        return new GetPageResDTO(
+
+    public static GetPageResponseDTO of(GetPageResponseVo vo) {
+        return new GetPageResponseDTO(
                 vo.getContent()
                         .stream()
                         .map(AmenitySimpleDTO::of)

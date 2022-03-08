@@ -11,9 +11,9 @@ import java.time.LocalDate;
 public class AmenitySimpleDTO {
     private Long id;
     private String title;
-    private int minPerson;
-    private int maxPerson;
-    private int currentPerson;
+    private int minPersonNum;
+    private int maxPersonNum;
+    private int currentPersonNum;
     private String thumbnailName;
     private String address;
     private LocalDate startDate;
@@ -22,18 +22,18 @@ public class AmenitySimpleDTO {
     @QueryProjection
     public AmenitySimpleDTO(Long id,
                             String title,
-                            int minPerson,
-                            int maxPerson,
-                            int currentPerson,
+                            int minPersonNum,
+                            int maxPersonNum,
+                            int currentPersonNum,
                             String thumbnailName,
                             String address,
                             LocalDate startDate,
                             int status) {
         this.id = id;
         this.title = title;
-        this.minPerson = minPerson;
-        this.maxPerson = maxPerson;
-        this.currentPerson = currentPerson;
+        this.minPersonNum = minPersonNum;
+        this.maxPersonNum = maxPersonNum;
+        this.currentPersonNum = currentPersonNum;
         this.thumbnailName = thumbnailName;
         this.address = address;
         this.startDate = startDate;

@@ -17,9 +17,9 @@ import java.time.LocalDate;
 public class AmenitySimpleDTO {
     private Long id;
     private String title;
-    private int minPerson;
-    private int maxPerson;
-    private int currentPerson;
+    private int minPersonNum;
+    private int maxPersonNum;
+    private int currentPersonNum;
     private String thumbnailName;
     private String address;
     private LocalDate startDate;
@@ -29,9 +29,9 @@ public class AmenitySimpleDTO {
         return builder()
                 .id(vo.getId())
                 .title(vo.getTitle())
-                .minPerson(vo.getMinPerson())
-                .maxPerson(vo.getMaxPerson())
-                .currentPerson(vo.getCurrentPerson())
+                .minPersonNum(vo.getMinPersonNum())
+                .maxPersonNum(vo.getMaxPersonNum())
+                .currentPersonNum(vo.getCurrentPersonNum())
                 .thumbnailName(vo.getThumbnailName())
                 .address(vo.getAddress())
                 .startDate(vo.getStartDate())

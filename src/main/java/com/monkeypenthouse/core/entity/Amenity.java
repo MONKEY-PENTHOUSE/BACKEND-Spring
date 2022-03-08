@@ -69,4 +69,12 @@ public class Amenity {
     @OneToMany(mappedBy = "amenity")
     @ToString.Exclude
     private List<AmenityCategory> categories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "amenity")
+    @ToString.Exclude
+    private List<Photo> photos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "amenity")
+    @ToString.Exclude
+    private List<Dibs> dibs = new ArrayList<>();
 }

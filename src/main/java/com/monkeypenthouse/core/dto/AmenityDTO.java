@@ -14,6 +14,30 @@ public class AmenityDTO {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
+    public static class DetailDTO {
+        private Long id;
+        private String title;
+        private String address;
+        private List<String> categories;
+        private List<String> bannerImages;
+        private List<String> detailImages;
+        private LocalDate deadlineDate;
+        private LocalDate startDate;
+        private String detail;
+        private int recommended;
+        private int minPersonNum;
+        private int maxPersonNum;
+        private int currentPersonNum;
+        private int status;
+        private int fundingPrice;
+        private int dibs;
+    }
+
+    @Builder
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class SaveReqDTO {
         @NotBlank(message = "제목은 필수 입력값입니다.")
         @Pattern(regexp = "^.{15,30}$")
