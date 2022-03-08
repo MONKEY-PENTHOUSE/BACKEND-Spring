@@ -9,13 +9,13 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 @Getter
-public class GetPageResVo extends PageVo<AmenitySimpleVo> {
+public class GetPageResponseVo extends PageVo<AmenitySimpleVo> {
 
-    public GetPageResVo(Page<AmenitySimpleVo> page) {
+    public GetPageResponseVo(Page<AmenitySimpleVo> page) {
         super(page);
     }
 
-    public GetPageResVo(Page<AmenitySimpleDTO> page, List<AmenitySimpleVo> content) {
+    public GetPageResponseVo(Page<AmenitySimpleDTO> page, List<AmenitySimpleVo> content) {
         super(page, content);
     }
 

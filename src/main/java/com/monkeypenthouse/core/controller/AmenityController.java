@@ -98,23 +98,23 @@ public class AmenityController {
         );
     }
 
-    @GetMapping(value = "/dibs")
-    public ResponseEntity<DefaultRes<?>> getAmenitiesDibsOn(
-            @AuthenticationPrincipal final UserDetails userDetails) throws DataNotFoundException {
-
-        List<DetailDTO> amenityDTOList = amenityService.getAmenitiesDibsOn(userDetails)
-                .stream()
-                .map(amenity -> modelMapper.map(amenity, DetailDTO.class))
-                .collect(Collectors.toList());
-
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.OK.value(),
-                        ResponseMessage.GET_AMENITY_DIBS_ON,
-                        amenityDTOList),
-                HttpStatus.OK
-        );
-    }
+//    @GetMapping(value = "/dibs")
+//    public ResponseEntity<DefaultRes<?>> getAmenitiesDibsOn(
+//            @AuthenticationPrincipal final UserDetails userDetails) throws DataNotFoundException {
+//
+//        List<DetailDTO> amenityDTOList = amenityService.getAmenitiesDibsOn(userDetails)
+//                .stream()
+//                .map(amenity -> modelMapper.map(amenity, DetailDTO.class))
+//                .collect(Collectors.toList());
+//
+//        return new ResponseEntity<>(
+//                DefaultRes.res(
+//                        HttpStatus.OK.value(),
+//                        ResponseMessage.GET_AMENITY_DIBS_ON,
+//                        amenityDTOList),
+//                HttpStatus.OK
+//        );
+//    }
 
     @GetMapping(value = "/{id}/tickets")
     public ResponseEntity<DefaultRes<?>> getTicketsOfAmenity(@PathVariable("id") final Long amenityId)

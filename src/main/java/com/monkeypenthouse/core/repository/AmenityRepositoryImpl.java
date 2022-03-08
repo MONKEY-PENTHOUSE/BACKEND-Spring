@@ -91,9 +91,11 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                         amenity.minPersonNum.as("minPerson"),
                         amenity.maxPersonNum.as("maxPerson"),
                         participateIn.count.sum().coalesce(0).as("currentPerson"),
-                        amenity.thumbnailName
+                        amenity.thumbnailName,
+                        amenity.address,
+                        amenity.startDate,
+                        amenity.status
                 )
-
         );
     }
 }

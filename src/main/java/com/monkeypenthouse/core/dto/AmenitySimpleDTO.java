@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Getter
 @Builder
 @AllArgsConstructor
@@ -19,6 +21,9 @@ public class AmenitySimpleDTO {
     private int maxPerson;
     private int currentPerson;
     private String thumbnailName;
+    private String address;
+    private LocalDate startDate;
+    private int status;
 
     public static AmenitySimpleDTO of(AmenitySimpleVo vo) {
         return builder()
@@ -28,6 +33,9 @@ public class AmenitySimpleDTO {
                 .maxPerson(vo.getMaxPerson())
                 .currentPerson(vo.getCurrentPerson())
                 .thumbnailName(vo.getThumbnailName())
+                .address(vo.getAddress())
+                .startDate(vo.getStartDate())
+                .status(vo.getStatus())
                 .build();
     }
 
