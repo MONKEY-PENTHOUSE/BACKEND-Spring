@@ -1,7 +1,11 @@
 package com.monkeypenthouse.core.repository;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.monkeypenthouse.core.dto.querydsl.*;
+import com.monkeypenthouse.core.entity.Photo;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.SimplePath;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.monkeypenthouse.core.entity.QAmenity.*;
@@ -18,8 +23,8 @@ import static com.monkeypenthouse.core.entity.QAmenityCategory.*;
 import static com.monkeypenthouse.core.entity.QCategory.*;
 import static com.monkeypenthouse.core.entity.QPhoto.*;
 import static com.monkeypenthouse.core.entity.QDibs.*;
-import static com.querydsl.core.group.GroupBy.groupBy;
-import static com.querydsl.core.group.GroupBy.list;
+import static com.querydsl.core.group.GroupBy.*;
+
 
 @RequiredArgsConstructor
 public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
@@ -29,7 +34,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
 
     @Override
     public Optional<AmenityDetailDTO> findDetailById(Long id) {
-        return Optional.ofNullable(queryFactory
+        Map<Long, AmenityDetailDTO> list = queryFactory
                 .from(amenity)
                 .leftJoin(amenity.categories, amenityCategory)
                 .leftJoin(amenityCategory.category, category)
@@ -38,7 +43,6 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .leftJoin(ticket.participateIns, participateIn)
                 .leftJoin(amenity.dibs, dibs)
                 .where(amenity.id.eq(id))
-                .groupBy(amenity.id)
                 .transform(
                         groupBy(amenity.id).as(
                                 new QAmenityDetailDTO(
@@ -52,20 +56,21 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                                                 photo.name,
                                                 photo.type,
                                                 photo.createdAt
-                                        )).as("photos"),
-                                        list(category.name).as("categoryNames"),
+                                        )),
+                                        list(category.name),
                                         amenity.recommended,
                                         amenity.minPersonNum,
                                         amenity.maxPersonNum,
-                                        participateIn.count.sum().coalesce(0).as("currentPersonNum"),
+                                        participateIn.count.sum().coalesce(0),
                                         amenity.status,
-                                        ticket.price.multiply(participateIn.count).sum().coalesce(0).as("fundingPrice"),
-                                        dibs.count().coalesce(0L).as("dibs")
+                                        ticket.price.multiply(participateIn.count.coalesce(0)).sum(),
+                                        dibs.count().coalesce(0L)
                                 )
                         )
-                )
-                .get(id));
+                );
+        return Optional.ofNullable(list.get(id));
     }
+
 
     @Override
     public Page<AmenitySimpleDTO> findPageByRecommended(int recommended, Pageable pageable) {
