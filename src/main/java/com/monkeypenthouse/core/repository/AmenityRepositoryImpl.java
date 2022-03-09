@@ -1,11 +1,12 @@
 package com.monkeypenthouse.core.repository;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.monkeypenthouse.core.dto.querydsl.*;
-import com.monkeypenthouse.core.entity.Photo;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.SimplePath;
+import com.monkeypenthouse.core.entity.Amenity;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.monkeypenthouse.core.entity.QAmenity.*;
@@ -21,9 +21,7 @@ import static com.monkeypenthouse.core.entity.QParticipateIn.*;
 import static com.monkeypenthouse.core.entity.QTicket.*;
 import static com.monkeypenthouse.core.entity.QAmenityCategory.*;
 import static com.monkeypenthouse.core.entity.QCategory.*;
-import static com.monkeypenthouse.core.entity.QPhoto.*;
 import static com.monkeypenthouse.core.entity.QDibs.*;
-import static com.querydsl.core.group.GroupBy.*;
 
 
 @RequiredArgsConstructor
@@ -33,75 +31,53 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
 
 
     @Override
-    public Optional<AmenityDetailDTO> findDetailById(Long id) {
-        Map<Long, AmenityDetailDTO> list = queryFactory
+    public Optional<CurrentPersonAndFundingPriceAndDibsOfAmenityDTO> findcurrentPersonAndFundingPriceAndDibsOfAmenityById(Long id) {
+        List<CurrentPersonAndFundingPriceAndDibsOfAmenityDTO> list = queryFactory
                 .from(amenity)
-                .leftJoin(amenity.categories, amenityCategory)
-                .leftJoin(amenityCategory.category, category)
-                .leftJoin(amenity.photos, photo)
                 .leftJoin(amenity.tickets, ticket)
                 .leftJoin(ticket.participateIns, participateIn)
                 .leftJoin(amenity.dibs, dibs)
                 .where(amenity.id.eq(id))
-                .transform(
-                        groupBy(amenity.id).as(
-                                new QAmenityDetailDTO(
-                                        amenity.id,
-                                        amenity.title,
-                                        amenity.detail,
-                                        amenity.address,
-                                        amenity.startDate,
-                                        amenity.deadlineDate,
-                                        list(new QPhotoDTO(
-                                                photo.name,
-                                                photo.type,
-                                                photo.createdAt
-                                        )),
-                                        list(category.name),
-                                        amenity.recommended,
-                                        amenity.minPersonNum,
-                                        amenity.maxPersonNum,
-                                        participateIn.count.sum().coalesce(0),
-                                        amenity.status,
-                                        ticket.price.multiply(participateIn.count.coalesce(0)).sum(),
-                                        dibs.count().coalesce(0L)
+                .groupBy(amenity.id)
+                .select(
+                        new QCurrentPersonAndFundingPriceAndDibsOfAmenityDTO(
+                                participateIn.count.sum().coalesce(0),
+                                ticket.price.multiply(participateIn.count.coalesce(0)).sum(),
+                                ExpressionUtils.as(
+                                        JPAExpressions.select(dibs.count().coalesce(0L))
+                                        .from(dibs)
+                                        .where(dibs.amenity.id.eq(id)),
+                                        "dibs"
                                 )
                         )
-                );
-        return Optional.ofNullable(list.get(id));
+                ).fetch();
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
-
 
     @Override
     public Page<AmenitySimpleDTO> findPageByRecommended(int recommended, Pageable pageable) {
-        List<AmenitySimpleDTO> content = getQueryForListDTO()
-                .where(amenity.recommended.eq(recommended))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+        JPQLQuery<AmenitySimpleDTO> query = getQueryForListDTO()
+                .where(amenity.recommended.eq(recommended));
+        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity).where(amenity.recommended.eq(recommended)).fetchCount();
         return new PageImpl<>(content, pageable, totalCount);
     }
 
     @Override
     public Page<AmenitySimpleDTO> findPage(Pageable pageable) {
-        List<AmenitySimpleDTO> content = getQueryForListDTO()
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+        JPQLQuery<AmenitySimpleDTO> query = getQueryForListDTO();
+        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity).fetchCount();
         return new PageImpl<>(content, pageable, totalCount);
     }
 
     @Override
     public Page<AmenitySimpleDTO> findPageByCategory(Long categoryId, Pageable pageable) {
-        List<AmenitySimpleDTO> content = getQueryForListDTO()
+        JPQLQuery<AmenitySimpleDTO> query = getQueryForListDTO()
                 .leftJoin(amenity.categories, amenityCategory)
                 .leftJoin(amenityCategory.category, category)
-                .where(category.id.eq(categoryId))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+                .where(category.id.eq(categoryId));
+        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity)
                 .leftJoin(amenity.categories, amenityCategory)
                 .leftJoin(amenityCategory.category, category)
@@ -146,5 +122,16 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                         amenity.status
                 )
         );
+    }
+
+    private JPQLQuery<AmenitySimpleDTO> applicatePageable(JPQLQuery query, Pageable pageable) {
+        query.offset(pageable.getOffset()).limit(pageable.getPageSize());
+        pageable.getSort().stream().forEach(e -> {
+            PathBuilder<Amenity> orderByExpression = new PathBuilder<Amenity>(Amenity.class, "amenity");
+            query.orderBy(new OrderSpecifier(e.isAscending() ?
+                    Order.ASC : Order.DESC, orderByExpression.get(e.getProperty())));
+        });
+        return query;
+
     }
 }

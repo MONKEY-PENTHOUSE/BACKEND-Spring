@@ -2,9 +2,8 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
-import com.monkeypenthouse.core.dto.querydsl.AmenityDetailDTO;
 import com.monkeypenthouse.core.dto.querydsl.AmenitySimpleDTO;
-import com.monkeypenthouse.core.dto.querydsl.PhotoDTO;
+import com.monkeypenthouse.core.dto.querydsl.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
 import com.monkeypenthouse.core.dto.querydsl.TicketOfAmenityDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
@@ -133,11 +132,48 @@ public class AmenityServiceImpl implements AmenityService {
     @Override
     @Transactional(readOnly = true)
     public GetByIdResponseVo getById(Long id) throws DataNotFoundException, CloudFrontServiceException, IOException {
-        AmenityDetailDTO amenity = amenityRepository.findDetailById(id)
+        Amenity amenity = amenityRepository.findWithPhotosById(id).orElseThrow(() -> new DataNotFoundException(Amenity.builder().id(id).build()));
+        CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs = amenityRepository.findcurrentPersonAndFundingPriceAndDibsOfAmenityById(id)
                 .orElseThrow(() -> new DataNotFoundException(Amenity.builder().id(id).build()));
-        return amenityDetailDtoToVo(amenity);
+        return amenityDetailDtoToVo(amenity, currentPersonAndFundingPriceAndDibs);
     }
 
+    private GetByIdResponseVo amenityDetailDtoToVo(Amenity amenity,
+                                                   CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs)
+            throws CloudFrontServiceException, IOException {
+        List<Photo> photos = amenity.getPhotos();
+        List<String> bannerPhotos = new ArrayList<>();
+        List<String> detailPhotos = new ArrayList<>();
+
+        // 사진에 대한 signed url 만들기
+        for (Photo photo : photos) {
+            String filename = photo.getType().name().toLowerCase() + "/" + photo.getName();
+            if (photo.getType() == PhotoType.BANNER) {
+                bannerPhotos.add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
+            } else {
+                detailPhotos.add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
+            }
+        }
+
+        return GetByIdResponseVo.builder()
+                .id(amenity.getId())
+                .title(amenity.getTitle())
+                .detail(amenity.getDetail())
+                .address(amenity.getAddress())
+                .startDate(amenity.getStartDate())
+                .deadlineDate(amenity.getDeadlineDate())
+                .bannerImages(bannerPhotos)
+                .detailImages(detailPhotos)
+                .categories(amenity.getCategories().stream().map(e -> e.getCategory().getName()).collect(Collectors.toList()))
+                .recommended(amenity.getRecommended())
+                .minPersonNum(amenity.getMinPersonNum())
+                .maxPersonNum(amenity.getMaxPersonNum())
+                .currentPersonNum(currentPersonAndFundingPriceAndDibs.getCurrentPersonNum())
+                .status(amenity.getStatus())
+                .fundingPrice(currentPersonAndFundingPriceAndDibs.getFundingPrice())
+                .dibs(currentPersonAndFundingPriceAndDibs.getDibs())
+                .build();
+    }
 
 
     @Override
@@ -206,38 +242,4 @@ public class AmenityServiceImpl implements AmenityService {
         return new GetPageResponseVo(pages, amenitySimpleVos);
     }
 
-    private GetByIdResponseVo amenityDetailDtoToVo(AmenityDetailDTO amenity) throws CloudFrontServiceException, IOException {
-        List<PhotoDTO> photos = amenity.getPhotos();
-        List<String> bannerPhotos = new ArrayList<>();
-        List<String> detailPhotos = new ArrayList<>();
-
-        // 사진에 대한 signed url 만들기
-        for (PhotoDTO photo : photos) {
-            String filename = photo.getType().name().toLowerCase() + "/" + photo.getName();
-            if (photo.getType() == PhotoType.BANNER) {
-                bannerPhotos.add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
-            } else {
-                detailPhotos.add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
-            }
-        }
-
-        return GetByIdResponseVo.builder()
-                .id(amenity.getId())
-                .title(amenity.getTitle())
-                .detail(amenity.getDetail())
-                .address(amenity.getAddress())
-                .startDate(amenity.getStartDate())
-                .deadlineDate(amenity.getDeadlineDate())
-                .bannerImages(bannerPhotos)
-                .detailImages(detailPhotos)
-                .categories(amenity.getCategoryNames())
-                .recommended(amenity.getRecommended())
-                .minPersonNum(amenity.getMinPersonNum())
-                .maxPersonNum(amenity.getMaxPersonNum())
-                .currentPersonNum(amenity.getCurrentPersonNum())
-                .status(amenity.getStatus())
-                .fundingPrice(amenity.getFundingPrice())
-                .dibs(amenity.getDibs())
-                .build();
-    }
 }

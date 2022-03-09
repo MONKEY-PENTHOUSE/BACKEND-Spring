@@ -1,6 +1,5 @@
 package com.monkeypenthouse.core.vo;
 
-import com.monkeypenthouse.core.dto.querydsl.PhotoDTO;
 import lombok.Builder;
 import lombok.Getter;
 
