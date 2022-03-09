@@ -56,7 +56,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
 
     @Override
     public Page<AmenitySimpleDTO> findPageByRecommended(int recommended, Pageable pageable) {
-        JPQLQuery<AmenitySimpleDTO> query = getQueryForListDTO()
+        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
                 .where(amenity.recommended.eq(recommended));
         List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity).where(amenity.recommended.eq(recommended)).fetchCount();
@@ -65,7 +65,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
 
     @Override
     public Page<AmenitySimpleDTO> findPage(Pageable pageable) {
-        JPQLQuery<AmenitySimpleDTO> query = getQueryForListDTO();
+        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO();
         List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity).fetchCount();
         return new PageImpl<>(content, pageable, totalCount);
@@ -73,7 +73,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
 
     @Override
     public Page<AmenitySimpleDTO> findPageByCategory(Long categoryId, Pageable pageable) {
-        JPQLQuery<AmenitySimpleDTO> query = getQueryForListDTO()
+        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
                 .leftJoin(amenity.categories, amenityCategory)
                 .leftJoin(amenityCategory.category, category)
                 .where(category.id.eq(categoryId));
@@ -105,7 +105,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .fetch();
     }
 
-    private JPQLQuery<AmenitySimpleDTO> getQueryForListDTO() {
+    private JPQLQuery<AmenitySimpleDTO> getQueryForAmenitySimpleDTO() {
         return queryFactory.from(amenity)
                 .leftJoin(amenity.tickets, ticket)
                 .leftJoin(ticket.participateIns, participateIn)
