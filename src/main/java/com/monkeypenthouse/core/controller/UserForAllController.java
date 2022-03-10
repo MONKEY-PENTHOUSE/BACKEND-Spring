@@ -3,6 +3,7 @@ package com.monkeypenthouse.core.controller;
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.common.SocialLoginRes;
+import com.monkeypenthouse.core.dto.CheckUserResponseDTO;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.UserDTO;
 import com.monkeypenthouse.core.dto.UserDTO.*;
@@ -201,16 +202,16 @@ public class UserForAllController {
         );
     }
 
-    @PatchMapping(value = "/password")
-    public ResponseEntity<DefaultRes<?>> updatePassword(@RequestBody @Valid UpdatePWReqDTO userDTO) throws Exception {
-        User user = modelMapper.map(userDTO, User.class);
-        userService.updatePassword(user);
-
+    @GetMapping(value = "/check-user")
+    public ResponseEntity<DefaultRes<?>> checkUser(@RequestParam("phoneNum") @Pattern(regexp = "^\\d{9,11}$") String phoneNum,
+                                                   @RequestParam("email") @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,6}$") String email) throws Exception {
         return new ResponseEntity<>(
                 DefaultRes.res(
                         HttpStatus.OK.value(),
-                        ResponseMessage.UPDATE_USER),
+                        ResponseMessage.READ_USER,
+                        CheckUserResponseDTO.of(userService.checkUser(phoneNum, email))),
                 HttpStatus.OK
         );
     }
+
 }
