@@ -2,15 +2,17 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
+import com.monkeypenthouse.core.dto.querydsl.AmenitySimpleDTO;
+import com.monkeypenthouse.core.dto.querydsl.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
 import com.monkeypenthouse.core.dto.querydsl.TicketOfAmenityDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.TicketDTO;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.repository.*;
-import com.monkeypenthouse.core.vo.GetTicketsOfAmenityResponseVo;
-import com.monkeypenthouse.core.vo.TicketOfAmenityVo;
+import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
+import org.jets3t.service.CloudFrontServiceException;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +104,7 @@ public class AmenityServiceImpl implements AmenityService {
         for (int i = 0; i < bannerPhotos.size(); i++) {
             String fileName = s3Uploader.upload(bannerPhotos.get(i), "banner");
             if (i == 0) {
-                amenity.setThumbnailName(fileName);
+                amenity.setThumbnailName("banner/" + fileName);
             }
             Photo photo = Photo
                     .builder()
@@ -128,30 +131,50 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional(readOnly = true)
-    public DetailDTO getById(Long id) throws Exception {
-        // 어메니티, 카테고리, 사진 정보를 가져와야함
-        Amenity amenity = amenityRepository.findById(id)
+    public GetByIdResponseVo getById(Long id) throws DataNotFoundException, CloudFrontServiceException, IOException {
+        Amenity amenity = amenityRepository.findWithPhotosById(id).orElseThrow(() -> new DataNotFoundException(Amenity.builder().id(id).build()));
+        CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs = amenityRepository.findcurrentPersonAndFundingPriceAndDibsOfAmenityById(id)
                 .orElseThrow(() -> new DataNotFoundException(Amenity.builder().id(id).build()));
-        DetailDTO detailDTO = modelMapper.map(amenity, DetailDTO.class);
+        return amenityDetailDtoToVo(amenity, currentPersonAndFundingPriceAndDibs);
+    }
 
-        List<AmenityCategory> categories = amenityCategoryRepository.findAllByAmenity(amenity);
-        detailDTO.setCategories(categories.stream().map(e -> e.getCategory().getName()).collect(Collectors.toList()));
+    private GetByIdResponseVo amenityDetailDtoToVo(Amenity amenity,
+                                                   CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs)
+            throws CloudFrontServiceException, IOException {
+        List<Photo> photos = amenity.getPhotos();
+        List<String> bannerPhotos = new ArrayList<>();
+        List<String> detailPhotos = new ArrayList<>();
 
-        List<Photo> photos = photoRepository.findAllByAmenity(amenity);
-        detailDTO.setBannerImages(new ArrayList<>());
-        detailDTO.setDetailImages(new ArrayList<>());
         // 사진에 대한 signed url 만들기
         for (Photo photo : photos) {
             String filename = photo.getType().name().toLowerCase() + "/" + photo.getName();
             if (photo.getType() == PhotoType.BANNER) {
-                detailDTO.getBannerImages().add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
+                bannerPhotos.add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
             } else {
-                detailDTO.getDetailImages().add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
+                detailPhotos.add(cloudFrontManager.getSignedUrlWithCannedPolicy(filename));
             }
         }
 
-        return detailDTO;
+        return GetByIdResponseVo.builder()
+                .id(amenity.getId())
+                .title(amenity.getTitle())
+                .detail(amenity.getDetail())
+                .address(amenity.getAddress())
+                .startDate(amenity.getStartDate())
+                .deadlineDate(amenity.getDeadlineDate())
+                .bannerImages(bannerPhotos)
+                .detailImages(detailPhotos)
+                .categories(amenity.getCategories().stream().map(e -> e.getCategory().getName()).collect(Collectors.toList()))
+                .recommended(amenity.getRecommended())
+                .minPersonNum(amenity.getMinPersonNum())
+                .maxPersonNum(amenity.getMaxPersonNum())
+                .currentPersonNum(currentPersonAndFundingPriceAndDibs.getCurrentPersonNum())
+                .status(amenity.getStatus())
+                .fundingPrice(currentPersonAndFundingPriceAndDibs.getFundingPrice())
+                .dibs(currentPersonAndFundingPriceAndDibs.getDibs())
+                .build();
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -162,8 +185,21 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     @Override
-    public Page<ListDTO> getAllByRecommended(Pageable pageable) throws Exception {
-        return amenityRepository.findAllByRecommended(1, pageable);
+    public GetPageResponseVo getPage(Pageable pageable) throws CloudFrontServiceException, IOException {
+        Page<AmenitySimpleDTO> pages = amenityRepository.findPage(pageable);
+        return amenitySimpleDtoToVo(pages);
+    }
+
+    @Override
+    public GetPageResponseVo getPageByCategory(Long category, Pageable pageable) throws CloudFrontServiceException, IOException {
+        Page<AmenitySimpleDTO> pages = amenityRepository.findPageByCategory(category, pageable);
+        return amenitySimpleDtoToVo(pages);
+    }
+
+    @Override
+    public GetPageResponseVo getPageByRecommended(Pageable pageable) throws CloudFrontServiceException, IOException {
+        Page<AmenitySimpleDTO> pages = amenityRepository.findPageByRecommended(1, pageable);
+        return amenitySimpleDtoToVo(pages);
     }
 
     @Override
@@ -186,4 +222,24 @@ public class AmenityServiceImpl implements AmenityService {
                                 .collect(Collectors.toList()))
                 .build();
     }
+
+    private GetPageResponseVo amenitySimpleDtoToVo(Page<AmenitySimpleDTO> pages) throws CloudFrontServiceException, IOException {
+        List<AmenitySimpleVo> amenitySimpleVos = new ArrayList<>();
+        for (AmenitySimpleDTO dto : pages.getContent()) {
+            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
+            amenitySimpleVos.add(AmenitySimpleVo.builder()
+                    .id(dto.getId())
+                    .title(dto.getTitle())
+                    .minPersonNum(dto.getMinPersonNum())
+                    .maxPersonNum(dto.getMaxPersonNum())
+                    .currentPersonNum(dto.getCurrentPersonNum())
+                    .thumbnailName(signedUrl)
+                    .address(dto.getAddress())
+                    .startDate(dto.getStartDate())
+                    .status(dto.getStatus())
+                    .build());
+        }
+        return new GetPageResponseVo(pages, amenitySimpleVos);
+    }
+
 }

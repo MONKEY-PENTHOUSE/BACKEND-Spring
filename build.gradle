@@ -87,6 +87,10 @@ asciidoctor {
 	dependsOn test
 }
 
+build {
+	build
+}
+
 jar {
 	enabled = false
 }

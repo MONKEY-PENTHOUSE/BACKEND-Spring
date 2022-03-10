@@ -68,15 +68,4 @@ public class AmenityDTO {
         private List<TicketDTO.saveDTO> tickets;
     }
 
-    @Builder
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class ListDTO {
-        private int id;
-        private String title;
-        private int minPerson;
-        private int maxPerson;
-        private String thumbnailName;
-    }
 }

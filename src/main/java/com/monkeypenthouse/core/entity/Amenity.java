@@ -1,15 +1,16 @@
 package com.monkeypenthouse.core.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Builder
@@ -63,4 +64,19 @@ public class Amenity {
     @Column(columnDefinition = "integer default 0")
     private int status;
 
+    @OneToMany(mappedBy = "amenity")
+    @ToString.Exclude
+    private List<Ticket> tickets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "amenity")
+    @ToString.Exclude
+    private List<AmenityCategory> categories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "amenity")
+    @ToString.Exclude
+    private List<Photo> photos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "amenity")
+    @ToString.Exclude
+    private List<Dibs> dibs = new ArrayList<>();
 }
