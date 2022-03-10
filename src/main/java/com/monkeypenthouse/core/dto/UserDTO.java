@@ -143,8 +143,6 @@ public class UserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class UpdatePWReqDTO extends UserDTO {
-        @NotNull(message = "id는 필수 입력값입니다.")
-        private Long id;
         @NotBlank(message = "비밀번호는 필수 입력값입니다.")
         @Pattern(regexp = "^(?=.*[$@!%*#?&A-Za-z])[A-Za-z0-9$@$!%*#?&]{8,16}$")
         private String password;

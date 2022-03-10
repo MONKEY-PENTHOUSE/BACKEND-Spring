@@ -78,6 +78,17 @@ public class TokenProvider {
                 .build();
     }
 
+    public String generateSimpleToken(String name, String authorities, long expiredTime) {
+        long now = (new Date()).getTime();
+        Date accessTokenExpiresIn = new Date(now + expiredTime);
+        return Jwts.builder()
+                .setSubject(name)       // payload "sub": "name"
+                .claim(AUTHORITIES_KEY, authorities)        // payload "auth": "ROLE_USER"
+                .setExpiration(accessTokenExpiresIn)        // payload "exp": now + 15m
+                .signWith(key, SignatureAlgorithm.HS512)    // header "alg": "HS512"
+                .compact();
+    }
+
     // accessToken에서 username과 authority 정보를 추출하여 Authentication 객체를 생성하고 리턴
     public Authentication getAuthentication(String accessToken) {
         // 토큰 복호화
