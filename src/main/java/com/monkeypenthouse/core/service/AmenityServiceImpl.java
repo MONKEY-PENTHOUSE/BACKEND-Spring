@@ -225,11 +225,10 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     @Override
-    @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Seoul") // 매일 자정
+    @Scheduled(cron = "0 0 0 * * ?") // 매일 자정
     @Transactional
     public void updateStatusOfAmenity() {
         LocalDate today = LocalDate.now();
-        // 어메니티의 상태가 모집/마감이 응원 마감일이 지난 것들 찾아 상태를 '종료'로 변경
         amenityRepository.updateStatusByDeadlineDate(today);
     }
 

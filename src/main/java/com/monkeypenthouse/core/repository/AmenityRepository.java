@@ -15,6 +15,6 @@ public interface AmenityRepository extends CrudRepository<Amenity, Long>, Amenit
     Optional<Amenity> findWithPhotosById(@Param("id") Long id);
 
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE Amenity a SET a.status = 2 WHERE a.status < 2 AND a.deadlineDate < :today")
+    @Query("UPDATE Amenity a SET a.status = 2 WHERE (a.status = 0 OR a.status = 1) AND a.deadlineDate < :today")
     void updateStatusByDeadlineDate(@Param("today") LocalDate today);
 }
