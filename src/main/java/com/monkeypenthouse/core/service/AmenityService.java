@@ -23,5 +23,9 @@ public interface AmenityService {
     GetPageResponseVo getPage(Pageable pageable) throws CloudFrontServiceException, IOException;
 
     GetPageResponseVo getPageByCategory(Long category, Pageable pageable) throws CloudFrontServiceException, IOException;
+
     GetTicketsOfAmenityResponseVo getTicketsOfAmenity(Long amenityId);
+
+    void updateStatusOfAmenity();
+
 }
