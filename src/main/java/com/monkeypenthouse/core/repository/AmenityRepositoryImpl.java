@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.repository;
 
 import com.monkeypenthouse.core.dto.querydsl.*;
 import com.monkeypenthouse.core.entity.Amenity;
+import com.monkeypenthouse.core.entity.User;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -22,6 +23,7 @@ import static com.monkeypenthouse.core.entity.QTicket.*;
 import static com.monkeypenthouse.core.entity.QAmenityCategory.*;
 import static com.monkeypenthouse.core.entity.QCategory.*;
 import static com.monkeypenthouse.core.entity.QDibs.*;
+import static com.monkeypenthouse.core.entity.QUser.*;
 
 
 @RequiredArgsConstructor
@@ -87,6 +89,21 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
     }
 
     @Override
+    public Page<AmenitySimpleDTO> findPageByDibsOfUser(Long userId, Pageable pageable) {
+        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
+                .leftJoin(amenity.dibs, dibs)
+                .leftJoin(dibs.user, user)
+                .where(user.id.eq(userId));
+        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
+        long totalCount = queryFactory.selectFrom(amenity)
+                .leftJoin(amenity.dibs, dibs)
+                .leftJoin(dibs.user, user)
+                .where(user.id.eq(userId))
+                .fetchCount();
+        return new PageImpl<>(content, pageable, totalCount);
+    }
+
+    @Override
     public List<TicketOfAmenityDto> getTicketsOfAmenity(Long amenityId) {
         return queryFactory
                 .select(new QTicketOfAmenityDto(
@@ -132,6 +149,5 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                     Order.ASC : Order.DESC, orderByExpression.get(e.getProperty())));
         });
         return query;
-
     }
 }
