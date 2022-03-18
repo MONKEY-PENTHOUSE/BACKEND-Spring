@@ -179,10 +179,9 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Amenity> getAmenitiesDibsOn(final UserDetails userDetails) throws DataNotFoundException {
+    public GetPageResponseVo getAmenitiesDibsOn(final UserDetails userDetails, Pageable pageable) throws DataNotFoundException, CloudFrontServiceException, IOException {
         final User user = userService.getUserByEmail(userDetails.getUsername());
-
-        return dibsRepository.findAllByUser(user).stream().map(dibs -> dibs.getAmenity()).collect(Collectors.toList());
+        return amenitySimpleDtoToVo(amenityRepository.findPageByDibsOfUser(user.getId(), pageable));
     }
 
     @Override

@@ -97,19 +97,17 @@ public class AmenityController {
     }
 
     @GetMapping(value = "/dibs")
-    public ResponseEntity<DefaultRes<?>> getAmenitiesDibsOn(
-            @AuthenticationPrincipal final UserDetails userDetails) throws DataNotFoundException {
+    public ResponseEntity<DefaultRes<?>> getPageByDibsOn(
+            @AuthenticationPrincipal final UserDetails userDetails,
+            Pageable pageable) throws Exception {
 
-        List<DetailDTO> amenityDTOList = amenityService.getAmenitiesDibsOn(userDetails)
-                .stream()
-                .map(amenity -> modelMapper.map(amenity, DetailDTO.class))
-                .collect(Collectors.toList());
+        final GetPageResponseDTO responseDTO = GetPageResponseDTO.of(amenityService.getAmenitiesDibsOn(userDetails, pageable));
 
         return new ResponseEntity<>(
                 DefaultRes.res(
                         HttpStatus.OK.value(),
                         ResponseMessage.GET_AMENITY_DIBS_ON,
-                        amenityDTOList),
+                        responseDTO),
                 HttpStatus.OK
         );
     }
