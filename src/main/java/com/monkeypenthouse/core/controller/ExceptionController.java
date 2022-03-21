@@ -63,6 +63,17 @@ public class ExceptionController {
         );
     }
 
+    // 결제 승인 오류 시
+    @ExceptionHandler({ PaymentFailedException.class })
+    protected ResponseEntity<DefaultRes<?>> handlePaymentFailedException(PaymentFailedException e) {
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        HttpStatus.BAD_REQUEST.value(),
+                        e.getMessage()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     // 로컬 로그인 실패 시 (이메일, 비번 오류)
     @ExceptionHandler({ AuthenticationException.class })
     protected ResponseEntity<DefaultRes<?>> handleAuthenticationException(AuthenticationException e) {
