@@ -2,6 +2,9 @@ package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
+import com.monkeypenthouse.core.component.CommonResponseMaker;
+import com.monkeypenthouse.core.constant.ResponseCode;
+import com.monkeypenthouse.core.dto.CommonResponse;
 import com.monkeypenthouse.core.dto.UserDTO.*;
 import com.monkeypenthouse.core.entity.User;
 import com.monkeypenthouse.core.service.UserService;
@@ -27,18 +30,14 @@ import javax.validation.Valid;
 public class UserForGuestController {
 
     private final UserService userService;
+    private final CommonResponseMaker commonResponseMaker;
 
     @PatchMapping(value = "/password")
-    public ResponseEntity<DefaultRes<?>> updatePassword(
+    public CommonResponse<Void> updatePassword(
             @AuthenticationPrincipal final UserDetails userDetails,
             @RequestBody @Valid UpdatePWReqDTO userDTO) throws Exception {
         userService.updatePassword(userDetails, userDTO.getPassword());
 
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.OK.value(),
-                        ResponseMessage.UPDATE_USER),
-                HttpStatus.OK
-        );
+        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
     }
 }

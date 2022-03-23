@@ -2,6 +2,9 @@ package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
+import com.monkeypenthouse.core.component.CommonResponseMaker;
+import com.monkeypenthouse.core.constant.ResponseCode;
+import com.monkeypenthouse.core.dto.CommonResponse;
 import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.security.PrincipalDetails;
 import com.monkeypenthouse.core.service.DibsService;
@@ -21,38 +24,29 @@ import javax.validation.Valid;
 public class DibsController {
 
     private final DibsService dibsService;
+    private final CommonResponseMaker commonResponseMaker;
 
     /**
      * Create Dibs (찜하기 추가)
      */
     @PostMapping("/dibs")
-    public ResponseEntity<DefaultRes<?>> createDibs(
+    public CommonResponse<Void> createDibs(
             @AuthenticationPrincipal final UserDetails userDetails, @RequestParam final Long amenityId) throws DataNotFoundException {
 
         dibsService.createDibs(userDetails, amenityId);
 
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.OK.value(),
-                        ResponseMessage.CREATED_DIBS),
-                HttpStatus.OK
-        );
+        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
     }
 
     /**
      * Delete Dibs (찜하기 제거)
      */
     @DeleteMapping("/dibs")
-    public ResponseEntity<DefaultRes<?>> deleteDibs(
+    public CommonResponse<Void> deleteDibs(
             @AuthenticationPrincipal final UserDetails userDetails, @RequestParam final Long amenityId) throws DataNotFoundException {
 
         dibsService.deleteDibs(userDetails, amenityId);
 
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.OK.value(),
-                        ResponseMessage.DELETED_DIBS),
-                HttpStatus.OK
-        );
+        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
     }
 }

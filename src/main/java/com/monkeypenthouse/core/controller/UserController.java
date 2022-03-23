@@ -2,6 +2,9 @@ package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.common.ResponseMessage;
+import com.monkeypenthouse.core.component.CommonResponseMaker;
+import com.monkeypenthouse.core.constant.ResponseCode;
+import com.monkeypenthouse.core.dto.CommonResponse;
 import com.monkeypenthouse.core.dto.TokenDTO;
 import com.monkeypenthouse.core.dto.UserDTO.*;
 import com.monkeypenthouse.core.security.SecurityUtil;
@@ -19,40 +22,28 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
+    private final CommonResponseMaker commonResponseMaker;
     private final UserService userService;
     private final ModelMapper modelMapper;
 
     @GetMapping("/me")
-    public ResponseEntity<DefaultRes<?>> getMyUserInfo() throws Exception {
+    public CommonResponse<MyUserResDTO> getMyUserInfo() throws Exception {
             MyUserResDTO myUser = modelMapper.map(userService.getMyInfo(), MyUserResDTO.class);
-            return new ResponseEntity<>(
-                    DefaultRes.res(
-                            HttpStatus.OK.value(),
-                            ResponseMessage.READ_USER,
-                            myUser),
-                    HttpStatus.OK
-            );
+        return commonResponseMaker.makeSucceedCommonResponse(myUser);
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<DefaultRes<?>> reissue(@RequestHeader("Authorization") String refreshToken) throws Exception {
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.OK.value(),
-                        ResponseMessage.REISSUE_SUCCESS,
-                        modelMapper.map(userService.reissue(refreshToken), TokenDTO.ReissueResDTO.class)),
-                HttpStatus.OK
-        );
+    public CommonResponse<TokenDTO.ReissueResDTO> reissue(@RequestHeader("Authorization") String refreshToken) throws Exception {
+
+        return commonResponseMaker.makeSucceedCommonResponse(
+                modelMapper.map(userService.reissue(refreshToken), TokenDTO.ReissueResDTO.class));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<DefaultRes<?>> logout() throws Exception {
+    public CommonResponse<Void> logout() throws Exception {
+
         userService.logout();
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.OK.value(),
-                        ResponseMessage.LOGOUT_SUCCESS),
-                HttpStatus.OK
-        );
+
+        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
     }
 }
