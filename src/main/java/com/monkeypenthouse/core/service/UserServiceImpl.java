@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.connect.KakaoConnector;
 import com.monkeypenthouse.core.connect.NaverConnector;
+import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.KakaoUserDTO;
 import com.monkeypenthouse.core.dto.NaverUserDTO;
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService {
     // 회원 추가
     @Override
     @Transactional
-    public User add(User user) throws DataIntegrityViolationException, DataNotFoundException {
+    public User add(User user) throws DataIntegrityViolationException{
         try {
             // 회원 정보 저장
             user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -62,7 +63,7 @@ public class UserServiceImpl implements UserService {
         // 회원에게 빈 방 주기
         roomRepository.updateUserIdForVoidRoom(user.getId(), user.getAuthority());
         Optional<Room> roomOptional = roomRepository.findByUserId(user.getId());
-        Room room = roomOptional.orElseThrow(() -> new DataNotFoundException("빈 방이 없습니다."));
+        Room room = roomOptional.orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
         userRepository.updateRoomId(user.getId(), room);
 
         user.setRoom(room);
@@ -71,21 +72,21 @@ public class UserServiceImpl implements UserService {
 
     // Id로 회원 조회
     @Override
-    public User getById(Long id) throws DataNotFoundException {
+    public User getById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException(User.builder().id(id).build()));
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
     }
 
     @Override
-    public User getUserByEmail(String email) throws DataNotFoundException {
+    public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new DataNotFoundException(User.builder().email(email).build()));
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
     }
 
     @Override
-    public User getUserByEmailAndLoginType(String email, LoginType loginType) throws DataNotFoundException {
+    public User getUserByEmailAndLoginType(String email, LoginType loginType) {
         return userRepository.findByEmailAndLoginType(email, loginType)
-                .orElseThrow(() -> new DataNotFoundException(User.builder().email(email).loginType(loginType).build()));
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
     }
 
     @Override
@@ -95,16 +96,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public void checkPhoneNumDuplicate(String phoneNum) throws ExpectedException {
+    public void checkPhoneNumDuplicate(String phoneNum) {
         if (userRepository.existsByPhoneNum(phoneNum)) {
-            throw new ExpectedException(HttpStatus.FORBIDDEN, "이미 가입된 회원의 전화번호입니다.");
+            throw new CommonException(ResponseCode.PHONE_NUMBER_DUPLICATED);
         }
     }
 
 
     @Override
     @Transactional
-    public Map<String, Object> login(User user) throws AuthenticationException, AuthFailedException {
+    public Map<String, Object> login(User user) throws AuthenticationException {
 
         // 1. Login ID/PW를 기반으로 authenticationToken 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
@@ -124,7 +125,7 @@ public class UserServiceImpl implements UserService {
             authentication = providerManager.authenticate(authenticationToken);
 
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
+            throw new CommonException(ResponseCode.PASSWORD_NOT_MATCHED);
         }
 
         // 3. 인증 정보에서 유저 정보 가져오기
@@ -132,7 +133,7 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> map = new HashMap<>();
         // 라이프스타일 테스트 미완료 회원 처리
         if (loggedInUser.getLifeStyle() == null) {
-            throw new LifeStyleTestNeededException(loggedInUser);
+            throw new CommonException(ResponseCode.LIFE_STYLE_TEST_NEEDED);
         } else {
             // 4. 인증 정보를 토대로 JWT 토큰, RefreshToken 저장
             Tokens tokens = tokenProvider.generateTokens(authentication);
@@ -150,17 +151,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Tokens reissue(String refreshToken) throws AuthFailedException {
+    public Tokens reissue(String refreshToken) {
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // 3. 저장소에서 UserID를 기반으로 RefreshToken 값 가져옴
         RefreshToken savedRefreshToken = refreshTokenRepository.findById(authentication.getName())
-                .orElseThrow(() -> new AuthFailedException(401, "로그인된 사용자가 아닙니다."));
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_AUTHENTICATED_USER));
 
         // 4. refreshToken 일치하는지 검사
         if (!savedRefreshToken.getValue().equals(refreshToken.substring(7))) {
-            throw new AuthFailedException(401, "토큰이 일치하지 않습니다.");
+            throw new CommonException(ResponseCode.TOKENS_NOT_MATCHED);
         }
 
         // 5. 새로운 토큰 생성
@@ -175,19 +176,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getMyInfo() throws AuthFailedException {
+    public User getMyInfo() {
         return userRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
-                .orElseThrow(() -> new AuthFailedException("회원 정보를 찾지 못했습니다."));
+                .orElseThrow(() -> new CommonException(ResponseCode.USER_NOT_FOUND));
     }
 
     @Override
     @Transactional
-    public User authKakao(String token) throws AuthFailedException {
+    public User authKakao(String token) {
         KakaoUserDTO kakaoUser;
         try {
             kakaoUser = kakaoConnector.getUserInfo(token);
         } catch (Exception e) {
-            throw new SocialLoginFailedException(LoginType.KAKAO);
+            throw new CommonException(ResponseCode.KAKAO_LOGIN_FAILED);
         }
         Optional<User> optionalUser = userRepository.findByEmailAndLoginType(kakaoUser.getKakao_account().getEmail(), LoginType.KAKAO);
 
@@ -212,22 +213,22 @@ public class UserServiceImpl implements UserService {
                         .password(generatedString)
                         .loginType(LoginType.KAKAO)
                         .build();
-                    return new SocialLoginFailedException(LoginType.KAKAO, newUser);
+                    return new CommonException(ResponseCode.KAKAO_LOGIN_FAILED);
                 });
         if (loggedInUser.getLifeStyle() == null) {
-            throw new LifeStyleTestNeededException(loggedInUser);
+            throw new CommonException(ResponseCode.LIFE_STYLE_TEST_NEEDED);
         }
         return loggedInUser;
     }
 
     @Override
     @Transactional
-    public User authNaver(String token) throws AuthFailedException {
+    public User authNaver(String token) {
         NaverUserDTO naverUser;
         try {
             naverUser = naverConnector.getUserInfo(token);
         } catch (Exception e) {
-            throw new SocialLoginFailedException(LoginType.NAVER);
+            throw new CommonException(ResponseCode.NAVER_LOGIN_FAILED);
         }
             Optional<User> optionalUser = userRepository.findByEmailAndLoginType(naverUser.getResponse().getEmail(), LoginType.NAVER);
 
@@ -243,50 +244,50 @@ public class UserServiceImpl implements UserService {
                                 null : naverUser.getResponse().getMobile().replace("-", ""))
                         .loginType(LoginType.NAVER)
                         .build();
-                    return new SocialLoginFailedException(LoginType.NAVER, newUser);
+                    return new CommonException(ResponseCode.NAVER_LOGIN_FAILED);
                 });
         if (loggedInUser.getLifeStyle() == null) {
-            throw new LifeStyleTestNeededException(loggedInUser);
+            throw new CommonException(ResponseCode.LIFE_STYLE_TEST_NEEDED);
         }
         return loggedInUser;
     }
 
     @Override
-    public User findEmail(String phoneNum) throws AuthFailedException {
+    public User findEmail(String phoneNum) {
         return userRepository.findByPhoneNum(phoneNum)
-                .orElseThrow(() -> new AuthFailedException("해당 정보의 회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CommonException(ResponseCode.USER_NOT_FOUND));
     }
 
     @Override
     @Transactional
-    public void updatePassword(UserDetails userDetails, String password) throws AuthFailedException  {
+    public void updatePassword(UserDetails userDetails, String password) {
         int result = userRepository.updatePassword(
                 passwordEncoder.encode(password),
                 userDetails.getUsername());
 
         if (result == 0) {
-            throw new AuthFailedException("해당 정보의 회원을 찾을 수 없습니다.");
+            throw new CommonException(ResponseCode.USER_NOT_FOUND);
         }
     }
 
 
     @Override
     @Transactional
-    public void updateLifeStyle(User user) throws AuthFailedException {
+    public void updateLifeStyle(User user) {
          int result =  userRepository.updateLifeStyle(
                 user.getLifeStyle(),
                 user.getId());
 
         if (result == 0) {
-            throw new AuthFailedException("해당 정보의 회원을 찾을 수 없습니다.");
+            throw new CommonException(ResponseCode.USER_NOT_FOUND);
         }
     }
 
     @Override
     @Transactional
-    public void deleteByEmail(String email) throws DataNotFoundException {
+    public void deleteByEmail(String email){
         Long id = userRepository.findByEmail(email).orElseThrow(
-                () -> new DataNotFoundException(User.builder().email(email).build())
+                () -> new CommonException(ResponseCode.DATA_NOT_FOUND)
         ).getId();
         roomRepository.deleteUserId(id);
         userRepository.deleteById(id);

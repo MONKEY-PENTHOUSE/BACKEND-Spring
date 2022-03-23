@@ -2,13 +2,14 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
+import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.querydsl.AmenitySimpleDTO;
 import com.monkeypenthouse.core.dto.querydsl.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
 import com.monkeypenthouse.core.dto.querydsl.TicketOfAmenityDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.TicketDTO;
-import com.monkeypenthouse.core.exception.DataNotFoundException;
+import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
@@ -132,10 +133,10 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional(readOnly = true)
-    public GetByIdResponseVo getById(Long id) throws DataNotFoundException, CloudFrontServiceException, IOException {
-        Amenity amenity = amenityRepository.findWithPhotosById(id).orElseThrow(() -> new DataNotFoundException(Amenity.builder().id(id).build()));
+    public GetByIdResponseVo getById(Long id) throws CloudFrontServiceException, IOException {
+        Amenity amenity = amenityRepository.findWithPhotosById(id).orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
         CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs = amenityRepository.findcurrentPersonAndFundingPriceAndDibsOfAmenityById(id)
-                .orElseThrow(() -> new DataNotFoundException(Amenity.builder().id(id).build()));
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
         return amenityDetailDtoToVo(amenity, currentPersonAndFundingPriceAndDibs);
     }
 
@@ -179,7 +180,7 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional(readOnly = true)
-    public GetPageResponseVo getAmenitiesDibsOn(final UserDetails userDetails, Pageable pageable) throws DataNotFoundException, CloudFrontServiceException, IOException {
+    public GetPageResponseVo getAmenitiesDibsOn(final UserDetails userDetails, Pageable pageable) throws CloudFrontServiceException, IOException {
         final User user = userService.getUserByEmail(userDetails.getUsername());
         return amenitySimpleDtoToVo(amenityRepository.findPageByDibsOfUser(user.getId(), pageable));
     }

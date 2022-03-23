@@ -1,14 +1,11 @@
 package com.monkeypenthouse.core.controller;
 
-import com.monkeypenthouse.core.common.DefaultRes;
 import com.monkeypenthouse.core.component.CommonResponseMaker;
 import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.CommonResponse;
 import com.monkeypenthouse.core.dto.GetPageResponseDTO;
-import com.monkeypenthouse.core.common.ResponseMessage;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.GetTicketsOfAmenityResponseDto;
-import com.monkeypenthouse.core.exception.DataNotFoundException;
 import com.monkeypenthouse.core.service.AmenityService;
 import com.monkeypenthouse.core.vo.GetByIdResponseVo;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +13,6 @@ import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;

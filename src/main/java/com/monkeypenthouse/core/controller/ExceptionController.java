@@ -30,31 +30,20 @@ public class ExceptionController {
 
     private final ModelMapper modelMapper;
 
+    // CommonException 통합
+    @ExceptionHandler({CommonException.class})
+    protected ResponseEntity<DefaultRes<?>> handleCommonException(final CommonException e) {
+        return new ResponseEntity<>(
+                DefaultRes.res(
+                        e.getCode().getHttpStatus().value(),
+                        e.getCode().getMessage()),
+                e.getCode().getHttpStatus()
+        );
+    }
+
     // 중복된 데이터 추가 요청 시
     @ExceptionHandler({ DataIntegrityViolationException.class })
     protected ResponseEntity<DefaultRes<?>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.CONFLICT.value(),
-                        e.getMessage()),
-                HttpStatus.CONFLICT
-        );
-    }
-
-    // 존재하지 않는 리소스 요청 시
-    @ExceptionHandler({ DataNotFoundException.class })
-    protected ResponseEntity<DefaultRes<?>> handleDataNotFoundException(DataNotFoundException e) {
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        e.getHttpStatus().value(),
-                        e.getMessage()),
-                e.getHttpStatus()
-        );
-    }
-
-    // 찜하기 중복 요청 시
-    @ExceptionHandler({ DibsDuplicatedException.class })
-    protected ResponseEntity<DefaultRes<?>> handleDibsDuplicatedException(DibsDuplicatedException e) {
         return new ResponseEntity<>(
                 DefaultRes.res(
                         HttpStatus.CONFLICT.value(),
@@ -72,50 +61,6 @@ public class ExceptionController {
                         e.getMessage()),
                 HttpStatus.UNAUTHORIZED
         );
-    }
-
-    // 소셜 로그인 실패 시
-    @ExceptionHandler({ SocialLoginFailedException.class })
-    protected ResponseEntity<SocialLoginRes<?>> handleSocialLoginFailedException(SocialLoginFailedException e) {
-        if (e.getUserDTO(modelMapper).isPresent()) {
-            return new ResponseEntity<>(
-                    SocialLoginRes.res(
-                            e.getDetailStatus(),
-                            e.getMessage(),
-                            e.getUserDTO(modelMapper),
-                            false),
-                    e.getHttpStatus()
-                    );
-        } else {
-            return new ResponseEntity<>(
-                    SocialLoginRes.res(
-                            e.getDetailStatus(),
-                            e.getMessage(),
-                            false),
-                    e.getHttpStatus()
-            );
-        }
-    }
-
-    // 회원 인증 실패 시
-    @ExceptionHandler({ AuthFailedException.class })
-    protected ResponseEntity<DefaultRes<?>> handleAuthFailedException(AuthFailedException e) {
-        if (e.getUserDTO(modelMapper).isPresent()) {
-            return new ResponseEntity<>(
-                    DefaultRes.res(
-                            e.getDetailStatus(),
-                            e.getMessage(),
-                            e.getUserDTO(modelMapper)),
-                    e.getHttpStatus()
-            );
-        } else {
-            return new ResponseEntity<>(
-                    SocialLoginRes.res(
-                            e.getDetailStatus(),
-                            e.getMessage()),
-                    e.getHttpStatus()
-            );
-        }
     }
 
     // json 파싱 실패시
@@ -171,17 +116,6 @@ public class ExceptionController {
                 HttpStatus.BAD_REQUEST
         );
 
-    }
-
-    // 예상가능한 Exception 처리
-    @ExceptionHandler(ExpectedException.class)
-    public ResponseEntity<DefaultRes<?>> handleExpectedException(ExpectedException e) {
-        return new ResponseEntity<>(
-                DefaultRes.res(
-                        e.getHttpStatus().value(),
-                        e.getMessage()),
-                e.getHttpStatus()
-        );
     }
 
     // 500
