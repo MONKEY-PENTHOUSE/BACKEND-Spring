@@ -1,6 +1,8 @@
 package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.component.CommonResponseMaker;
+import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseBody;
+import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseEntity;
 import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.CheckUserResponseDTO;
 import com.monkeypenthouse.core.entity.*;
@@ -32,61 +34,65 @@ public class UserForAllController {
     private final CommonResponseMaker commonResponseMaker;
 
     @PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponseMaker.CommonResponse<SignupResDTO> signUp(@RequestBody @Valid SignupReqDTO userDTO) throws Exception {
+    public CommonResponseEntity signUp(@RequestBody @Valid SignupReqDTO userDTO) throws Exception {
 
         final User user = modelMapper.map(userDTO, User.class);
 
-        return commonResponseMaker.makeSucceedCommonResponse(modelMapper.map(userService.add(user), SignupResDTO.class));
+        return commonResponseMaker.makeCommonResponse(
+                modelMapper.map(userService.add(user), SignupResDTO.class),
+                ResponseCode.SUCCESS);
     }
 
     /* 회원가입 테스트 용 */
     @DeleteMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponseMaker.CommonResponse<Void> delete(@RequestParam("email") String email) throws Exception {
+    public CommonResponseEntity delete(@RequestParam("email") String email) throws Exception {
         userService.deleteByEmail(email);
 
-        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }
 
 
     @GetMapping(value = "/check-id-duplication")
-    public CommonResponseMaker.CommonResponse<Boolean> checkIdDuplicate(@RequestParam("email") String email) throws Exception {
+    public CommonResponseEntity checkIdDuplicate(@RequestParam("email") String email) throws Exception {
 
-        return commonResponseMaker.makeSucceedCommonResponse(userService.checkEmailDuplicate(email));
+        return commonResponseMaker.makeCommonResponse(userService.checkEmailDuplicate(email), ResponseCode.SUCCESS);
     }
 
     @PostMapping(value = "/sms-auth")
-    public CommonResponseMaker.CommonResponse<Void> smsAuth(@RequestBody Map<String, String> map) throws Exception {
+    public CommonResponseEntity smsAuth(@RequestBody Map<String, String> map) throws Exception {
 
         final String phoneNum = map.get("phoneNum");
 
         userService.checkPhoneNumDuplicate(phoneNum);
         messageService.sendSMS(phoneNum);
 
-        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }
 
     @PostMapping(value = "/check-sms-auth")
-    public CommonResponseMaker.CommonResponse<Boolean> checkSmsAuth(@RequestBody Map<String, String> map) throws Exception {
+    public CommonResponseEntity checkSmsAuth(@RequestBody Map<String, String> map) throws Exception {
 
         final String phoneNum = map.get("phoneNum");
         final String authNum = map.get("authNum");
 
-        return commonResponseMaker.makeSucceedCommonResponse(messageService.checkAuthNum(phoneNum, authNum));
+        return commonResponseMaker.makeCommonResponse(
+                messageService.checkAuthNum(phoneNum, authNum),
+                ResponseCode.SUCCESS);
     }
 
     @PatchMapping(value = "/life-style")
-    public CommonResponseMaker.CommonResponse<Void> updateLifeStyle(@RequestBody @Valid UpdateLSReqDTO userDTO) throws Exception {
+    public CommonResponseEntity updateLifeStyle(@RequestBody @Valid UpdateLSReqDTO userDTO) throws Exception {
 
         final User user = modelMapper.map(userDTO, User.class);
 
         userService.updateLifeStyle(user);
 
-        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }
 
     @PostMapping(value = "/login")
     @ResponseBody
-    public CommonResponseMaker.CommonResponse<LoginResDTO> loginLocal(@RequestBody @Valid LoginReqDTO userDTO) throws Exception {
+    public CommonResponseEntity loginLocal(@RequestBody @Valid LoginReqDTO userDTO) throws Exception {
         User user = modelMapper.map(userDTO, User.class);
 
         Map<String, Object> map = userService.login(user);
@@ -100,12 +106,12 @@ public class UserForAllController {
         loginResDTO.setRefreshToken(tokens.getRefreshToken());
         loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
 
-        return commonResponseMaker.makeSucceedCommonResponse(loginResDTO);
+        return commonResponseMaker.makeCommonResponse(loginResDTO, ResponseCode.SUCCESS);
     }
 
     @PostMapping(value = "/login/kakao")
     @ResponseBody
-    public CommonResponseMaker.CommonResponse<LoginResDTO> authKakao(@RequestBody Map<String, String> map) throws Exception {
+    public CommonResponseEntity authKakao(@RequestBody Map<String, String> map) throws Exception {
 
         String token = map.get("token");
         User user = userService.authKakao(token);
@@ -122,12 +128,12 @@ public class UserForAllController {
         loginResDTO.setRefreshToken(tokens.getRefreshToken());
         loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
 
-        return commonResponseMaker.makeSucceedCommonResponse(loginResDTO);
+        return commonResponseMaker.makeCommonResponse(loginResDTO, ResponseCode.SUCCESS);
     }
 
     @PostMapping(value = "/login/naver")
     @ResponseBody
-    public CommonResponseMaker.CommonResponse<LoginResDTO> authNaver(@RequestBody Map<String, String> map) throws Exception {
+    public CommonResponseEntity authNaver(@RequestBody Map<String, String> map) throws Exception {
         String token = map.get("token");
         User user = userService.authNaver(token);
         // 유저 정보가 있으면 로그인 처리
@@ -143,23 +149,24 @@ public class UserForAllController {
         loginResDTO.setRefreshToken(tokens.getRefreshToken());
         loginResDTO.setRefreshTokenExpiresIn(tokens.getRefreshTokenExpiresIn());
 
-        return commonResponseMaker.makeSucceedCommonResponse(loginResDTO);
+        return commonResponseMaker.makeCommonResponse(loginResDTO, ResponseCode.SUCCESS);
     }
 
     @GetMapping(value = "/find-email")
-    public CommonResponseMaker.CommonResponse<FindEmailResDTO> findEmail(@RequestParam("phoneNum") @Pattern(regexp = "^\\d{9,11}$") String phoneNum) throws Exception {
+    public CommonResponseEntity findEmail(@RequestParam("phoneNum") @Pattern(regexp = "^\\d{9,11}$") String phoneNum) throws Exception {
 
-        return commonResponseMaker.makeSucceedCommonResponse(
-                modelMapper.map(userService.findEmail(phoneNum), FindEmailResDTO.class));
+        return commonResponseMaker.makeCommonResponse(
+                modelMapper.map(userService.findEmail(phoneNum), FindEmailResDTO.class),
+                ResponseCode.SUCCESS);
     }
 
     @GetMapping(value = "/check-user")
-    public CommonResponseMaker.CommonResponse<CheckUserResponseDTO> checkUser(@RequestParam("phoneNum") @Pattern(regexp = "^\\d{9,11}$") String phoneNum,
-                                                                              @RequestParam("email") @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,6}$") String email) throws Exception {
+    public CommonResponseEntity checkUser(@RequestParam("phoneNum") @Pattern(regexp = "^\\d{9,11}$") String phoneNum,
+                                          @RequestParam("email") @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,6}$") String email) throws Exception {
 
         final CheckUserResponseDTO responseDTO = CheckUserResponseDTO.of(userService.checkUser(phoneNum, email));
 
-        return commonResponseMaker.makeSucceedCommonResponse(responseDTO);
+        return commonResponseMaker.makeCommonResponse(responseDTO, ResponseCode.SUCCESS);
     }
 
 }

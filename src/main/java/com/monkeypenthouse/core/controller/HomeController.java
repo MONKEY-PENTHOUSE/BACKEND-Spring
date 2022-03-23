@@ -1,6 +1,8 @@
 package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.component.CommonResponseMaker;
+import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseBody;
+import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseEntity;
 import com.monkeypenthouse.core.constant.ResponseCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -14,9 +16,9 @@ public class HomeController {
     private final CommonResponseMaker commonResponseMaker;
 
     @RequestMapping("/")
-    public CommonResponseMaker.CommonResponse<Void> home() {
+    public CommonResponseEntity home() {
 
-        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }
 
 }

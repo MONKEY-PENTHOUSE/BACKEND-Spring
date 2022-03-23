@@ -1,6 +1,8 @@
 package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.component.CommonResponseMaker;
+import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseBody;
+import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseEntity;
 import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.service.DibsService;
 import lombok.RequiredArgsConstructor;
@@ -21,23 +23,23 @@ public class DibsController {
      * Create Dibs (찜하기 추가)
      */
     @PostMapping("/dibs")
-    public CommonResponseMaker.CommonResponse<Void> createDibs(
+    public CommonResponseEntity createDibs(
             @AuthenticationPrincipal final UserDetails userDetails, @RequestParam final Long amenityId){
 
         dibsService.createDibs(userDetails, amenityId);
 
-        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }
 
     /**
      * Delete Dibs (찜하기 제거)
      */
     @DeleteMapping("/dibs")
-    public CommonResponseMaker.CommonResponse<Void> deleteDibs(
+    public CommonResponseEntity deleteDibs(
             @AuthenticationPrincipal final UserDetails userDetails, @RequestParam final Long amenityId) {
 
         dibsService.deleteDibs(userDetails, amenityId);
 
-        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }
 }

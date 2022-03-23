@@ -1,6 +1,8 @@
 package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.component.CommonResponseMaker;
+import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseBody;
+import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseEntity;
 import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.TokenDTO;
 import com.monkeypenthouse.core.dto.UserDTO.*;
@@ -21,23 +23,24 @@ public class UserController {
     private final ModelMapper modelMapper;
 
     @GetMapping("/me")
-    public CommonResponseMaker.CommonResponse<MyUserResDTO> getMyUserInfo() throws Exception {
+    public CommonResponseEntity getMyUserInfo() throws Exception {
             MyUserResDTO myUser = modelMapper.map(userService.getMyInfo(), MyUserResDTO.class);
-        return commonResponseMaker.makeSucceedCommonResponse(myUser);
+        return commonResponseMaker.makeCommonResponse(myUser, ResponseCode.SUCCESS);
     }
 
     @PostMapping("/reissue")
-    public CommonResponseMaker.CommonResponse<TokenDTO.ReissueResDTO> reissue(@RequestHeader("Authorization") String refreshToken) throws Exception {
+    public CommonResponseEntity reissue(@RequestHeader("Authorization") String refreshToken) throws Exception {
 
-        return commonResponseMaker.makeSucceedCommonResponse(
-                modelMapper.map(userService.reissue(refreshToken), TokenDTO.ReissueResDTO.class));
+        return commonResponseMaker.makeCommonResponse(
+                modelMapper.map(userService.reissue(refreshToken), TokenDTO.ReissueResDTO.class),
+                ResponseCode.SUCCESS);
     }
 
     @PostMapping("/logout")
-    public CommonResponseMaker.CommonResponse<Void> logout() throws Exception {
+    public CommonResponseEntity logout() throws Exception {
 
         userService.logout();
 
-        return commonResponseMaker.makeEmptyInfoCommonResponse(ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }
 }
