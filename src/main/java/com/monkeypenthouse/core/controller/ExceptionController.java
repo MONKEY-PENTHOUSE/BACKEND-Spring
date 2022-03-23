@@ -2,10 +2,10 @@ package com.monkeypenthouse.core.controller;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.monkeypenthouse.core.common.DefaultRes;
-import com.monkeypenthouse.core.common.SocialLoginRes;
+import com.monkeypenthouse.core.component.CommonResponseMaker;
+import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.exception.*;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,105 +28,75 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ExceptionController {
 
-    private final ModelMapper modelMapper;
+    private final CommonResponseMaker commonResponseMaker;
 
     // CommonException 통합
     @ExceptionHandler({CommonException.class})
-    protected ResponseEntity<DefaultRes<?>> handleCommonException(final CommonException e) {
+    protected ResponseEntity<CommonResponseMaker.CommonResponse> handleCommonException(final CommonException e) {
+
         return new ResponseEntity<>(
-                DefaultRes.res(
-                        e.getCode().getHttpStatus().value(),
-                        e.getCode().getMessage()),
+                commonResponseMaker.makeFailedCommonResponse(e.getCode()),
                 e.getCode().getHttpStatus()
         );
     }
 
     // 중복된 데이터 추가 요청 시
-    @ExceptionHandler({ DataIntegrityViolationException.class })
-    protected ResponseEntity<DefaultRes<?>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+    @ExceptionHandler({DataIntegrityViolationException.class})
+    protected ResponseEntity<CommonResponseMaker.CommonResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+
         return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.CONFLICT.value(),
-                        e.getMessage()),
-                HttpStatus.CONFLICT
+                commonResponseMaker.makeFailedCommonResponse(ResponseCode.DATA_INTEGRITY_VIOLATED),
+                ResponseCode.DATA_INTEGRITY_VIOLATED.getHttpStatus()
         );
     }
 
     // 로컬 로그인 실패 시 (이메일, 비번 오류)
-    @ExceptionHandler({ AuthenticationException.class })
-    protected ResponseEntity<DefaultRes<?>> handleAuthenticationException(AuthenticationException e) {
+    @ExceptionHandler({AuthenticationException.class})
+    protected ResponseEntity<CommonResponseMaker.CommonResponse> handleAuthenticationException(AuthenticationException e) {
+
         return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.UNAUTHORIZED.value(),
-                        e.getMessage()),
-                HttpStatus.UNAUTHORIZED
+                commonResponseMaker.makeFailedCommonResponse(ResponseCode.AUTHENTICATION_FAILED),
+                ResponseCode.AUTHENTICATION_FAILED.getHttpStatus()
         );
     }
 
     // json 파싱 실패시
-    @ExceptionHandler({ HttpMessageNotReadableException.class })
-    protected ResponseEntity<DefaultRes<?>> handleHttpMessageNotReadableException(JsonMappingException e) {
-        List<String> fieldErrors = new ArrayList<>();
-        for (JsonMappingException.Reference fieldError : e.getPath()) {
-            fieldErrors.add(fieldError.getFieldName());
-        }
+    @ExceptionHandler({HttpMessageNotReadableException.class})
+    protected ResponseEntity<CommonResponseMaker.CommonResponse> handleHttpMessageNotReadableException(JsonMappingException e) {
+
         return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.BAD_REQUEST.value(),
-                        "정보가 유효하지 않습니다. (json 파싱 오류)",
-                        fieldErrors),
-                HttpStatus.BAD_REQUEST
+                commonResponseMaker.makeFailedCommonResponse(ResponseCode.HTTP_MESSAGE_NOT_READABLE),
+                ResponseCode.HTTP_MESSAGE_NOT_READABLE.getHttpStatus()
         );
     }
 
     // @valid 유효성 검사 실패시 (RequestBody)
-    @ExceptionHandler({ MethodArgumentNotValidException.class})
-    protected ResponseEntity<DefaultRes<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-
-        BindingResult bindingResult = e.getBindingResult();
-        List<String> errors = bindingResult.getFieldErrors().stream()
-                .map(FieldError::getField)
-                .collect(Collectors.toList());
-
+    @ExceptionHandler({MethodArgumentNotValidException.class})
+    protected ResponseEntity<CommonResponseMaker.CommonResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
 
         return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.BAD_REQUEST.value(),
-                        "정보가 유효하지 않습니다. (형식을 벗어난 값)",
-                        errors),
-                HttpStatus.BAD_REQUEST
+                commonResponseMaker.makeFailedCommonResponse(ResponseCode.METHOD_ARGUMENT_NOT_VALID),
+                ResponseCode.METHOD_ARGUMENT_NOT_VALID.getHttpStatus()
         );
-
     }
 
     // @valid 유효성 검사 실패시 (RequestParam, PathVariable)
-    @ExceptionHandler({ ConstraintViolationException.class})
-    protected ResponseEntity<DefaultRes<?>> handleMethodArgumentNotValidException(ConstraintViolationException e) {
-
-        Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-        List<String> errors = constraintViolations.stream()
-                .map( cv -> cv == null ? "null" : cv.getPropertyPath().toString())
-                .collect(Collectors.toList());
+    @ExceptionHandler({ConstraintViolationException.class})
+    protected ResponseEntity<CommonResponseMaker.CommonResponse> handleMethodArgumentNotValidException(ConstraintViolationException e) {
 
         return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.BAD_REQUEST.value(),
-                        "정보가 유효하지 않습니다. (형식을 벗어난 값)",
-                        errors),
-                HttpStatus.BAD_REQUEST
+                commonResponseMaker.makeFailedCommonResponse(ResponseCode.CONSTRAINT_VIOLATED),
+                ResponseCode.CONSTRAINT_VIOLATED.getHttpStatus()
         );
-
     }
 
     // 500
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<DefaultRes<?>> handleAll(final Exception e) {
-        System.out.println("e = " + e);
+    public ResponseEntity<CommonResponseMaker.CommonResponse> handleAll(final Exception e) {
+
         return new ResponseEntity<>(
-                DefaultRes.res(
-                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "서버의 내부적인 오류로 인해 문제가 발생하였습니다."),
-                HttpStatus.INTERNAL_SERVER_ERROR
+                commonResponseMaker.makeFailedCommonResponse(ResponseCode.INTERNAL_SERVER_ERROR),
+                ResponseCode.INTERNAL_SERVER_ERROR.getHttpStatus()
         );
     }
 }

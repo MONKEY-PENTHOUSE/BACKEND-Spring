@@ -2,7 +2,6 @@ package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.component.CommonResponseMaker;
 import com.monkeypenthouse.core.constant.ResponseCode;
-import com.monkeypenthouse.core.dto.CommonResponse;
 import com.monkeypenthouse.core.service.DibsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -22,7 +21,7 @@ public class DibsController {
      * Create Dibs (찜하기 추가)
      */
     @PostMapping("/dibs")
-    public CommonResponse<Void> createDibs(
+    public CommonResponseMaker.CommonResponse<Void> createDibs(
             @AuthenticationPrincipal final UserDetails userDetails, @RequestParam final Long amenityId){
 
         dibsService.createDibs(userDetails, amenityId);
@@ -34,7 +33,7 @@ public class DibsController {
      * Delete Dibs (찜하기 제거)
      */
     @DeleteMapping("/dibs")
-    public CommonResponse<Void> deleteDibs(
+    public CommonResponseMaker.CommonResponse<Void> deleteDibs(
             @AuthenticationPrincipal final UserDetails userDetails, @RequestParam final Long amenityId) {
 
         dibsService.deleteDibs(userDetails, amenityId);

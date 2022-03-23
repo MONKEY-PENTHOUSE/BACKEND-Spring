@@ -2,7 +2,6 @@ package com.monkeypenthouse.core.controller;
 
 import com.monkeypenthouse.core.component.CommonResponseMaker;
 import com.monkeypenthouse.core.constant.ResponseCode;
-import com.monkeypenthouse.core.dto.CommonResponse;
 import com.monkeypenthouse.core.dto.GetPageResponseDTO;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.GetTicketsOfAmenityResponseDto;
@@ -31,7 +30,7 @@ public class AmenityController {
     private final CommonResponseMaker commonResponseMaker;
 
     @PostMapping(value = "/")
-    public CommonResponse<Void> signUp(
+    public CommonResponseMaker.CommonResponse<Void> signUp(
             @RequestPart(value = "bannerPhotos", required = false) List<MultipartFile> bannerPhotos,
             @RequestPart(value = "detailPhotos", required = false) List<MultipartFile> detailPhotos,
             @RequestPart(value = "saveReqDTO") @Valid SaveReqDTO amenityDTO) throws Exception {
@@ -41,13 +40,13 @@ public class AmenityController {
     }
 
     @GetMapping(value = "/{id}")
-    public CommonResponse<GetByIdResponseVo> getById(@PathVariable("id") Long id) throws Exception {
+    public CommonResponseMaker.CommonResponse<GetByIdResponseVo> getById(@PathVariable("id") Long id) throws Exception {
 
         return commonResponseMaker.makeSucceedCommonResponse(amenityService.getById(id));
     }
 
     @GetMapping(value = "/recently")
-    public CommonResponse<GetPageResponseDTO> getPage(Pageable pageable) throws Exception {
+    public CommonResponseMaker.CommonResponse<GetPageResponseDTO> getPage(Pageable pageable) throws Exception {
 
         final GetPageResponseDTO responseDto =
                 GetPageResponseDTO.of(amenityService.getPage(pageable));
@@ -55,7 +54,7 @@ public class AmenityController {
     }
 
     @GetMapping(value = "/category")
-    public CommonResponse<GetPageResponseDTO> getPageByCategory(@Param("category") Long category, Pageable pageable) throws Exception {
+    public CommonResponseMaker.CommonResponse<GetPageResponseDTO> getPageByCategory(@Param("category") Long category, Pageable pageable) throws Exception {
         final GetPageResponseDTO responseDto =
                 GetPageResponseDTO.of(amenityService.getPageByCategory(category, pageable));
 
@@ -63,7 +62,7 @@ public class AmenityController {
     }
 
     @GetMapping(value = "/recommended")
-    public CommonResponse<GetPageResponseDTO> getPageByRecommended(Pageable pageable) throws Exception {
+    public CommonResponseMaker.CommonResponse<GetPageResponseDTO> getPageByRecommended(Pageable pageable) throws Exception {
 
         final GetPageResponseDTO responseDto =
                 GetPageResponseDTO.of(amenityService.getPageByRecommended(pageable));
@@ -72,7 +71,7 @@ public class AmenityController {
     }
 
     @GetMapping(value = "/dibs")
-    public CommonResponse<GetPageResponseDTO> getPageByDibsOn(
+    public CommonResponseMaker.CommonResponse<GetPageResponseDTO> getPageByDibsOn(
             @AuthenticationPrincipal final UserDetails userDetails,
             Pageable pageable) throws Exception {
 
@@ -82,7 +81,7 @@ public class AmenityController {
     }
 
     @GetMapping(value = "/{id}/tickets")
-    public CommonResponse<GetTicketsOfAmenityResponseDto> getTicketsOfAmenity(@PathVariable("id") final Long amenityId) {
+    public CommonResponseMaker.CommonResponse<GetTicketsOfAmenityResponseDto> getTicketsOfAmenity(@PathVariable("id") final Long amenityId) {
 
         final GetTicketsOfAmenityResponseDto responseDto =
                 GetTicketsOfAmenityResponseDto.of(amenityService.getTicketsOfAmenity(amenityId));
