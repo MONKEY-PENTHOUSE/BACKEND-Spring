@@ -14,11 +14,11 @@ import com.monkeypenthouse.core.security.PrincipalDetails;
 import com.monkeypenthouse.core.security.SecurityUtil;
 import com.monkeypenthouse.core.security.TokenProvider;
 import com.monkeypenthouse.core.vo.CheckUserResponseVo;
+import com.monkeypenthouse.core.dto.exception.LifeStyleNeededResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -133,7 +133,16 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> map = new HashMap<>();
         // 라이프스타일 테스트 미완료 회원 처리
         if (loggedInUser.getLifeStyle() == null) {
-            throw new CommonException(ResponseCode.LIFE_STYLE_TEST_NEEDED);
+            LifeStyleNeededResponseDTO dto = LifeStyleNeededResponseDTO.builder()
+                    .id(loggedInUser.getId())
+                    .email(loggedInUser.getEmail())
+                    .name(loggedInUser.getName())
+                    .birth(loggedInUser.getBirth())
+                    .gender(loggedInUser.getGender())
+                    .roomId(loggedInUser.getRoom().getId())
+                    .phoneNum(loggedInUser.getPhoneNum())
+                    .build();
+            throw new CommonException(ResponseCode.LIFE_STYLE_TEST_NEEDED, dto);
         } else {
             // 4. 인증 정보를 토대로 JWT 토큰, RefreshToken 저장
             Tokens tokens = tokenProvider.generateTokens(authentication);
@@ -157,11 +166,11 @@ public class UserServiceImpl implements UserService {
 
         // 3. 저장소에서 UserID를 기반으로 RefreshToken 값 가져옴
         RefreshToken savedRefreshToken = refreshTokenRepository.findById(authentication.getName())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_AUTHENTICATED_USER));
+                .orElseThrow(() -> new CommonException(ResponseCode.REISSUE_FAILED));
 
         // 4. refreshToken 일치하는지 검사
         if (!savedRefreshToken.getValue().equals(refreshToken.substring(7))) {
-            throw new CommonException(ResponseCode.TOKENS_NOT_MATCHED);
+            throw new CommonException(ResponseCode.REISSUE_FAILED);
         }
 
         // 5. 새로운 토큰 생성

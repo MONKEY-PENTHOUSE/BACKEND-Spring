@@ -27,7 +27,9 @@ public class ExceptionController {
     @ExceptionHandler({CommonException.class})
     protected CommonResponseEntity handleCommonException(final CommonException e) {
 
-        return commonResponseMaker.makeCommonResponse(e.getCode());
+        return e.getData() == null ?
+                commonResponseMaker.makeCommonResponse(e.getCode())
+                : commonResponseMaker.makeCommonResponse(e.getData(), e.getCode());
     }
 
     // 중복된 데이터 추가 요청 시

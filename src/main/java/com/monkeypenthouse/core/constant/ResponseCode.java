@@ -27,9 +27,10 @@ public enum ResponseCode {
 
     DATA_INTEGRITY_VIOLATED(9000, "중복된 데이터가 추가 요청되었습니다.", HttpStatus.CONFLICT),
     AUTHENTICATION_FAILED(9001, "인증 실패하였습니다.", HttpStatus.UNAUTHORIZED),
-    HTTP_MESSAGE_NOT_READABLE(9002, "JSON 파싱에 실패하였습니다.", HttpStatus.BAD_REQUEST),
-    METHOD_ARGUMENT_NOT_VALID(9003, "JSON Body가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
-    CONSTRAINT_VIOLATED(9004, "요청에 포함된 파라미터가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
+    REISSUE_FAILED(9002, "토큰 재발급에 실패하였습니다.", HttpStatus.UNAUTHORIZED),
+    HTTP_MESSAGE_NOT_READABLE(9003, "JSON 파싱에 실패하였습니다.", HttpStatus.BAD_REQUEST),
+    METHOD_ARGUMENT_NOT_VALID(9004, "JSON Body가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
+    CONSTRAINT_VIOLATED(9005, "요청에 포함된 파라미터가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
     INTERNAL_SERVER_ERROR(9999, "서버 내부에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
