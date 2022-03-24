@@ -15,15 +15,13 @@ public enum ResponseCode {
     DATA_NOT_FOUND(2000, "데이터가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     DATA_DUPLICATED(2001, "데이터가 중복되었습니다.", HttpStatus.CONFLICT),
 
-    KAKAO_LOGIN_FAILED(3000, "카카오 로그인에 실패했습니다.", HttpStatus.BAD_REQUEST),
-    NAVER_LOGIN_FAILED(3001, "네이버 로그인에 실패했습니다.", HttpStatus.BAD_REQUEST),
-    TOKENS_NOT_MATCHED(3003, "토큰이 일치하지 않습니다.", HttpStatus.UNAUTHORIZED),
+    SOCIAL_AUTH_FAILED(3000, "소셜 인증 실패했습니다.", HttpStatus.UNAUTHORIZED),
+    ADDITIONAL_INFO_NEEDED(3001, "추가 정보 입력이 필요합니다.", HttpStatus.UNAUTHORIZED),
 
-    NOT_AUTHENTICATED_USER(4000, "로그인된 사용자가 아닙니다.", HttpStatus.UNAUTHORIZED),
-    EMPTY_ROOM_NOT_EXISTED(4001, "빈 방이 없습니다.", HttpStatus.BAD_REQUEST),
-    PHONE_NUMBER_DUPLICATED(4002, "이미 가입된 회원의 전화번호입니다.", HttpStatus.FORBIDDEN),
-    PASSWORD_NOT_MATCHED(4003, "비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
-    LIFE_STYLE_TEST_NEEDED(4004, "라이프스타일 테스트 미완료 회원입니다.", HttpStatus.BAD_REQUEST),
+    EMPTY_ROOM_NOT_EXISTED(4000, "빈 방이 없습니다.", HttpStatus.BAD_REQUEST),
+    PHONE_NUMBER_DUPLICATED(4001, "이미 가입된 회원의 전화번호입니다.", HttpStatus.FORBIDDEN),
+    PASSWORD_NOT_MATCHED(4002, "비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
+    LIFE_STYLE_TEST_NEEDED(4003, "라이프스타일 테스트 미완료 회원입니다.", HttpStatus.UNAUTHORIZED),
 
     DATA_INTEGRITY_VIOLATED(9000, "중복된 데이터가 추가 요청되었습니다.", HttpStatus.CONFLICT),
     AUTHENTICATION_FAILED(9001, "인증 실패하였습니다.", HttpStatus.UNAUTHORIZED),

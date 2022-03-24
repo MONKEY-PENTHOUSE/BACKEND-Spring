@@ -3,6 +3,7 @@ package com.monkeypenthouse.core.service;
 import com.monkeypenthouse.core.connect.KakaoConnector;
 import com.monkeypenthouse.core.connect.NaverConnector;
 import com.monkeypenthouse.core.constant.ResponseCode;
+import com.monkeypenthouse.core.dto.exception.AdditionalInfoNeededResponseDTO;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.KakaoUserDTO;
 import com.monkeypenthouse.core.dto.NaverUserDTO;
@@ -197,7 +198,7 @@ public class UserServiceImpl implements UserService {
         try {
             kakaoUser = kakaoConnector.getUserInfo(token);
         } catch (Exception e) {
-            throw new CommonException(ResponseCode.KAKAO_LOGIN_FAILED);
+            throw new CommonException(ResponseCode.SOCIAL_AUTH_FAILED);
         }
         Optional<User> optionalUser = userRepository.findByEmailAndLoginType(kakaoUser.getKakao_account().getEmail(), LoginType.KAKAO);
 
@@ -215,18 +216,15 @@ public class UserServiceImpl implements UserService {
 
         User loggedInUser = optionalUser
                 .orElseThrow(() -> {
-                    User newUser = User.builder()
+                    AdditionalInfoNeededResponseDTO dto = AdditionalInfoNeededResponseDTO.builder()
                         .name(kakaoUser.getKakao_account().getProfile().getNickname())
                         .gender(kakaoUser.getKakao_account().isHas_gender() ? kakaoUser.getKakao_account().getGender().equals("female") ? 0 : 1 : 2)
                         .email(kakaoUser.getKakao_account().isHas_email() ? kakaoUser.getKakao_account().getEmail() : null)
                         .password(generatedString)
                         .loginType(LoginType.KAKAO)
                         .build();
-                    return new CommonException(ResponseCode.KAKAO_LOGIN_FAILED);
+                    return new CommonException(ResponseCode.ADDITIONAL_INFO_NEEDED, dto);
                 });
-        if (loggedInUser.getLifeStyle() == null) {
-            throw new CommonException(ResponseCode.LIFE_STYLE_TEST_NEEDED);
-        }
         return loggedInUser;
     }
 
@@ -237,13 +235,13 @@ public class UserServiceImpl implements UserService {
         try {
             naverUser = naverConnector.getUserInfo(token);
         } catch (Exception e) {
-            throw new CommonException(ResponseCode.NAVER_LOGIN_FAILED);
+            throw new CommonException(ResponseCode.SOCIAL_AUTH_FAILED);
         }
-            Optional<User> optionalUser = userRepository.findByEmailAndLoginType(naverUser.getResponse().getEmail(), LoginType.NAVER);
+        Optional<User> optionalUser = userRepository.findByEmailAndLoginType(naverUser.getResponse().getEmail(), LoginType.NAVER);
 
         User loggedInUser = optionalUser
                 .orElseThrow(() -> {
-                    User newUser = User.builder()
+                    AdditionalInfoNeededResponseDTO dto = AdditionalInfoNeededResponseDTO.builder()
                         .name(naverUser.getResponse().getName())
                         .gender(naverUser.getResponse().getGender() == null ?
                                 2 : naverUser.getResponse().getGender().equals("F") ? 0 : 1)
@@ -253,11 +251,8 @@ public class UserServiceImpl implements UserService {
                                 null : naverUser.getResponse().getMobile().replace("-", ""))
                         .loginType(LoginType.NAVER)
                         .build();
-                    return new CommonException(ResponseCode.NAVER_LOGIN_FAILED);
+                    return new CommonException(ResponseCode.ADDITIONAL_INFO_NEEDED, dto);
                 });
-        if (loggedInUser.getLifeStyle() == null) {
-            throw new CommonException(ResponseCode.LIFE_STYLE_TEST_NEEDED);
-        }
         return loggedInUser;
     }
 
