@@ -23,7 +23,7 @@ public enum ResponseCode {
     PASSWORD_NOT_MATCHED(4002, "비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
     LIFE_STYLE_TEST_NEEDED(4003, "라이프스타일 테스트 미완료 회원입니다.", HttpStatus.UNAUTHORIZED),
 
-    DATA_INTEGRITY_VIOLATED(9000, "중복된 데이터가 추가 요청되었습니다.", HttpStatus.CONFLICT),
+    DATA_INTEGRITY_VIOLATED(9000, "무결성 제약 조건에 위반하는 데이터입니다.", HttpStatus.CONFLICT),
     AUTHENTICATION_FAILED(9001, "인증 실패하였습니다.", HttpStatus.UNAUTHORIZED),
     REISSUE_FAILED(9002, "토큰 재발급에 실패하였습니다.", HttpStatus.UNAUTHORIZED),
 

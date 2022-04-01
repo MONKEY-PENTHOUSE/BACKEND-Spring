@@ -70,6 +70,7 @@ public class ExceptionController {
     // 500
     @ExceptionHandler(Exception.class)
     public CommonResponseEntity handleAll(final Exception e) {
+        e.printStackTrace();
 
         return commonResponseMaker.makeCommonResponse(ResponseCode.INTERNAL_SERVER_ERROR);
     }

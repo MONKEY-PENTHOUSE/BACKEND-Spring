@@ -47,9 +47,17 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional
-    public void add(List<MultipartFile> bannerPhotos, List<MultipartFile> detailPhotos, SaveReqDTO amenityDTO) throws Exception {
+    public void add(SaveReqDTO amenityDTO) throws Exception {
         // DB에 저장할 어메니티 객체
-        Amenity amenity = modelMapper.map(amenityDTO, Amenity.class);
+        Amenity amenity = Amenity.builder()
+                .title(amenityDTO.getTitle())
+                .address(amenityDTO.getAddress())
+                .deadlineDate(amenityDTO.getDeadlineDate())
+                .detail(amenityDTO.getDetail())
+                .recommended(amenityDTO.getRecommended())
+                .minPersonNum(amenityDTO.getMinPersonNum())
+                .build();
+
         amenity.setStartDate(LocalDate.now());
         amenity.setMaxPersonNum(0);
         amenity.setThumbnailName("");
@@ -87,7 +95,7 @@ public class AmenityServiceImpl implements AmenityService {
         List<Ticket> tickets = new ArrayList<>();
         LocalDate startDate = null;
         int maxPersonNum = 0;
-        for (TicketDTO.saveDTO ticketDTO : amenityDTO.getTickets()) {
+        for (TicketDTO.SaveDTO ticketDTO : amenityDTO.getTickets()) {
             Ticket ticket = modelMapper.map(ticketDTO, Ticket.class);
             if (startDate ==  null || startDate.isAfter(ticketDTO.getEventDateTime().toLocalDate())) {
                 startDate = ticketDTO.getEventDateTime().toLocalDate();
@@ -103,8 +111,8 @@ public class AmenityServiceImpl implements AmenityService {
 
         List<Photo> photos = new ArrayList<>();
        // 배너 사진 리스트 저장
-        for (int i = 0; i < bannerPhotos.size(); i++) {
-            String fileName = s3Uploader.upload(bannerPhotos.get(i), "banner");
+        for (int i = 0; i < amenityDTO.getBannerPhotos().size(); i++) {
+            String fileName = s3Uploader.upload(amenityDTO.getBannerPhotos().get(i), "banner");
             if (i == 0) {
                 amenity.setThumbnailName("banner/" + fileName);
             }
@@ -118,7 +126,7 @@ public class AmenityServiceImpl implements AmenityService {
         }
 
         // 상세 사진 리스트 저장
-        for (MultipartFile detailPhoto : detailPhotos) {
+        for (MultipartFile detailPhoto : amenityDTO.getDetailPhotos()) {
             String fileName = s3Uploader.upload(detailPhoto, "detail");
             Photo photo = Photo
                     .builder()
