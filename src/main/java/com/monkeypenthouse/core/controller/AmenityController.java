@@ -28,11 +28,8 @@ public class AmenityController {
     private final CommonResponseMaker commonResponseMaker;
 
     @PostMapping(value = "/")
-    public CommonResponseEntity signUp(
-            @RequestPart(value = "bannerPhotos", required = false) List<MultipartFile> bannerPhotos,
-            @RequestPart(value = "detailPhotos", required = false) List<MultipartFile> detailPhotos,
-            @RequestPart(value = "saveReqDTO") @Valid SaveReqDTO amenityDTO) throws Exception {
-        amenityService.add(bannerPhotos, detailPhotos, amenityDTO);
+    public CommonResponseEntity save(@ModelAttribute @Valid SaveReqDTO amenityDTO) throws Exception {
+        amenityService.add(amenityDTO);
 
         return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }

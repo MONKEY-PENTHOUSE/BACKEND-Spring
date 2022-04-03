@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.monkeypenthouse.core.entity.LifeStyle;
 import com.monkeypenthouse.core.entity.LoginType;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
@@ -21,7 +22,7 @@ public class UserDTO {
         @Pattern(regexp = "^[가-힣|A-Za-z|1-9]{1,10}$")
         private String name;
 
-        @JsonFormat(pattern = "yyyy.MM.dd")
+        @DateTimeFormat(pattern = "yyyy.MM.dd")
         @NotNull(message = "생일은 필수 입력값입니다.")
         private LocalDate birth;
 
@@ -61,7 +62,7 @@ public class UserDTO {
     public static class SignupResDTO extends UserDTO {
         private Long id;
         private String name;
-        @JsonFormat(pattern = "yyyy.MM.dd")
+        @DateTimeFormat(pattern = "yyyy.MM.dd")
         private LocalDate birth;
         // 0: 여성, 1: 남성
         private int gender;

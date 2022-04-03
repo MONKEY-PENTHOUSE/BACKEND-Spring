@@ -2,6 +2,8 @@ package com.monkeypenthouse.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
@@ -33,11 +35,8 @@ public class AmenityDTO {
         private int dibs;
     }
 
-    @Builder
     @Getter
     @Setter
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class SaveReqDTO {
         @NotBlank(message = "제목은 필수 입력값입니다.")
         @Pattern(regexp = "^.{15,30}$")
@@ -47,7 +46,7 @@ public class AmenityDTO {
         private String address;
 
         @NotNull(message = "응원 마감기한은 필수 입력값입니다.")
-        @JsonFormat(pattern = "yyyy.MM.dd")
+        @DateTimeFormat(pattern = "yyyy.MM.dd")
         private LocalDate deadlineDate;
 
         @NotBlank(message = "상세 설명은 필수 입력값입니다.")
@@ -65,7 +64,13 @@ public class AmenityDTO {
         private List<String> categories;
 
         @NotNull(message = "티켓이 한 개 이상 있어야 합니다.")
-        private List<TicketDTO.saveDTO> tickets;
+        private List<TicketDTO.SaveDTO> tickets;
+
+        @NotNull
+        private List<MultipartFile> bannerPhotos;
+
+        @NotNull
+        private List<MultipartFile> detailPhotos;
     }
 
 }

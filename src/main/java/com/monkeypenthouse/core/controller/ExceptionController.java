@@ -11,6 +11,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -46,9 +47,9 @@ public class ExceptionController {
         return commonResponseMaker.makeCommonResponse(ResponseCode.AUTHENTICATION_FAILED);
     }
 
-    // json 파싱 실패시
-    @ExceptionHandler({HttpMessageNotReadableException.class})
-    protected CommonResponseEntity handleHttpMessageNotReadableException(JsonMappingException e) {
+    // multipart/form-data or json 파싱 실패시
+    @ExceptionHandler({HttpMessageNotReadableException.class, BindException.class})
+    protected CommonResponseEntity handleHttpMessageNotReadableException(Exception e) {
 
         return commonResponseMaker.makeCommonResponse(ResponseCode.HTTP_MESSAGE_NOT_READABLE);
     }

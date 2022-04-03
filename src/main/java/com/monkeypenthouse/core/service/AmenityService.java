@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 public interface AmenityService {
-    void add(List<MultipartFile> bannerPhotos, List<MultipartFile> detailPhotos, SaveReqDTO amenityDTO) throws Exception;
+    void add(SaveReqDTO amenityDTO) throws Exception;
     GetByIdResponseVo getById(Long id) throws CloudFrontServiceException, IOException;
 
     GetPageResponseVo getAmenitiesDibsOn(UserDetails userDetails, Pageable pageable) throws CloudFrontServiceException, IOException;

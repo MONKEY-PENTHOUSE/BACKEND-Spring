@@ -30,7 +30,7 @@ public class Photo {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "amenity_id", nullable = false)
+    @JoinColumn(name = "amenity_id")
     private Amenity amenity;
 
     @CreatedDate
