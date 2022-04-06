@@ -23,4 +23,6 @@ public interface AmenityRepositoryCustom {
     Page<AmenitySimpleDTO> findPageByDibsOfUser(Long userId, Pageable pageable);
 
     List<TicketOfAmenityDto> getTicketsOfAmenity(Long amenityId);
+
+    List<AmenitySimpleDTO> findAllById(List<Long> amenityIds);
 }
