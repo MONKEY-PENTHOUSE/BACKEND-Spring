@@ -26,4 +26,5 @@ public interface AmenityService {
 
     void updateStatusOfAmenity();
 
+    GetViewedResponseVo getViewed(List<Long> amenityIds) throws CloudFrontServiceException, IOException;
 }

@@ -190,25 +190,25 @@ public class AmenityServiceImpl implements AmenityService {
     @Transactional(readOnly = true)
     public GetPageResponseVo getAmenitiesDibsOn(final UserDetails userDetails, Pageable pageable) throws CloudFrontServiceException, IOException {
         final User user = userService.getUserByEmail(userDetails.getUsername());
-        return amenitySimpleDtoToVo(amenityRepository.findPageByDibsOfUser(user.getId(), pageable));
+        return GetPageResponseVo(amenityRepository.findPageByDibsOfUser(user.getId(), pageable));
     }
 
     @Override
     public GetPageResponseVo getPage(Pageable pageable) throws CloudFrontServiceException, IOException {
         Page<AmenitySimpleDTO> pages = amenityRepository.findPage(pageable);
-        return amenitySimpleDtoToVo(pages);
+        return GetPageResponseVo(pages);
     }
 
     @Override
     public GetPageResponseVo getPageByCategory(Long category, Pageable pageable) throws CloudFrontServiceException, IOException {
         Page<AmenitySimpleDTO> pages = amenityRepository.findPageByCategory(category, pageable);
-        return amenitySimpleDtoToVo(pages);
+        return GetPageResponseVo(pages);
     }
 
     @Override
     public GetPageResponseVo getPageByRecommended(Pageable pageable) throws CloudFrontServiceException, IOException {
         Page<AmenitySimpleDTO> pages = amenityRepository.findPageByRecommended(1, pageable);
-        return amenitySimpleDtoToVo(pages);
+        return GetPageResponseVo(pages);
     }
 
     @Override
@@ -240,7 +240,31 @@ public class AmenityServiceImpl implements AmenityService {
         amenityRepository.updateStatusByDeadlineDate(today);
     }
 
-    private GetPageResponseVo amenitySimpleDtoToVo(Page<AmenitySimpleDTO> pages) throws CloudFrontServiceException, IOException {
+    @Override
+    public GetViewedResponseVo getViewed(List<Long> amenityIds) throws CloudFrontServiceException, IOException {
+        List<AmenitySimpleDTO> amenitySimpleDtos = amenityRepository.findAllById(
+                amenityIds.size() > 5 ? amenityIds.subList(0,5) : amenityIds);
+        List<AmenitySimpleVo>  amenitySimpleVos = new ArrayList<>();
+        for (AmenitySimpleDTO dto : amenitySimpleDtos) {
+            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
+            amenitySimpleVos.add(AmenitySimpleVo.builder()
+                    .id(dto.getId())
+                    .title(dto.getTitle())
+                    .minPersonNum(dto.getMinPersonNum())
+                    .maxPersonNum(dto.getMaxPersonNum())
+                    .currentPersonNum(dto.getCurrentPersonNum())
+                    .thumbnailName(signedUrl)
+                    .address(dto.getAddress())
+                    .startDate(dto.getStartDate())
+                    .status(dto.getStatus())
+                    .build());
+        }
+        return GetViewedResponseVo.builder()
+                .amenities(amenitySimpleVos)
+                .build();
+    }
+
+    private GetPageResponseVo GetPageResponseVo(Page<AmenitySimpleDTO> pages) throws CloudFrontServiceException, IOException {
         List<AmenitySimpleVo> amenitySimpleVos = new ArrayList<>();
         for (AmenitySimpleDTO dto : pages.getContent()) {
             String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());

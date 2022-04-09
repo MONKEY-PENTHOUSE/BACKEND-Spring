@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -122,6 +125,14 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .fetch();
     }
 
+    @Override
+    public List<AmenitySimpleDTO> findAllById(List<Long> amenityIds) {
+        List<AmenitySimpleDTO> amenities = getQueryForAmenitySimpleDTO()
+                .where(amenity.id.in(amenityIds))
+                .fetch();
+        return reOrderAccordingToIndex(amenities, amenityIds);
+    }
+
     private JPQLQuery<AmenitySimpleDTO> getQueryForAmenitySimpleDTO() {
         return queryFactory.from(amenity)
                 .leftJoin(amenity.tickets, ticket)
@@ -149,5 +160,19 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                     Order.ASC : Order.DESC, orderByExpression.get(e.getProperty())));
         });
         return query;
+    }
+
+    private static List<AmenitySimpleDTO> reOrderAccordingToIndex(List<AmenitySimpleDTO> itemList,
+                                                                        List<Long> indexList) {
+        HashMap<Long, AmenitySimpleDTO> hashMap = new HashMap<>(itemList.size());
+        itemList.forEach(item -> hashMap.put(item.getId(), item));
+
+        ArrayList<AmenitySimpleDTO> output = new ArrayList<>(itemList.size());
+        for (Long index : indexList) {
+            AmenitySimpleDTO item = hashMap.get(index);
+            if (item != null) output.add(hashMap.get(index));
+        }
+
+        return output;
     }
 }

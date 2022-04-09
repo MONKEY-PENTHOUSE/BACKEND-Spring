@@ -13,6 +13,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -68,9 +69,17 @@ public class ExceptionController {
         return commonResponseMaker.makeCommonResponse(ResponseCode.CONSTRAINT_VIOLATED);
     }
 
+    // @valid 유효성 검사 실패시 (RequestParam, PathVariable)
+    @ExceptionHandler({MissingServletRequestParameterException.class})
+    protected CommonResponseEntity handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+
+        return commonResponseMaker.makeCommonResponse(ResponseCode.MISSING_PARAMETER);
+    }
+
     // 500
     @ExceptionHandler(Exception.class)
     public CommonResponseEntity handleAll(final Exception e) {
+        e.printStackTrace();
 
         return commonResponseMaker.makeCommonResponse(ResponseCode.INTERNAL_SERVER_ERROR);
     }

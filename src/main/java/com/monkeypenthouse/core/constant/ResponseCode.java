@@ -30,6 +30,7 @@ public enum ResponseCode {
     HTTP_MESSAGE_NOT_READABLE(9010, "메시지 파싱에 실패하였습니다.", HttpStatus.BAD_REQUEST),
     METHOD_ARGUMENT_NOT_VALID(9011, "JSON Body가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
     CONSTRAINT_VIOLATED(9012, "요청에 포함된 파라미터가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
+    MISSING_PARAMETER(9013, "요청에 필요한 파라미터가 없습니다.", HttpStatus.BAD_REQUEST),
 
     INTERNAL_SERVER_ERROR(9999, "서버 내부에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 

@@ -6,15 +6,14 @@ import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.GetPageResponseDTO;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.GetTicketsOfAmenityResponseDto;
+import com.monkeypenthouse.core.dto.GetViewedResponseDTO;
 import com.monkeypenthouse.core.service.AmenityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -49,7 +48,7 @@ public class AmenityController {
     }
 
     @GetMapping(value = "/category")
-    public CommonResponseEntity getPageByCategory(@Param("category") Long category, Pageable pageable) throws Exception {
+    public CommonResponseEntity getPageByCategory(@RequestParam("category") Long category, Pageable pageable) throws Exception {
         final GetPageResponseDTO responseDto =
                 GetPageResponseDTO.of(amenityService.getPageByCategory(category, pageable));
 
@@ -80,6 +79,15 @@ public class AmenityController {
 
         final GetTicketsOfAmenityResponseDto responseDto =
                 GetTicketsOfAmenityResponseDto.of(amenityService.getTicketsOfAmenity(amenityId));
+
+        return commonResponseMaker.makeCommonResponse(responseDto, ResponseCode.SUCCESS);
+    }
+
+    @GetMapping(value = "/viewed")
+    public CommonResponseEntity getViewed(@RequestParam("id") final List<Long> amentiyIds) throws Exception {
+
+        final GetViewedResponseDTO responseDto =
+                GetViewedResponseDTO.of(amenityService.getViewed(amentiyIds));
 
         return commonResponseMaker.makeCommonResponse(responseDto, ResponseCode.SUCCESS);
     }
