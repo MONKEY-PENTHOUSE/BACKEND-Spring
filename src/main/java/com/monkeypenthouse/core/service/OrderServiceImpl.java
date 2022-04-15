@@ -5,19 +5,22 @@ package com.monkeypenthouse.core.service;
 import com.monkeypenthouse.core.entity.Ticket;
 import com.monkeypenthouse.core.repository.TicketRepository;
 import com.monkeypenthouse.core.vo.TicketOfOrderVo;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 @Log4j2
+@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService{
 
-    @Autowired
-//    TicketRepository ticketRepository;
+    TicketRepository ticketRepository;
 
     @Override
     @Transactional
