@@ -1,12 +1,10 @@
 package com.monkeypenthouse.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 
 public class TicketDTO {
@@ -35,5 +33,21 @@ public class TicketDTO {
         @NotNull(message = "이벤트 날짜는 필수 입력값입니다.")
         @JsonFormat(pattern = "yyyy.MM.dd HH:mm")
         private LocalDateTime eventDateTime;
+    }
+
+    @Builder
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class orderDTO {
+        @Positive
+        @NotNull(message = "아이디는 필수 입력값입니다.")
+        private long id;
+
+        @Positive
+        @NotNull(message = "수량은 필수 입력값입니다.")
+        private int capacity;
+
     }
 }
