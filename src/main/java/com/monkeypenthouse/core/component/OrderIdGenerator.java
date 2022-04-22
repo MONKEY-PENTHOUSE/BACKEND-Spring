@@ -29,8 +29,8 @@ public class OrderIdGenerator {
         }
 
         return orderDate.format(
-                DateTimeFormatter.ofPattern("yyyyMMdd")) +
-                String.format("%09d", value.getAndIncrement());
+                DateTimeFormatter.ofPattern("yyMMdd")) +
+                String.format("%06d", value.getAndIncrement());
 
     }
 
