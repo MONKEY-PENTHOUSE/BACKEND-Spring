@@ -1,19 +1,13 @@
 package com.monkeypenthouse.core.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 
 @Entity
-@Builder
 @Table(name="order_product")
-@Data
 @NoArgsConstructor
-@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class OrderProduct {
 
@@ -31,4 +25,10 @@ public class OrderProduct {
 
     @Column(nullable = false)
     private int quantity;
+
+    public OrderProduct(Order order, Ticket ticket, int quantity) {
+        this.order = order;
+        this.ticket = ticket;
+        this.quantity = quantity;
+    }
 }

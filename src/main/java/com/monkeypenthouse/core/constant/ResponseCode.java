@@ -11,6 +11,7 @@ public enum ResponseCode {
     SUCCESS(0, "Success", HttpStatus.OK),
 
     USER_NOT_FOUND(1000, "회원이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    TICKET_NOT_FOUND(1001, "티켓이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 
     DATA_NOT_FOUND(2000, "데이터가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     DATA_DUPLICATED(2001, "데이터가 중복되었습니다.", HttpStatus.CONFLICT),
