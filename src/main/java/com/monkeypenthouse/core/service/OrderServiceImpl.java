@@ -1,20 +1,28 @@
 package com.monkeypenthouse.core.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.monkeypenthouse.core.component.OrderIdGenerator;
 import com.monkeypenthouse.core.constant.ResponseCode;
+import com.monkeypenthouse.core.dto.tossPayments.ApprovePaymentResponseDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.OrderProductRepository;
 import com.monkeypenthouse.core.repository.OrderRepository;
 import com.monkeypenthouse.core.repository.TicketRepository;
-import com.monkeypenthouse.core.repository.UserRepository;
+import com.monkeypenthouse.core.vo.ApproveOrderRequestVo;
 import com.monkeypenthouse.core.vo.CreateOrderRequestVo;
 import com.monkeypenthouse.core.vo.CreateOrderResponseVo;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,12 +31,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
     private final TicketRepository ticketRepository;
     private final OrderIdGenerator orderIdGenerator;
     private final UserService userService;
+    private final ObjectMapper objectMapper;
+
+    @Value("${toss-payments.api-key}")
+    private String tossPaymentsApiKey;
 
     @Override
     @Transactional
@@ -76,13 +87,41 @@ public class OrderServiceImpl implements OrderService {
 
         // OrderProduct 엔티티 생성
         ticketList.stream().map(ticket ->
-                        orderProductRepository.save(new OrderProduct(order, ticket, quantityMap.get(ticket.getId())))
-                );
+                orderProductRepository.save(new OrderProduct(order, ticket, quantityMap.get(ticket.getId())))
+        );
 
         return CreateOrderResponseVo.builder()
                 .amount(amount)
                 .orderId(orderId)
                 .orderName(orderName)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void approveOrder(final ApproveOrderRequestVo requestVo) throws IOException, InterruptedException {
+
+        final Order order = orderRepository.findByOrderId(requestVo.getOrderId())
+                .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.tosspayments.com/v1/payments/" + requestVo.getPaymentKey()))
+                .header("Authorization", tossPaymentsApiKey)
+                .header("Content-Type", "application/json")
+                .method("POST", HttpRequest.BodyPublishers.ofString(
+                        "{\"amount\":" + requestVo.getAmount() +
+                                ",\"orderId\":\"" + requestVo.getOrderId() + "\"}"))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        final ApprovePaymentResponseDto responseDto = objectMapper.readValue(response.body(), ApprovePaymentResponseDto.class);
+
+        if (response.statusCode() == 200) {
+            order.changeOrderStatus(OrderStatus.COMPLETED);
+        }
+        else {
+            throw new CommonException(ResponseCode.ORDER_PAYMENT_NOT_APPROVED);
+        }
     }
 }

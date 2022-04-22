@@ -12,6 +12,7 @@ public enum ResponseCode {
 
     USER_NOT_FOUND(1000, "회원이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     TICKET_NOT_FOUND(1001, "티켓이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    ORDER_NOT_FOUND(1002, "주문이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 
     DATA_NOT_FOUND(2000, "데이터가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     DATA_DUPLICATED(2001, "데이터가 중복되었습니다.", HttpStatus.CONFLICT),
@@ -23,6 +24,7 @@ public enum ResponseCode {
     PHONE_NUMBER_DUPLICATED(4001, "이미 가입된 회원의 전화번호입니다.", HttpStatus.FORBIDDEN),
     PASSWORD_NOT_MATCHED(4002, "비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
     LIFE_STYLE_TEST_NEEDED(4003, "라이프스타일 테스트 미완료 회원입니다.", HttpStatus.UNAUTHORIZED),
+    ORDER_PAYMENT_NOT_APPROVED(4004, "주문 결제가 승인되지 않았습니다.", HttpStatus.BAD_REQUEST),
 
     DATA_INTEGRITY_VIOLATED(9000, "무결성 제약 조건에 위반하는 데이터입니다.", HttpStatus.CONFLICT),
     AUTHENTICATION_FAILED(9001, "인증 실패하였습니다.", HttpStatus.UNAUTHORIZED),
