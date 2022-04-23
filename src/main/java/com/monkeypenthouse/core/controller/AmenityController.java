@@ -26,7 +26,7 @@ public class AmenityController {
     private final AmenityService amenityService;
     private final CommonResponseMaker commonResponseMaker;
 
-    @PostMapping(value = "/")
+    @PostMapping
     public CommonResponseEntity save(@ModelAttribute @Valid SaveReqDTO amenityDTO) throws Exception {
         amenityService.add(amenityDTO);
 

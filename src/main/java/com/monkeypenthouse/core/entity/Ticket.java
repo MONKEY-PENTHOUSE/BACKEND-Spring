@@ -25,10 +25,10 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 17, nullable = false)
+    @Column(length = 30, nullable = false)
     private String name;
 
-    @Column
+    @Column(length = 50)
     private String detail;
 
     @Column(nullable = false)
