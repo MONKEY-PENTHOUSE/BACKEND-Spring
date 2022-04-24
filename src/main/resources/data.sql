@@ -1,5 +1,5 @@
 delete from order_product;
-delete from order;
+delete from `order`;
 delete from user;
 delete from room;
 insert into room (id, user_role) values ("A0001", 1);
