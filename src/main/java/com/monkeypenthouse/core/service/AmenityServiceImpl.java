@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.service;
 
+import com.monkeypenthouse.core.component.ImageManager;
 import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
 import com.monkeypenthouse.core.constant.ResponseCode;
@@ -41,7 +42,8 @@ public class AmenityServiceImpl implements AmenityService {
     private final AmenityCategoryRepository amenityCategoryRepository;
     private final DibsRepository dibsRepository;
     private final UserService userService;
-    private final S3Uploader s3Uploader;
+
+    private final ImageManager imageManager;
     private final ModelMapper modelMapper;
     private final CloudFrontManager cloudFrontManager;
 
@@ -112,9 +114,10 @@ public class AmenityServiceImpl implements AmenityService {
         List<Photo> photos = new ArrayList<>();
        // 배너 사진 리스트 저장
         for (int i = 0; i < amenityDTO.getBannerPhotos().size(); i++) {
-            String fileName = s3Uploader.upload(amenityDTO.getBannerPhotos().get(i), "banner");
+            String fileName = imageManager.uploadImageOnS3(amenityDTO.getBannerPhotos().get(i), "banner");
             if (i == 0) {
-                amenity.setThumbnailName("banner/" + fileName);
+                String thumbnailFileName = imageManager.uploadThumbnailOnS3(amenityDTO.getBannerPhotos().get(i));
+                amenity.setThumbnailName(thumbnailFileName);
             }
             Photo photo = Photo
                     .builder()
@@ -127,7 +130,7 @@ public class AmenityServiceImpl implements AmenityService {
 
         // 상세 사진 리스트 저장
         for (MultipartFile detailPhoto : amenityDTO.getDetailPhotos()) {
-            String fileName = s3Uploader.upload(detailPhoto, "detail");
+            String fileName = imageManager.uploadImageOnS3(detailPhoto, "detail");
             Photo photo = Photo
                     .builder()
                     .name(fileName)
@@ -267,7 +270,8 @@ public class AmenityServiceImpl implements AmenityService {
     private GetPageResponseVo GetPageResponseVo(Page<AmenitySimpleDTO> pages) throws CloudFrontServiceException, IOException {
         List<AmenitySimpleVo> amenitySimpleVos = new ArrayList<>();
         for (AmenitySimpleDTO dto : pages.getContent()) {
-            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
+            String filename = "thumbnail/" + dto.getThumbnailName();
+            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(filename);
             amenitySimpleVos.add(AmenitySimpleVo.builder()
                     .id(dto.getId())
                     .title(dto.getTitle())
