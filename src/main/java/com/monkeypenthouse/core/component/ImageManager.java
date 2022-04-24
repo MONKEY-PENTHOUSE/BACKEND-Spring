@@ -22,7 +22,7 @@ public class ImageManager {
     private static final int THUMBNAIL_HEIGHT_PX = 708;
     private static final String THUMBNAIL_NAME = "_thumbnail";
 
-    public String uploadImageOnS3(MultipartFile multipartFile, String dirName) throws IOException {
+    public String uploadImageOnS3(final MultipartFile multipartFile, final String dirName) throws IOException {
         File file = multiPartToFile(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("파일 전환 실패"));
         String fileName = s3Uploader.upload(file, dirName);
@@ -31,7 +31,7 @@ public class ImageManager {
     }
 
     // 1125 * 708 크기의 이미지 새로 생성하여 저장
-    public String uploadThumbnailOnS3(MultipartFile multipartFile) throws IOException {
+    public String uploadThumbnailOnS3(final MultipartFile multipartFile) throws IOException {
 
         File file = multiPartToFile(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("파일 전환 실패"));
@@ -54,7 +54,10 @@ public class ImageManager {
     }
 
     // 원본 파일에 대해
-    private File createResizedImageFile(File originFile, String newFileName, int newWidth, int newHeight) throws IOException {
+    private File createResizedImageFile(final File originFile,
+                                        final String newFileName,
+                                        final int newWidth,
+                                        final int newHeight) throws IOException {
         Image image = ImageIO.read(originFile);
         File resizedFile = new File(newFileName);
 
@@ -79,12 +82,12 @@ public class ImageManager {
     }
 
     // 로컬에 생성된 File 삭제
-    private void removeNewFile(File targetFile) {
+    private void removeNewFile(final File targetFile) {
         targetFile.delete();
     }
 
     // MultipartFile을 File 형태로 변환
-    private Optional<File> multiPartToFile(MultipartFile file) throws IOException {
+    private Optional<File> multiPartToFile(final MultipartFile file) throws IOException {
         File convertFile = new File(file.getOriginalFilename());
         if (convertFile.createNewFile()) {
             try (FileOutputStream fos = new FileOutputStream(convertFile)) {

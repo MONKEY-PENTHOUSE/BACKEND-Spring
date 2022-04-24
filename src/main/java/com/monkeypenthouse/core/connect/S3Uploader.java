@@ -23,7 +23,7 @@ public class S3Uploader {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    public String upload(File file, String dirName) throws IOException {
+    public String upload(final File file, final String dirName) throws IOException {
         // 랜덤으로 파일 이름 짓기
         String fileName = createRandomFileName(file, dirName);
         // S3에 저장
@@ -32,12 +32,12 @@ public class S3Uploader {
     }
 
     // 파일 이름 랜덤 생성
-    private String createRandomFileName(File uploadFile, String dirName) {
+    private String createRandomFileName(final File uploadFile, final String dirName) {
         return UUID.randomUUID().toString();
     }
 
     // 파일을 S3에 업로드
-    private String putS3(File uploadFile, String fileName) {
+    private String putS3(final File uploadFile, final String fileName) {
         // bucket에 정해진 filename으로 파일 업로드
         // public read가 가능하도록 S3 업로드
         amazonS3Client.putObject(
