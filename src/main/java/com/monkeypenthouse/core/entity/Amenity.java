@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.entity;
 
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -61,7 +62,8 @@ public class Amenity {
     // 0 : 모집중
     // 1 : 모집 마감
     // 2 : 종료
-    @Column(columnDefinition = "integer default 0")
+    @Column(nullable = false)
+    @ColumnDefault("0")
     private int status;
 
     @OneToMany(mappedBy = "amenity")
