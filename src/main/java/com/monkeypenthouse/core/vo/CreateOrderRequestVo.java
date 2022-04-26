@@ -11,11 +11,5 @@ public class CreateOrderRequestVo {
 
     private final List<OrderProductVo> orderProductVoList;
 
-    @Getter
-    @Builder
-    public class OrderProductVo {
 
-        public Long ticketId;
-        public Integer quantity;
-    }
 }

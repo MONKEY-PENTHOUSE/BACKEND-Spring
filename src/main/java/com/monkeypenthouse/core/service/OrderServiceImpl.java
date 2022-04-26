@@ -13,7 +13,7 @@ import com.monkeypenthouse.core.vo.ApproveOrderRequestVo;
 import com.monkeypenthouse.core.vo.CreateOrderRequestVo;
 import com.monkeypenthouse.core.vo.CreateOrderResponseVo;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
