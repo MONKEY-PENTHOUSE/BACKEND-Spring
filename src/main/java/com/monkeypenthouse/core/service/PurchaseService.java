@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public interface PurchaseService {
 
-    CreateOrderResponseVo createPurchase(final UserDetails userDetails, final CreateOrderRequestVo requestVo);
+    CreateOrderResponseVo createPurchase(final UserDetails userDetails, final CreateOrderRequestVo requestVo) throws InterruptedException;
 
     void approvePurchase(ApproveOrderRequestVo requestVo) throws IOException, InterruptedException;
 }

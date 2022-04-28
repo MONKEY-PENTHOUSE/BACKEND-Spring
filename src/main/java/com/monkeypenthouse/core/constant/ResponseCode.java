@@ -25,6 +25,9 @@ public enum ResponseCode {
     PASSWORD_NOT_MATCHED(4002, "비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
     LIFE_STYLE_TEST_NEEDED(4003, "라이프스타일 테스트 미완료 회원입니다.", HttpStatus.UNAUTHORIZED),
     ORDER_PAYMENT_NOT_APPROVED(4004, "주문 결제가 승인되지 않았습니다.", HttpStatus.BAD_REQUEST),
+    TICKET_LOCK_FAILED(4005, "티켓에 대한 락 획득에 실패하였습니다.", HttpStatus.BAD_REQUEST),
+    NOT_ENOUGH_TICKETS(4006, "티켓 재고가 부족합니다.", HttpStatus.BAD_REQUEST),
+    ORDER_CREATE_FAILED(4007, "주문 생성에 실패하였습니다.", HttpStatus.BAD_REQUEST),
 
     DATA_INTEGRITY_VIOLATED(9000, "무결성 제약 조건에 위반하는 데이터입니다.", HttpStatus.CONFLICT),
     AUTHENTICATION_FAILED(9001, "인증 실패하였습니다.", HttpStatus.UNAUTHORIZED),
