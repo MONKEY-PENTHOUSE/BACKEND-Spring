@@ -8,10 +8,10 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="order")
+@Table(name="purchase")
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Order {
+public class Purchase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +38,7 @@ public class Order {
     @Column(name="created_at", updatable=false, nullable=false)
     private LocalDateTime createdAt;
 
-    public Order(User user, String orderId, String orderName, int amount, OrderStatus orderStatus) {
+    public Purchase(User user, String orderId, String orderName, int amount, OrderStatus orderStatus) {
         this.user = user;
         this.orderId = orderId;
         this.orderName = orderName;

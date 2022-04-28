@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Builder
-public class CreateOrderRequestDto {
+public class CreatePurchaseRequestDto {
 
     private final List<OrderProductDto> orderProductDtoList;
 

@@ -8,9 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.IOException;
 
-public interface OrderService {
+public interface PurchaseService {
 
-    CreateOrderResponseVo createOrder(final UserDetails userDetails, final CreateOrderRequestVo requestVo);
+    CreateOrderResponseVo createPurchase(final UserDetails userDetails, final CreateOrderRequestVo requestVo);
 
-    void approveOrder(ApproveOrderRequestVo requestVo) throws IOException, InterruptedException;
+    void approvePurchase(ApproveOrderRequestVo requestVo) throws IOException, InterruptedException;
 }

@@ -49,5 +49,5 @@ public class Ticket {
     private LocalDateTime eventDateTime;
 
     @OneToMany(mappedBy = "ticket")
-    private List<OrderProduct> orderProducts = new ArrayList<>();
+    private List<PurchaseTicketMapping> purchaseTicketMappings = new ArrayList<>();
 }

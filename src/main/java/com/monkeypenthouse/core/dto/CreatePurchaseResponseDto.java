@@ -6,13 +6,13 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class CreateOrderResponseDto {
+public class CreatePurchaseResponseDto {
 
     public Integer amount;
     public String orderId;
     public String orderName;
 
-    public static CreateOrderResponseDto of(CreateOrderResponseVo vo) {
+    public static CreatePurchaseResponseDto of(CreateOrderResponseVo vo) {
         return builder()
                 .amount(vo.getAmount())
                 .orderId(vo.getOrderId())

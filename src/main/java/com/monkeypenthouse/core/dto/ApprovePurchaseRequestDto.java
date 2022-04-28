@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ApproveOrderRequestDto {
+public class ApprovePurchaseRequestDto {
 
     private String paymentKey;
     private String orderId;

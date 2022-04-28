@@ -6,8 +6,8 @@ import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.tossPayments.ApprovePaymentResponseDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.exception.CommonException;
-import com.monkeypenthouse.core.repository.OrderProductRepository;
-import com.monkeypenthouse.core.repository.OrderRepository;
+import com.monkeypenthouse.core.repository.PurchaseTicketMappingRepository;
+import com.monkeypenthouse.core.repository.PurchaseRepository;
 import com.monkeypenthouse.core.repository.TicketRepository;
 import com.monkeypenthouse.core.vo.ApproveOrderRequestVo;
 import com.monkeypenthouse.core.vo.CreateOrderRequestVo;
@@ -29,10 +29,10 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class OrderServiceImpl implements OrderService {
+public class PurchaseServiceImpl implements PurchaseService {
 
-    private final OrderRepository orderRepository;
-    private final OrderProductRepository orderProductRepository;
+    private final PurchaseRepository purchaseRepository;
+    private final PurchaseTicketMappingRepository purchaseTicketMappingRepository;
     private final TicketRepository ticketRepository;
     private final OrderIdGenerator orderIdGenerator;
     private final UserService userService;
@@ -43,7 +43,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public CreateOrderResponseVo createOrder(final UserDetails userDetails, final CreateOrderRequestVo requestVo) {
+    public CreateOrderResponseVo createPurchase(final UserDetails userDetails, final CreateOrderRequestVo requestVo) {
 
         // 주문 수량에 대해 티켓 재고를 확인하는 유효성 검증 로직 (레디스를 사용할 예정)
 
@@ -82,12 +82,12 @@ public class OrderServiceImpl implements OrderService {
         // 여기서 User 엔티티를 find하지 않고 바로 foreign key로 주입할 수 있는 방법이 있나요..?
         final User user = userService.getUserByEmail(userDetails.getUsername());
 
-        final Order order = new Order(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
-        orderRepository.save(order);
+        final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
+        purchaseRepository.save(purchase);
 
         // OrderProduct 엔티티 생성
         ticketList.stream().map(ticket ->
-                orderProductRepository.save(new OrderProduct(order, ticket, quantityMap.get(ticket.getId())))
+                purchaseTicketMappingRepository.save(new PurchaseTicketMapping(purchase, ticket, quantityMap.get(ticket.getId())))
         );
 
         return CreateOrderResponseVo.builder()
@@ -99,9 +99,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void approveOrder(final ApproveOrderRequestVo requestVo) throws IOException, InterruptedException {
+    public void approvePurchase(final ApproveOrderRequestVo requestVo) throws IOException, InterruptedException {
 
-        final Order order = orderRepository.findByOrderId(requestVo.getOrderId())
+        final Purchase purchase = purchaseRepository.findByOrderId(requestVo.getOrderId())
                 .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -118,7 +118,7 @@ public class OrderServiceImpl implements OrderService {
         final ApprovePaymentResponseDto responseDto = objectMapper.readValue(response.body(), ApprovePaymentResponseDto.class);
 
         if (response.statusCode() == 200) {
-            order.changeOrderStatus(OrderStatus.COMPLETED);
+            purchase.changeOrderStatus(OrderStatus.COMPLETED);
         }
         else {
             throw new CommonException(ResponseCode.ORDER_PAYMENT_NOT_APPROVED);

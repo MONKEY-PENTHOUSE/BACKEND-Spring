@@ -6,18 +6,18 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 
 @Entity
-@Table(name="order_product")
+@Table(name="purchase_ticket_mapping")
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class OrderProduct {
+public class PurchaseTicketMapping {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    @JoinColumn(name = "purchase_id", nullable = false)
+    private Purchase purchase;
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", nullable = false)
@@ -26,8 +26,8 @@ public class OrderProduct {
     @Column(nullable = false)
     private int quantity;
 
-    public OrderProduct(Order order, Ticket ticket, int quantity) {
-        this.order = order;
+    public PurchaseTicketMapping(Purchase purchase, Ticket ticket, int quantity) {
+        this.purchase = purchase;
         this.ticket = ticket;
         this.quantity = quantity;
     }
