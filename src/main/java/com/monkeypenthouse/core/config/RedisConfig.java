@@ -54,6 +54,13 @@ public class RedisConfig {
         return new LettuceConnectionFactory(config, clientConfig);
     }
 
+    @Bean
+    public RedisTemplate<?, ?> redisTemplate() {
+        RedisTemplate<byte[], byte[]> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory());
+        return redisTemplate;
+    }
+
 //    // 텍스트를 저장하기 위한 빈 생성
 //    @Bean
 //    public StringRedisTemplate stringRedisTemplate(

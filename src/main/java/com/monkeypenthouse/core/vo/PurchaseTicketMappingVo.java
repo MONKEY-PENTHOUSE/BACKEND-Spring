@@ -5,8 +5,9 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class OrderProductVo {
+public class PurchaseTicketMappingVo {
 
+    public Long amenityId;
     public Long ticketId;
     public Integer quantity;
 }

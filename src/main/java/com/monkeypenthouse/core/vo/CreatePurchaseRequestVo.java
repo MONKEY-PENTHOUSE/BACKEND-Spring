@@ -7,9 +7,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class CreateOrderRequestVo {
+public class CreatePurchaseRequestVo {
 
-    private final List<OrderProductVo> orderProductVoList;
-
-
+    private final List<PurchaseTicketMappingVo> purchaseTicketMappingVoList;
 }

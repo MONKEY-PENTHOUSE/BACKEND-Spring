@@ -1,6 +1,6 @@
 package com.monkeypenthouse.core.dto;
 
-import com.monkeypenthouse.core.vo.CreateOrderRequestVo;
+import com.monkeypenthouse.core.vo.CreatePurchaseRequestVo;
 import lombok.*;
 
 import java.util.List;
@@ -10,10 +10,12 @@ import java.util.stream.Collectors;
 @Builder
 public class CreatePurchaseRequestDto {
 
+    private final Long amenityId;
     private final List<OrderProductDto> orderProductDtoList;
 
-    public CreateOrderRequestVo toVo() {
-        return CreateOrderRequestVo.builder()
+    public CreatePurchaseRequestVo toVo() {
+        return CreatePurchaseRequestVo.builder()
+                .amenityId(amenityId)
                 .orderProductVoList(orderProductDtoList.stream().map(o -> o.toVo()).collect(Collectors.toList()))
                 .build();
     }
