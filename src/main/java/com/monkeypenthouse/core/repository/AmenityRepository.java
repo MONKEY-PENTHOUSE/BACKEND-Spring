@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface AmenityRepository extends CrudRepository<Amenity, Long>, AmenityRepositoryCustom {
@@ -17,4 +18,7 @@ public interface AmenityRepository extends CrudRepository<Amenity, Long>, Amenit
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Amenity a SET a.status = 2 WHERE (a.status = 0 OR a.status = 1) AND a.deadlineDate < :today")
     void updateStatusByDeadlineDate(@Param("today") LocalDate today);
+
+    @Query("SELECT distinct a FROM Amenity a join fetch a.tickets")
+    List<Amenity> findAllWithTicketsUsingFetchJoin();
 }

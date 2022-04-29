@@ -4,6 +4,7 @@ import com.monkeypenthouse.core.component.CommonResponseMaker;
 import com.monkeypenthouse.core.component.CommonResponseMaker.CommonResponseEntity;
 import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.ApprovePurchaseRequestDto;
+import com.monkeypenthouse.core.dto.CancelPurchaseRequestDto;
 import com.monkeypenthouse.core.dto.CreatePurchaseRequestDto;
 import com.monkeypenthouse.core.dto.CreatePurchaseResponseDto;
 import com.monkeypenthouse.core.service.PurchaseService;
@@ -38,6 +39,14 @@ public class PurchaseController {
     public CommonResponseEntity approvePurchase(@RequestBody final ApprovePurchaseRequestDto requestDto) throws IOException, InterruptedException {
 
         purchaseService.approvePurchase(requestDto.toVo());
+
+        return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
+    }
+
+    @PostMapping(value = "/cancel")
+    public CommonResponseEntity cancelPurchase(@RequestBody final CancelPurchaseRequestDto requestDto) throws IOException, InterruptedException {
+
+        purchaseService.cancelPurchase(requestDto.toVo());
 
         return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }

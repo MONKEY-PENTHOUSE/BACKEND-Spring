@@ -6,13 +6,15 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class OrderProductDto {
+public class PurchaseTicketMappingDto {
 
+    public Long amenityId;
     public Long ticketId;
     public Integer quantity;
 
     PurchaseTicketMappingVo toVo() {
         return PurchaseTicketMappingVo.builder()
+                .amenityId(amenityId)
                 .ticketId(ticketId)
                 .quantity(quantity)
                 .build();

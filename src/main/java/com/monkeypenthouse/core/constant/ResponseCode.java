@@ -28,6 +28,7 @@ public enum ResponseCode {
     TICKET_LOCK_FAILED(4005, "티켓에 대한 락 획득에 실패하였습니다.", HttpStatus.BAD_REQUEST),
     NOT_ENOUGH_TICKETS(4006, "티켓 재고가 부족합니다.", HttpStatus.BAD_REQUEST),
     ORDER_CREATE_FAILED(4007, "주문 생성에 실패하였습니다.", HttpStatus.BAD_REQUEST),
+    CANCEL_NOT_ENABLE(4008, "취소할 수 없는 주문입니다.", HttpStatus.BAD_REQUEST),
 
     DATA_INTEGRITY_VIOLATED(9000, "무결성 제약 조건에 위반하는 데이터입니다.", HttpStatus.CONFLICT),
     AUTHENTICATION_FAILED(9001, "인증 실패하였습니다.", HttpStatus.UNAUTHORIZED),
