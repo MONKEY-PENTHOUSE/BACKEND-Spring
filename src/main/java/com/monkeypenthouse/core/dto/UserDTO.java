@@ -22,7 +22,7 @@ public class UserDTO {
         @Pattern(regexp = "^[가-힣|A-Za-z|1-9]{1,10}$")
         private String name;
 
-        @DateTimeFormat(pattern = "yyyy.MM.dd")
+        @JsonFormat(pattern = "yyyy.MM.dd")
         @NotNull(message = "생일은 필수 입력값입니다.")
         private LocalDate birth;
 
