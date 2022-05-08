@@ -33,7 +33,7 @@ public class Purchase {
     private int amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name="order_status", nullable = false)
     private OrderStatus orderStatus;
 
     @CreatedDate
