@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.service;
 
+import com.monkeypenthouse.core.component.ImageManager;
 import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
 import com.monkeypenthouse.core.constant.ResponseCode;
@@ -26,7 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PhotoServiceImpl implements PhotoService {
 
-    private final S3Uploader s3Uploader;
+    private final ImageManager imageManager;
     private final CloudFrontManager cloudFrontManager;
     private final AmenityRepository amenityRepository;
     private final PhotoRepository photoRepository;
@@ -37,7 +38,7 @@ public class PhotoServiceImpl implements PhotoService {
     public void addCarousels(final AddCarouselsRequestDTO addReqDTO) throws IOException {
         List<Photo> photos = new ArrayList<>();
         for (CarouselFileDTO carousel : addReqDTO.getCarousels()) {
-            String fileName = s3Uploader.upload(carousel.getFile(), "carousel");
+            String fileName = imageManager.uploadImageOnS3(carousel.getFile(), "carousel");
             long amenityId = carousel.getAmenityId();
             Amenity amenity = null;
             if (amenityId != 0) {
