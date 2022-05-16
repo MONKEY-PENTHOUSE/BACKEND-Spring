@@ -1,8 +1,10 @@
 package com.monkeypenthouse.core.dto;
 
 import com.monkeypenthouse.core.vo.PurchaseTicketMappingVo;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
