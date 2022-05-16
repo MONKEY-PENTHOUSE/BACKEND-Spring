@@ -18,12 +18,12 @@ public class TicketStock {
     private Long id;
 
     @Column(unique = true, nullable=false)
-    private String ticketId;
+    private Long ticketId;
 
-    @Column(unique = true, nullable=false)
+    @Column(nullable=false)
     private Integer totalQuantity;
 
-    @Column(unique = true, nullable=false)
+    @Column(nullable=false)
     private Integer purchasedQuantity;
 
     public void reduce(int quantity) {
