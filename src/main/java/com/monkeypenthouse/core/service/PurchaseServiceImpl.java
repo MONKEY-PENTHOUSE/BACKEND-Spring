@@ -9,23 +9,29 @@ import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
+import javax.validation.constraints.Null;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -260,6 +266,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
+    @PostConstruct
     @Transactional(readOnly = true)
     public void loadPurchaseDataOnRedis() {
 
@@ -270,13 +277,16 @@ public class PurchaseServiceImpl implements PurchaseService {
             List<TicketStock> ticketStocks = ticketStockRepository.findAllById(ticketIds);
             amenity.getId();
 
-            ValueOperations<String, Integer> valueOperations = redisTemplate.opsForValue();
-            valueOperations.set(amenity.getId() + ":totalQuantityOfTickets", ticketStocks.stream().mapToInt(t-> t.getTotalQuantity()).sum());
-            valueOperations.set(amenity.getId() + ":purchasedQuantityOfTickets", ticketStocks.stream().mapToInt(t-> t.getPurchasedQuantity()).sum());
+            redissonClient.getBucket(amenity.getId() + ":totalQuantityOfTickets")
+                    .set(ticketStocks.stream().mapToInt(TicketStock::getTotalQuantity).sum());
+            redissonClient.getBucket(amenity.getId() + ":purchasedQuantityOfTickets")
+                    .set(ticketStocks.stream().mapToInt(TicketStock::getPurchasedQuantity).sum());
 
             for (TicketStock ticketStock : ticketStocks) {
-                valueOperations.set(ticketStock.getTicketId()+":totalQuantity", ticketStock.getTotalQuantity());
-                valueOperations.set(ticketStock.getTicketId()+":purchasedQuantity", ticketStock.getPurchasedQuantity());
+                redissonClient.getBucket(ticketStock.getTicketId()+":totalQuantity")
+                        .set(ticketStock.getTotalQuantity());
+                redissonClient.getBucket(ticketStock.getTicketId()+":purchasedQuantity")
+                        .set(ticketStock.getPurchasedQuantity());
             }
         }
     }
