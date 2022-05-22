@@ -92,7 +92,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         // 티켓 ID : 구매 개수 HashMap 구성
         final HashMap<Long, Integer> quantityMap = new HashMap<>();
 
-        requestVo.getPurchaseTicketMappingVoList().stream().map(
+        requestVo.getPurchaseTicketMappingVoList().forEach(
                 purchaseTicketMappingVo -> quantityMap.put(purchaseTicketMappingVo.getTicketId(), purchaseTicketMappingVo.getQuantity()));
 
         // amount 측정
