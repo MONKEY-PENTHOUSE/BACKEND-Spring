@@ -169,14 +169,14 @@ public class PurchaseServiceImpl implements PurchaseService {
                         .collect(Collectors.toList())
                         .toArray(RLock[]::new));
 
+        // 멀티 락 시도
+        final boolean isLocked = multiLock.tryLock(2, 1, TimeUnit.SECONDS);
+
+        if (!isLocked) {
+            throw new CommonException(ResponseCode.TICKET_LOCK_FAILED);
+        }
+
         try {
-            // 멀티 락 시도
-            final boolean isLocked = multiLock.tryLock(2, 1, TimeUnit.SECONDS);
-
-            if (!isLocked) {
-                throw new CommonException(ResponseCode.TICKET_LOCK_FAILED);
-            }
-
             /**
              * Step 3. 티켓 재고 수량 체크
              */
@@ -206,61 +206,55 @@ public class PurchaseServiceImpl implements PurchaseService {
              * Step 5. tossPayments API 호출
              */
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.tosspayments.com/v1/payments/" + requestVo.getPaymentKey()))
-                    .header("Authorization", tossPaymentsApiKey)
-                    .header("Content-Type", "application/json")
-                    .method("POST", HttpRequest.BodyPublishers.ofString(
-                            "{\"amount\":" + requestVo.getAmount() +
-                                    ",\"orderId\":\"" + requestVo.getOrderId() + "\"}"))
-                    .build();
+//            HttpRequest request = HttpRequest.newBuilder()
+//                    .uri(URI.create("https://api.tosspayments.com/v1/payments/" + requestVo.getPaymentKey()))
+//                    .header("Authorization", tossPaymentsApiKey)
+//                    .header("Content-Type", "application/json")
+//                    .method("POST", HttpRequest.BodyPublishers.ofString(
+//                            "{\"amount\":" + requestVo.getAmount() +
+//                                    ",\"orderId\":\"" + requestVo.getOrderId() + "\"}"))
+//                    .build();
 
-            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+//            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
-            final ApprovePaymentResponseDto responseDto = objectMapper.readValue(response.body(), ApprovePaymentResponseDto.class);
+//            final ApprovePaymentResponseDto responseDto = objectMapper.readValue(response.body(), ApprovePaymentResponseDto.class);
 
             ValueOperations<String, Long> valueLongOperations = redisTemplate.opsForValue();
             ValueOperations<String, Integer> valueIntegerOperations = redisTemplate.opsForValue();
 
-            if (response.statusCode() == 200) {
-                purchase.changeOrderStatus(OrderStatus.COMPLETED);
+//            if (response.statusCode() == 200) {
+            purchase.changeOrderStatus(OrderStatus.COMPLETED);
 
-                /**
-                 * Step 6. tossPayments API 승인 시 Redis / DB 업데이트
-                 */
-
-                for (int i = 0; i < ticketIds.size(); i++) {
-                    Long ticketId = ticketIds.get(i);
-                    Integer ticketQuantity = ticketQuantities.get(i);
-                    Long amenityId = valueLongOperations.get(ticketId + ":amenityId");
-
-                    // Redis 업데이트
-                    Integer newPurchasedQuantity =
-                            (Integer) redissonClient.getBucket(ticketId + ":purchasedQuantity").get() + ticketQuantity;
-                    redissonClient.getBucket(ticketId + ":purchasedQuantity").set(newPurchasedQuantity);
-
-                    Integer newAmenityQuantity = valueIntegerOperations.get(amenityId + ":purchasedQuantityOfTickets") + ticketQuantity;
-                    valueIntegerOperations.set(amenityId + ":purchasedQuantityOfTickets", newAmenityQuantity);
-
-                    // DB 업데이트
-                    TicketStock ticketStock = ticketStockRepository.findById(ticketId)
-                            .orElseThrow(() -> new CommonException(ResponseCode.TICKET_NOT_FOUND));
-
-                    ticketStock.reduce(ticketQuantity);
-                }
-
-            } else {
-                throw new CommonException(ResponseCode.ORDER_PAYMENT_NOT_APPROVED);
-            }
-
-        } catch (Exception e) {
-            // 스레드가 Interrupt 되었을 때 예외 처리
-
-        } finally {
             /**
-             * Step 7. Multi Lock 해제
+             * Step 6. tossPayments API 승인 시 Redis / DB 업데이트
              */
 
+            for (int i = 0; i < ticketIds.size(); i++) {
+                Long ticketId = ticketIds.get(i);
+                Integer ticketQuantity = ticketQuantities.get(i);
+                Long amenityId = valueLongOperations.get(ticketId + ":amenityId");
+
+                // Redis 업데이트
+                Integer newPurchasedQuantity =
+                        (Integer) redissonClient.getBucket(ticketId + ":purchasedQuantity").get() + ticketQuantity;
+                redissonClient.getBucket(ticketId + ":purchasedQuantity").set(newPurchasedQuantity);
+
+                Integer newAmenityQuantity = valueIntegerOperations.get(amenityId + ":purchasedQuantityOfTickets") + ticketQuantity;
+                valueIntegerOperations.set(amenityId + ":purchasedQuantityOfTickets", newAmenityQuantity);
+
+                // DB 업데이트
+                TicketStock ticketStock = ticketStockRepository.findById(ticketId)
+                        .orElseThrow(() -> new CommonException(ResponseCode.TICKET_NOT_FOUND));
+
+                ticketStock.reduce(ticketQuantity);
+            }
+
+//            } else {
+//                throw new CommonException(ResponseCode.ORDER_PAYMENT_NOT_APPROVED);
+//            }
+        } catch (Exception e) {
+            // 스레드가 Interrupt 되었을 때 예외 처리
+        } finally {
             multiLock.unlock();
         }
     }
@@ -273,9 +267,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         final List<Amenity> amenityList = amenityRepository.findAllWithTicketsUsingFetchJoin();
 
         for (Amenity amenity : amenityList) {
-            List<Long> ticketIds = amenity.getTickets().stream().map(t -> t.getId()).collect(Collectors.toList());
-            List<TicketStock> ticketStocks = ticketStockRepository.findAllById(ticketIds);
-            amenity.getId();
+            Set<Long> ticketIds = amenity.getTickets().stream().map(t -> t.getId()).collect(Collectors.toSet());
+            List<TicketStock> ticketStocks = ticketStockRepository.findAllByTicketIdIn(ticketIds);
 
             redissonClient.getBucket(amenity.getId() + ":totalQuantityOfTickets")
                     .set(ticketStocks.stream().mapToInt(TicketStock::getTotalQuantity).sum());
