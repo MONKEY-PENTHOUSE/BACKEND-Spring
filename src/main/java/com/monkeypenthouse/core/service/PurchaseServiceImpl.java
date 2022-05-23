@@ -10,6 +10,7 @@ import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBucket;
+import org.redisson.api.RList;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,9 +47,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final TicketStockRepository ticketStockRepository;
     private final OrderIdGenerator orderIdGenerator;
     private final UserService userService;
-    private final ObjectMapper objectMapper;
     private final RedissonClient redissonClient;
-    private final RedisTemplate redisTemplate;
 
     @Value("${toss-payments.api-key}")
     private String tossPaymentsApiKey;
@@ -104,18 +103,19 @@ public class PurchaseServiceImpl implements PurchaseService {
         final String orderId = orderIdGenerator.generate();
 
         // Redis에 orderId:ticketIdSet, orderId: ticketQuantity 저장
-        ListOperations<String, Long> listLongOperations = redisTemplate.opsForList();
-        ListOperations<String, Integer> listIntegerOperations = redisTemplate.opsForList();
+        RList<Long> ticketIdList = redissonClient.getList(orderId + ":ticketIds");
+        RList<Integer> ticketQuantityList = redissonClient.getList(orderId + ":ticketQuantity");
 
         for (PurchaseTicketMappingVo vo : requestVo.getPurchaseTicketMappingVoList()) {
-            listLongOperations.rightPush(orderId + ":ticketIds", vo.getTicketId());
-            listIntegerOperations.rightPush(orderId + ":ticketQuantity", vo.getQuantity());
+            ticketIdList.add(vo.getTicketId());
+            ticketQuantityList.add(vo.getQuantity());
         }
 
         // Redis에 ticketId:amenityId 저장
-        ValueOperations<String, Long> valueOperations = redisTemplate.opsForValue();
         requestVo.getPurchaseTicketMappingVoList()
-                .forEach(vo -> valueOperations.set(vo.getTicketId() + ":amenityId", vo.getAmenityId()));
+                .forEach(vo -> redissonClient
+                                .getBucket(vo.getTicketId() + ":amenityId")
+                                .set(vo.getAmenityId()));
 
         // orderName 생성
         String orderName = ticketList.get(0).getName();
@@ -152,29 +152,28 @@ public class PurchaseServiceImpl implements PurchaseService {
         /**
          * Step 1. orderId 로부터 티켓 정보 불러오기
          */
+        RList<Long> ticketIdList = redissonClient.getList(requestVo.getOrderId() + ":ticketIds");
+        RList<Integer> ticketQuantityList = redissonClient.getList(requestVo.getOrderId() + ":ticketQuantity");
 
-        ListOperations<String, Long> listLongOperations = redisTemplate.opsForList();
-        ListOperations<String, Integer> listIntegerOperations = redisTemplate.opsForList();
-
-        final List<Long> ticketIds = listLongOperations.range(requestVo.getOrderId() + ":ticketIds", 0, -1);
-        final List<Integer> ticketQuantities = listIntegerOperations.range(requestVo.getOrderId() + ":ticketQuantity", 0, -1);
+        final List<Long> ticketIds = ticketIdList.readAll();
+        final List<Integer> ticketQuantities = ticketQuantityList.readAll();
 
         /**
          * Step 2. Multi Lock 획득
          */
-        // key {ticketId}:purchasedQuantity 에 대한 멀티 락 객체 생성
-        final RLock multiLock = redissonClient.getMultiLock(
-                ticketIds.stream().map(
-                                ticketId -> redissonClient.getLock(ticketId + ":purchasedQuantity"))
-                        .collect(Collectors.toList())
-                        .toArray(RLock[]::new));
-
-        // 멀티 락 시도
-        final boolean isLocked = multiLock.tryLock(2, 1, TimeUnit.SECONDS);
-
-        if (!isLocked) {
-            throw new CommonException(ResponseCode.TICKET_LOCK_FAILED);
-        }
+////      key {ticketId}:purchasedQuantity 에 대한 멀티 락 객체 생성
+//        final RLock multiLock = redissonClient.getMultiLock(
+//                ticketIds.stream().map(
+//                                ticketId -> redissonClient.getLock(ticketId + ":purchasedQuantity"))
+//                        .collect(Collectors.toList())
+//                        .toArray(RLock[]::new));
+//
+////      멀티 락 시도
+//        final boolean isLocked = multiLock.tryLock();
+//
+//        if (!isLocked) {
+//            throw new CommonException(ResponseCode.TICKET_LOCK_FAILED);
+//        }
 
         try {
             /**
@@ -185,6 +184,8 @@ public class PurchaseServiceImpl implements PurchaseService {
             for (int i = 0; i < ticketIds.size(); i++) {
                 Long ticketId = ticketIds.get(i);
                 Integer ticketQuantity = ticketQuantities.get(i);
+                System.out.println(ticketId + ":totalQuantity = " + redissonClient.getBucket(ticketId + ":totalQuantity").get());
+                System.out.println(ticketId + ":purchasedQuantity = " + redissonClient.getBucket(ticketId + ":purchasedQuantity").get());
 
                 if (
                         (Integer) redissonClient.getBucket(ticketId + ":totalQuantity").get() <
@@ -219,9 +220,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
 //            final ApprovePaymentResponseDto responseDto = objectMapper.readValue(response.body(), ApprovePaymentResponseDto.class);
 
-            ValueOperations<String, Long> valueLongOperations = redisTemplate.opsForValue();
-            ValueOperations<String, Integer> valueIntegerOperations = redisTemplate.opsForValue();
-
 //            if (response.statusCode() == 200) {
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
 
@@ -232,15 +230,16 @@ public class PurchaseServiceImpl implements PurchaseService {
             for (int i = 0; i < ticketIds.size(); i++) {
                 Long ticketId = ticketIds.get(i);
                 Integer ticketQuantity = ticketQuantities.get(i);
-                Long amenityId = valueLongOperations.get(ticketId + ":amenityId");
+                Long amenityId = (Long) redissonClient.getBucket(ticketId + ":amenityId").get();
 
                 // Redis 업데이트
                 Integer newPurchasedQuantity =
                         (Integer) redissonClient.getBucket(ticketId + ":purchasedQuantity").get() + ticketQuantity;
                 redissonClient.getBucket(ticketId + ":purchasedQuantity").set(newPurchasedQuantity);
 
-                Integer newAmenityQuantity = valueIntegerOperations.get(amenityId + ":purchasedQuantityOfTickets") + ticketQuantity;
-                valueIntegerOperations.set(amenityId + ":purchasedQuantityOfTickets", newAmenityQuantity);
+                Integer newAmenityQuantity = (Integer) redissonClient.getBucket(amenityId + ":purchasedQuantityOfTickets").get() + ticketQuantity;
+                redissonClient.getBucket(amenityId + ":purchasedQuantityOfTickets")
+                        .set(newAmenityQuantity);
 
                 // DB 업데이트
                 TicketStock ticketStock = ticketStockRepository.findById(ticketId)
@@ -254,11 +253,15 @@ public class PurchaseServiceImpl implements PurchaseService {
 //            }
         } catch (Exception e) {
             // 스레드가 Interrupt 되었을 때 예외 처리
+            throw e;
         } finally {
-            multiLock.unlock();
+//            System.out.println("락 해제");
+//            multiLock.unlock();
         }
     }
 
+
+    // 추후에 이로직은 서버 외부에서 이벤트 요청에 의해 수행되어야함
     @Override
     @PostConstruct
     @Transactional(readOnly = true)
