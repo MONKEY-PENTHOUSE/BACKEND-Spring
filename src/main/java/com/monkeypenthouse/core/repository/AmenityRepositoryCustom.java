@@ -25,4 +25,8 @@ public interface AmenityRepositoryCustom {
     List<TicketOfAmenityDto> getTicketsOfAmenity(Long amenityId);
 
     List<AmenitySimpleDTO> findAllById(List<Long> amenityIds);
+
+    int countTotalQuantity(Long amenityId);
+
+    int countPurchasedQuantity(Long amenityId);
 }

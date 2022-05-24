@@ -14,8 +14,5 @@ public interface PurchaseService {
     CreateOrderResponseVo createPurchase(final UserDetails userDetails, final CreatePurchaseRequestVo requestVo) throws InterruptedException;
 
     void approvePurchase(ApproveOrderRequestVo requestVo) throws IOException, InterruptedException;
-
-    void loadPurchaseDataOnRedis();
-
     void cancelPurchase(CancelPurchaseRequestVo requestVo);
 }

@@ -1,39 +1,22 @@
 package com.monkeypenthouse.core.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.monkeypenthouse.core.component.CacheManager;
 import com.monkeypenthouse.core.component.OrderIdGenerator;
 import com.monkeypenthouse.core.constant.ResponseCode;
-import com.monkeypenthouse.core.dto.tossPayments.ApprovePaymentResponseDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RBucket;
-import org.redisson.api.RList;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.ListOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import javax.validation.constraints.Null;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,11 +26,10 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final PurchaseRepository purchaseRepository;
     private final PurchaseTicketMappingRepository purchaseTicketMappingRepository;
     private final TicketRepository ticketRepository;
-    private final AmenityRepository amenityRepository;
     private final TicketStockRepository ticketStockRepository;
     private final OrderIdGenerator orderIdGenerator;
     private final UserService userService;
-    private final RedissonClient redissonClient;
+    private final CacheManager cacheManager;
 
     @Value("${toss-payments.api-key}")
     private String tossPaymentsApiKey;
@@ -76,9 +58,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         // 티켓 재고 수량 검증
         for (final PurchaseTicketMappingVo vo : requestVo.getPurchaseTicketMappingVoList()) {
             if (
-                    (Integer) redissonClient.getBucket(vo.getTicketId() + ":totalQuantity").get() <
-                            (Integer) redissonClient.getBucket(vo.getTicketId() + ":purchasedQuantity").get() +
-                                    vo.getQuantity()
+                    cacheManager.getTotalQuantityOfTicket(vo.getTicketId()) <
+                            cacheManager.getPurchasedQuantityOfTicket(vo.getTicketId()) + vo.getQuantity()
             ) {
                 throw new CommonException(ResponseCode.NOT_ENOUGH_TICKETS);
             }
@@ -103,19 +84,11 @@ public class PurchaseServiceImpl implements PurchaseService {
         final String orderId = orderIdGenerator.generate();
 
         // Redis에 orderId:ticketIdSet, orderId: ticketQuantity 저장
-        RList<Long> ticketIdList = redissonClient.getList(orderId + ":ticketIds");
-        RList<Integer> ticketQuantityList = redissonClient.getList(orderId + ":ticketQuantity");
-
-        for (PurchaseTicketMappingVo vo : requestVo.getPurchaseTicketMappingVoList()) {
-            ticketIdList.add(vo.getTicketId());
-            ticketQuantityList.add(vo.getQuantity());
-        }
+        cacheManager.setTicketInfoOfPurchase(orderId, requestVo.getPurchaseTicketMappingVoList());
 
         // Redis에 ticketId:amenityId 저장
         requestVo.getPurchaseTicketMappingVoList()
-                .forEach(vo -> redissonClient
-                                .getBucket(vo.getTicketId() + ":amenityId")
-                                .set(vo.getAmenityId()));
+                .forEach(vo -> cacheManager.setAmenityIdOfTicket(vo.getTicketId(), vo.getAmenityId()));
 
         // orderName 생성
         String orderName = ticketList.get(0).getName();
@@ -135,7 +108,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         // PurchaseTicketMapping 엔티티 생성
         ticketList.stream().map(ticket ->
-                purchaseTicketMappingRepository.save(new com.monkeypenthouse.core.entity.PurchaseTicketMapping(purchase, ticket, quantityMap.get(ticket.getId())))
+                purchaseTicketMappingRepository.save(new PurchaseTicketMapping(purchase, ticket, quantityMap.get(ticket.getId())))
         );
 
         return CreateOrderResponseVo.builder()
@@ -152,28 +125,12 @@ public class PurchaseServiceImpl implements PurchaseService {
         /**
          * Step 1. orderId 로부터 티켓 정보 불러오기
          */
-        RList<Long> ticketIdList = redissonClient.getList(requestVo.getOrderId() + ":ticketIds");
-        RList<Integer> ticketQuantityList = redissonClient.getList(requestVo.getOrderId() + ":ticketQuantity");
-
-        final List<Long> ticketIds = ticketIdList.readAll();
-        final List<Integer> ticketQuantities = ticketQuantityList.readAll();
+        final Map<Long, Integer> ticketInfo = cacheManager.getTicketInfoOfPurchase(requestVo.getOrderId());
 
         /**
          * Step 2. Multi Lock 획득
          */
-////      key {ticketId}:purchasedQuantity 에 대한 멀티 락 객체 생성
-//        final RLock multiLock = redissonClient.getMultiLock(
-//                ticketIds.stream().map(
-//                                ticketId -> redissonClient.getLock(ticketId + ":purchasedQuantity"))
-//                        .collect(Collectors.toList())
-//                        .toArray(RLock[]::new));
-//
-////      멀티 락 시도
-//        final boolean isLocked = multiLock.tryLock();
-//
-//        if (!isLocked) {
-//            throw new CommonException(ResponseCode.TICKET_LOCK_FAILED);
-//        }
+//         RLock multiLock = cacheManager.tryMultiLockOnPurchasedQuantityOfTicket(new ArrayList<>(ticketInfo.keySet()));
 
         try {
             /**
@@ -181,16 +138,12 @@ public class PurchaseServiceImpl implements PurchaseService {
              */
 
             // 티켓 재고 수량 검증
-            for (int i = 0; i < ticketIds.size(); i++) {
-                Long ticketId = ticketIds.get(i);
-                Integer ticketQuantity = ticketQuantities.get(i);
-                System.out.println(ticketId + ":totalQuantity = " + redissonClient.getBucket(ticketId + ":totalQuantity").get());
-                System.out.println(ticketId + ":purchasedQuantity = " + redissonClient.getBucket(ticketId + ":purchasedQuantity").get());
+            for (Long ticketId : ticketInfo.keySet()) {
+                Integer ticketQuantity = ticketInfo.get(ticketId);
 
                 if (
-                        (Integer) redissonClient.getBucket(ticketId + ":totalQuantity").get() <
-                                (Integer) redissonClient.getBucket(ticketId + ":purchasedQuantity").get() +
-                                        ticketQuantity
+                        cacheManager.getTotalQuantityOfTicket(ticketId) <
+                                cacheManager.getPurchasedQuantityOfTicket(ticketId) + ticketQuantity
                 ) {
                     throw new CommonException(ResponseCode.NOT_ENOUGH_TICKETS);
                 }
@@ -227,63 +180,32 @@ public class PurchaseServiceImpl implements PurchaseService {
              * Step 6. tossPayments API 승인 시 Redis / DB 업데이트
              */
 
-            for (int i = 0; i < ticketIds.size(); i++) {
-                Long ticketId = ticketIds.get(i);
-                Integer ticketQuantity = ticketQuantities.get(i);
-                Long amenityId = (Long) redissonClient.getBucket(ticketId + ":amenityId").get();
+            for (Long ticketId : ticketInfo.keySet()) {
+                Integer ticketQuantity = ticketInfo.get(ticketId);
+                Long amenityId = cacheManager.getAmenityIdOfTicket(ticketId);
 
                 // Redis 업데이트
-                Integer newPurchasedQuantity =
-                        (Integer) redissonClient.getBucket(ticketId + ":purchasedQuantity").get() + ticketQuantity;
-                redissonClient.getBucket(ticketId + ":purchasedQuantity").set(newPurchasedQuantity);
+                int newPurchasedQuantity = cacheManager.getPurchasedQuantityOfTicket(ticketId) + ticketQuantity;
+                cacheManager.setPurchasedQuantityOfTicket(ticketId, newPurchasedQuantity);
 
-                Integer newAmenityQuantity = (Integer) redissonClient.getBucket(amenityId + ":purchasedQuantityOfTickets").get() + ticketQuantity;
-                redissonClient.getBucket(amenityId + ":purchasedQuantityOfTickets")
-                        .set(newAmenityQuantity);
+                int newAmenityQuantity = cacheManager.getPurchasedQuantityOfAmenity(amenityId) + ticketQuantity;
+                cacheManager.setPurchasedQuantityOfAmenity(amenityId, newAmenityQuantity);
 
                 // DB 업데이트
                 TicketStock ticketStock = ticketStockRepository.findById(ticketId)
                         .orElseThrow(() -> new CommonException(ResponseCode.TICKET_NOT_FOUND));
 
-                ticketStock.reduce(ticketQuantity);
+                ticketStock.increasePurchasedQuantity(ticketQuantity);
             }
 
 //            } else {
 //                throw new CommonException(ResponseCode.ORDER_PAYMENT_NOT_APPROVED);
 //            }
         } catch (Exception e) {
-            // 스레드가 Interrupt 되었을 때 예외 처리
             throw e;
         } finally {
 //            System.out.println("락 해제");
-//            multiLock.unlock();
-        }
-    }
-
-
-    // 추후에 이로직은 서버 외부에서 이벤트 요청에 의해 수행되어야함
-    @Override
-    @PostConstruct
-    @Transactional(readOnly = true)
-    public void loadPurchaseDataOnRedis() {
-
-        final List<Amenity> amenityList = amenityRepository.findAllWithTicketsUsingFetchJoin();
-
-        for (Amenity amenity : amenityList) {
-            Set<Long> ticketIds = amenity.getTickets().stream().map(t -> t.getId()).collect(Collectors.toSet());
-            List<TicketStock> ticketStocks = ticketStockRepository.findAllByTicketIdIn(ticketIds);
-
-            redissonClient.getBucket(amenity.getId() + ":totalQuantityOfTickets")
-                    .set(ticketStocks.stream().mapToInt(TicketStock::getTotalQuantity).sum());
-            redissonClient.getBucket(amenity.getId() + ":purchasedQuantityOfTickets")
-                    .set(ticketStocks.stream().mapToInt(TicketStock::getPurchasedQuantity).sum());
-
-            for (TicketStock ticketStock : ticketStocks) {
-                redissonClient.getBucket(ticketStock.getTicketId()+":totalQuantity")
-                        .set(ticketStock.getTotalQuantity());
-                redissonClient.getBucket(ticketStock.getTicketId()+":purchasedQuantity")
-                        .set(ticketStock.getPurchasedQuantity());
-            }
+//            cacheManager.unlock(multiLock);
         }
     }
 
