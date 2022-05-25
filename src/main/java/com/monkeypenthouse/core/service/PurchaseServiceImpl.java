@@ -8,12 +8,20 @@ import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +38,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final OrderIdGenerator orderIdGenerator;
     private final UserService userService;
     private final CacheManager cacheManager;
+    private final DataSource dataSource;
 
     @Value("${toss-payments.api-key}")
     private String tossPaymentsApiKey;
@@ -83,7 +92,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         // orderId 생성
         final String orderId = orderIdGenerator.generate();
 
-        // Redis에 orderId:ticketIdSet, orderId: ticketQuantity 저장
+        // Redis에 orderId: map{ticketId: ticketQuantity}
         cacheManager.setTicketInfoOfPurchase(orderId, requestVo.getPurchaseTicketMappingVoList());
 
         // Redis에 ticketId:amenityId 저장
@@ -107,7 +116,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         purchaseRepository.save(purchase);
 
         // PurchaseTicketMapping 엔티티 생성
-        ticketList.stream().map(ticket ->
+        ticketList.forEach(ticket ->
                 purchaseTicketMappingRepository.save(new PurchaseTicketMapping(purchase, ticket, quantityMap.get(ticket.getId())))
         );
 
@@ -119,7 +128,6 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    @Transactional
     public void approvePurchase(final ApproveOrderRequestVo requestVo) throws IOException, InterruptedException {
 
         /**
@@ -128,9 +136,15 @@ public class PurchaseServiceImpl implements PurchaseService {
         final Map<Long, Integer> ticketInfo = cacheManager.getTicketInfoOfPurchase(requestVo.getOrderId());
 
         /**
-         * Step 2. Multi Lock 획득
+         * Step 2. Multi Lock 획득 & 트랜잭션 시작
          */
-//         RLock multiLock = cacheManager.tryMultiLockOnPurchasedQuantityOfTicket(new ArrayList<>(ticketInfo.keySet()));
+        CacheManager.LockWithTimeOut lockWithTimeOut = cacheManager.tryMultiLockOnPurchasedQuantityOfTicket(new ArrayList<>(ticketInfo.keySet()));
+
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+        DataSourceTransactionManager txManager = new DataSourceTransactionManager(dataSource);
+        TransactionStatus sts = txManager.getTransaction(def);
 
         try {
             /**
@@ -152,7 +166,6 @@ public class PurchaseServiceImpl implements PurchaseService {
             /**
              * Step 4. orderId로부터 Purchase 엔티티 조회
              */
-
             final Purchase purchase = purchaseRepository.findByOrderId(requestVo.getOrderId())
                     .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
@@ -201,11 +214,17 @@ public class PurchaseServiceImpl implements PurchaseService {
 //            } else {
 //                throw new CommonException(ResponseCode.ORDER_PAYMENT_NOT_APPROVED);
 //            }
+
+            if (System.currentTimeMillis() < lockWithTimeOut.getTimeOut()) {
+                txManager.commit(sts);
+            } else {
+                throw new CommonException(ResponseCode.DATA_EXECUTION_TIME_TOO_LONG);
+            }
         } catch (Exception e) {
+            txManager.rollback(sts);
             throw e;
         } finally {
-//            System.out.println("락 해제");
-//            cacheManager.unlock(multiLock);
+            cacheManager.unlock(lockWithTimeOut.getRLock());
         }
     }
 

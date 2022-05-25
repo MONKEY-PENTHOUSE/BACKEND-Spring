@@ -7,6 +7,7 @@ import com.monkeypenthouse.core.entity.TicketStock;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.vo.PurchaseTicketMappingVo;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.*;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 @Component
@@ -131,23 +133,23 @@ public class CacheManager {
         }
     }
 
-    public RLock tryLockOnOrderIdSerialNum(int waitSeconds, int leaseSeconds) {
+    public LockWithTimeOut tryLockOnOrderIdSerialNum(int waitSeconds, int leaseSeconds) {
         return tryLock("orderIdSerialNum", waitSeconds, leaseSeconds, TimeUnit.SECONDS);
     }
 
-    public RLock tryMultiLockOnPurchasedQuantityOfTicket(List<Long> ticketIds) {
+    public LockWithTimeOut tryMultiLockOnPurchasedQuantityOfTicket(List<Long> ticketIds) {
         return tryMultiLock(ticketIds.stream().map(e -> e + ":purchasedQuantity").collect(Collectors.toList()),
-                2, 1, TimeUnit.SECONDS);
+                2, 2, TimeUnit.SECONDS);
     }
 
-    public RLock tryLock(String key, int waitSeconds, int leaseSeconds, TimeUnit timeUnit) {
+    public LockWithTimeOut tryLock(String key, int waitSeconds, int leaseSeconds, TimeUnit timeUnit) {
         try {
-            RLock lock = redissonClient.getLock(key);
+            RLock lock = redissonClient.getLock(key + ":lock");
             if (lock != null
                     && lock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
                 throw new CommonException(ResponseCode.LOCK_FAILED);
             }
-            return lock;
+            return new LockWithTimeOut(lock, System.currentTimeMillis() + leaseSeconds);
         } catch (InterruptedException e) {
             throw new CommonException(ResponseCode.LOCK_FAILED);
         }
@@ -157,18 +159,29 @@ public class CacheManager {
         lock.unlock();
     }
 
-    public RLock tryMultiLock(List<String> keys, int waitSeconds, int leaseSeconds, TimeUnit timeUnit) {
+    public LockWithTimeOut tryMultiLock(List<String> keys, int waitSeconds, int leaseSeconds, TimeUnit timeUnit) {
         try {
             RLock multiLock = redissonClient.getMultiLock(
                     keys.stream().map(
-                            key -> redissonClient.getLock(key)
+                            key -> redissonClient.getLock(key + ":lock")
                     ).collect(Collectors.toList()).toArray(RLock[]::new));
             if (multiLock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
                 throw new CommonException(ResponseCode.LOCK_FAILED);
             }
-            return multiLock;
+            return new LockWithTimeOut(multiLock, System.currentTimeMillis() + leaseSeconds);
         } catch (InterruptedException e) {
             throw new CommonException(ResponseCode.LOCK_FAILED);
+        }
+    }
+
+    @Getter
+    public static class LockWithTimeOut {
+        private final RLock rLock;
+        private final long timeOut;
+
+        public LockWithTimeOut(RLock rLock, long timeOut) {
+            this.rLock = rLock;
+            this.timeOut = timeOut;
         }
     }
 }
