@@ -26,7 +26,7 @@ public class TicketStock {
     @Column(nullable=false)
     private Integer purchasedQuantity;
 
-    public void reduce(int quantity) {
-        purchasedQuantity -= quantity;
+    public void increasePurchasedQuantity(int quantity) {
+        purchasedQuantity += quantity;
     }
 }
