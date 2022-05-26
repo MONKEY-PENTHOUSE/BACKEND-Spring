@@ -144,14 +144,14 @@ public class CacheManager {
             if (!lock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
                 throw new CommonException(ResponseCode.LOCK_FAILED);
             }
-            return new LockWithTimeOut(lock, System.currentTimeMillis() + leaseSeconds);
+            return new LockWithTimeOut(lock, System.currentTimeMillis() + leaseSeconds * 1000L);
         } catch (InterruptedException e) {
             throw new CommonException(ResponseCode.LOCK_FAILED);
         }
     }
 
     public void unlock(RLock lock) {
-        lock.unlock();
+        try { lock.unlock(); } catch (Exception ignored) {}
     }
 
     public LockWithTimeOut tryMultiLock(List<String> keys, int waitSeconds, int leaseSeconds, TimeUnit timeUnit) {
@@ -163,7 +163,7 @@ public class CacheManager {
             if (!multiLock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
                 throw new CommonException(ResponseCode.LOCK_FAILED);
             }
-            return new LockWithTimeOut(multiLock, System.currentTimeMillis() + leaseSeconds);
+            return new LockWithTimeOut(multiLock, System.currentTimeMillis() + leaseSeconds * 1000L);
         } catch (InterruptedException e) {
             throw new CommonException(ResponseCode.LOCK_FAILED);
         }
