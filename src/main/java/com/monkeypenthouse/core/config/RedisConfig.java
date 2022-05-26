@@ -45,7 +45,6 @@ public class RedisConfig {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(HOSTNAME);
         config.setPort(PORT);
-        config.setPassword(PASSWORD);
 
         LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
                 .commandTimeout(Duration.ofMillis(TIMEOUT))
@@ -66,8 +65,7 @@ public class RedisConfig {
         Config config = new Config();
         config.useClusterServers()
                 .addNodeAddress("redis://"+ HOSTNAME + ":" + PORT)
-                .setTimeout(TIMEOUT.intValue())
-                .setPassword(PASSWORD);
+                .setTimeout(TIMEOUT.intValue());
         return Redisson.create(config);
     }
 }
