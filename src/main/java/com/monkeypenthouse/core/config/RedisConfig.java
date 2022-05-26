@@ -8,6 +8,7 @@ import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.redisson.config.TransportMode;
 import org.redisson.spring.data.connection.RedissonConnectionFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,8 +64,8 @@ public class RedisConfig {
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
-        config.useClusterServers()
-                .addNodeAddress("redis://"+ HOSTNAME + ":" + PORT)
+        config.useSingleServer()
+                .setAddress("redis://"+ HOSTNAME + ":" + PORT)
                 .setTimeout(TIMEOUT.intValue());
         return Redisson.create(config);
     }
