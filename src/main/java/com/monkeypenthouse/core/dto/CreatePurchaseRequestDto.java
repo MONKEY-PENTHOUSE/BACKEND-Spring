@@ -8,9 +8,11 @@ import java.util.stream.Collectors;
 
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreatePurchaseRequestDto {
 
-    private final List<PurchaseTicketMappingDto> purchaseTicketMappingDtoList;
+    private List<PurchaseTicketMappingDto> purchaseTicketMappingDtoList;
 
     public CreatePurchaseRequestVo toVo() {
         return CreatePurchaseRequestVo.builder()

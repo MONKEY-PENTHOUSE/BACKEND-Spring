@@ -23,7 +23,7 @@ public class Purchase {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name="order_id", nullable=false)
+    @Column(name="order_id", nullable=false, unique = true)
     private String orderId;
 
     @Column(name = "order_name", nullable = false)

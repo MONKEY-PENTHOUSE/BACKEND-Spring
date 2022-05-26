@@ -151,6 +151,30 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
         return new PageImpl<>(content, pageable, totalCount);
     }
 
+    @Override
+    public int countTotalQuantity(Long amenityId) {
+        return queryFactory
+                .from(amenity)
+                .leftJoin(amenity.tickets, ticket)
+                .groupBy(amenity.id)
+                .where(amenity.id.eq(amenityId))
+                .select(ticket.capacity.sum().coalesce(0))
+                .fetch().get(0);
+    }
+
+    @Override
+    public int countPurchasedQuantity(Long amenityId) {
+        return queryFactory
+                .from(amenity)
+                .leftJoin(amenity.tickets, ticket)
+                .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
+                .groupBy(amenity.id)
+                .where(amenity.id.eq(amenityId))
+                .select(purchaseTicketMapping.quantity.sum().coalesce(0))
+                .fetch().get(0);
+    }
+
+
     private JPQLQuery<AmenitySimpleDTO> getQueryForAmenitySimpleDTO() {
         return queryFactory.from(amenity)
                 .leftJoin(amenity.tickets, ticket)

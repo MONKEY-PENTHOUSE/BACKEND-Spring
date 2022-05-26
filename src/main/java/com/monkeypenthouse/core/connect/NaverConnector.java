@@ -6,8 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.monkeypenthouse.core.dto.KakaoUserDTO;
 import com.monkeypenthouse.core.dto.NaverUserDTO;
 import com.monkeypenthouse.core.dto.TokenDTO.*;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,8 +18,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Component
-@NoArgsConstructor
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class NaverConnector {
     @Value("${naver.authorization-grant-type}")
     private String AUTHORIZATION_GRANT_TYPE;
