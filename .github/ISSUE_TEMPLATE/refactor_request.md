@@ -1,6 +1,6 @@
 ---
 name: Refactor request
-about: 새 기능을 추가하기 위한 피처템플릿!
+about: 기존 코드를 리팩토링하기 위한 템플릿!
 title: ''
 labels: enhancement
 assignees: ''
