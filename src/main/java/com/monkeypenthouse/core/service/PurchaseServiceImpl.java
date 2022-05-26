@@ -202,18 +202,18 @@ public class PurchaseServiceImpl implements PurchaseService {
                 Integer ticketQuantity = ticketInfo.get(ticketId);
                 Long amenityId = cacheManager.getAmenityIdOfTicket(ticketId);
 
+                // DB 업데이트
+                TicketStock ticketStock = ticketStockRepository.findById(ticketId)
+                        .orElseThrow(() -> new CommonException(ResponseCode.TICKET_NOT_FOUND));
+
+                ticketStock.increasePurchasedQuantity(ticketQuantity);
+
                 // Redis 업데이트
                 int newPurchasedQuantity = cacheManager.getPurchasedQuantityOfTicket(ticketId) + ticketQuantity;
                 cacheManager.setPurchasedQuantityOfTicket(ticketId, newPurchasedQuantity);
 
                 int newAmenityQuantity = cacheManager.getPurchasedQuantityOfAmenity(amenityId) + ticketQuantity;
                 cacheManager.setPurchasedQuantityOfAmenity(amenityId, newAmenityQuantity);
-
-                // DB 업데이트
-                TicketStock ticketStock = ticketStockRepository.findById(ticketId)
-                        .orElseThrow(() -> new CommonException(ResponseCode.TICKET_NOT_FOUND));
-
-                ticketStock.increasePurchasedQuantity(ticketQuantity);
             }
 
             if (System.currentTimeMillis() < lockWithTimeOut.getTimeOut()) {

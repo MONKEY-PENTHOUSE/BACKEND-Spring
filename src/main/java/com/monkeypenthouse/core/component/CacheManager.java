@@ -53,7 +53,7 @@ public class CacheManager {
     }
 
     public Map<Long, Integer> getTicketInfoOfPurchase(String orderId) {
-        RMap<Long, Integer> rMap = redissonClient.getMap(orderId + ":ticketQuantity");
+        RMap<Long, Integer> rMap = redissonClient.getMap(orderId + ":ticketInfo");
         if (rMap != null) return rMap.readAllMap();
 
         Map<Long, Integer> map = new HashMap<>();
@@ -64,7 +64,7 @@ public class CacheManager {
     }
 
     public void setTicketInfoOfPurchase(String orderId, List<PurchaseTicketMappingVo> list) {
-        RMap<Long, Integer> rMap = redissonClient.getMap(orderId + ":ticketQuantity");
+        RMap<Long, Integer> rMap = redissonClient.getMap(orderId + ":ticketInfo");
         list.forEach(e -> rMap.put(e.getTicketId(), e.getQuantity()));
     }
 
