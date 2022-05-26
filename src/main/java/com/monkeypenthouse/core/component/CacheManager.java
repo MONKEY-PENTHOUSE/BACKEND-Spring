@@ -13,7 +13,10 @@ import org.redisson.api.*;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -94,43 +97,36 @@ public class CacheManager {
         redissonClient.getBucket(amenityId + ":purchasedQuantityOfTickets").set(purchasedQuantity);
     }
 
+    // 현재 사용해야할 SerialNum을 반환
+    // => 날짜가 바뀌거나, 전에 아무런 이력이 없었을 경우 : 1L 반환
+    // => 나머지 경우 : 마지막 이력 + 1L 값 반환
     public Long getOrderIdSerialNum() {
         Long value = (Long) redissonClient.getBucket("orderIdSerialNum").get();
         if (value != null) {
-            return value;
+            return value + 1;
         } else {
             Optional<Purchase> optionalPurchase = purchaseRepository.findTop1ByOrderByIdDesc();
-            return optionalPurchase.isEmpty() ? 1 :
-                    Long.parseLong(optionalPurchase.get().getOrderId().substring(6));
+            if (optionalPurchase.isPresent()) {
+                LocalDate lastDate = LocalDate.parse(
+                        optionalPurchase.get().getOrderId().substring(0, 6), DateTimeFormatter.ofPattern("yyMMdd")
+                );
+                if (lastDate.isBefore(LocalDate.now())) {
+                    return Long.parseLong(optionalPurchase.get().getOrderId().substring(6)) + 1L;
+                } else {
+                    return 1L;
+                }
+            } else {
+                return 1L;
+            }
         }
+    }
+
+    public Optional<Long> getOrderIdSerialNumFromCache() {
+        return Optional.ofNullable((Long) redissonClient.getBucket("orderIdSerialNum").get());
     }
 
     public void setOrderIdSerialNum(Long serialNum) {
         redissonClient.getBucket("orderIdSerialNum").set(serialNum);
-    }
-
-    @PostConstruct
-    @Transactional(readOnly = true)
-    private void loadPurchaseDataOnRedis() {
-
-        final List<Amenity> amenityList = amenityRepository.findAllWithTicketsUsingFetchJoin();
-
-        for (Amenity amenity : amenityList) {
-            Set<Long> ticketIds = amenity.getTickets().stream().map(t -> t.getId()).collect(Collectors.toSet());
-            List<TicketStock> ticketStocks = ticketStockRepository.findAllByTicketIdIn(ticketIds);
-
-            setTotalQuantityOfAmenity(amenity.getId(),
-                    ticketStocks.stream().mapToInt(TicketStock::getTotalQuantity).sum());
-            setPurchasedQuantityOfAmenity(amenity.getId(),
-                    ticketStocks.stream().mapToInt(TicketStock::getPurchasedQuantity).sum());
-
-            for (TicketStock ticketStock : ticketStocks) {
-                setTotalQuantityOfTicket(ticketStock.getTicketId(),
-                        ticketStock.getTotalQuantity());
-                setPurchasedQuantityOfTicket(ticketStock.getTicketId(),
-                        ticketStock.getPurchasedQuantity());
-            }
-        }
     }
 
     public LockWithTimeOut tryLockOnOrderIdSerialNum(int waitSeconds, int leaseSeconds) {
@@ -144,7 +140,7 @@ public class CacheManager {
 
     public LockWithTimeOut tryLock(String key, int waitSeconds, int leaseSeconds, TimeUnit timeUnit) {
         try {
-            RLock lock = redissonClient.getLock(key + ":lock");
+            RLock lock = redissonClient.getLock(key);
             if (lock != null
                     && lock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
                 throw new CommonException(ResponseCode.LOCK_FAILED);
@@ -163,7 +159,7 @@ public class CacheManager {
         try {
             RLock multiLock = redissonClient.getMultiLock(
                     keys.stream().map(
-                            key -> redissonClient.getLock(key + ":lock")
+                            key -> redissonClient.getLock(key)
                     ).collect(Collectors.toList()).toArray(RLock[]::new));
             if (multiLock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
                 throw new CommonException(ResponseCode.LOCK_FAILED);

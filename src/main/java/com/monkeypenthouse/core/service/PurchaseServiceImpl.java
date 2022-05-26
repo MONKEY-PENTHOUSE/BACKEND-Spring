@@ -8,18 +8,15 @@ import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,93 +35,107 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final OrderIdGenerator orderIdGenerator;
     private final UserService userService;
     private final CacheManager cacheManager;
-    private final DataSource dataSource;
+    private final DataSourceTransactionManager txManager;
 
     @Value("${toss-payments.api-key}")
     private String tossPaymentsApiKey;
 
     @Override
-    @Transactional
     public CreateOrderResponseVo createPurchase(final UserDetails userDetails, final CreatePurchaseRequestVo requestVo) {
+
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+        TransactionStatus sts = txManager.getTransaction(def);
+
         /**
          * Step 1. 티켓 리스트 DB 조회
          */
 
-        // 티켓 엔티티 리스트 검증 및 조회
-        final List<Ticket> ticketList = (List<Ticket>) ticketRepository.findAllById(
-                requestVo.getPurchaseTicketMappingVoList().stream()
-                        .map(purchaseTicketMappingVo -> purchaseTicketMappingVo.getTicketId())
-                        .collect(Collectors.toList()));
+        final List<Ticket> ticketList;
+        try {
 
-        if (ticketList.size() != requestVo.getPurchaseTicketMappingVoList().size()) {
-            throw new CommonException(ResponseCode.TICKET_NOT_FOUND);
-        }
+            // 티켓 엔티티 리스트 검증 및 조회
+            ticketList = (List<Ticket>) ticketRepository.findAllById(
+                    requestVo.getPurchaseTicketMappingVoList().stream()
+                            .map(purchaseTicketMappingVo -> purchaseTicketMappingVo.getTicketId())
+                            .collect(Collectors.toList()));
 
-        /**
-         * Step 2. 티켓 재고 수량 체크
-         */
-
-        // 티켓 재고 수량 검증
-        for (final PurchaseTicketMappingVo vo : requestVo.getPurchaseTicketMappingVoList()) {
-            if (
-                    cacheManager.getTotalQuantityOfTicket(vo.getTicketId()) <
-                            cacheManager.getPurchasedQuantityOfTicket(vo.getTicketId()) + vo.getQuantity()
-            ) {
-                throw new CommonException(ResponseCode.NOT_ENOUGH_TICKETS);
+            if (ticketList.size() != requestVo.getPurchaseTicketMappingVoList().size()) {
+                throw new CommonException(ResponseCode.TICKET_NOT_FOUND);
             }
+
+            /**
+             * Step 2. 티켓 재고 수량 체크
+             */
+
+            // 티켓 재고 수량 검증
+            for (final PurchaseTicketMappingVo vo : requestVo.getPurchaseTicketMappingVoList()) {
+                if (
+                        cacheManager.getTotalQuantityOfTicket(vo.getTicketId()) <
+                                cacheManager.getPurchasedQuantityOfTicket(vo.getTicketId()) + vo.getQuantity()
+                ) {
+                    throw new CommonException(ResponseCode.NOT_ENOUGH_TICKETS);
+                }
+            }
+
+            /**
+             * Step 3. 총 주문 금액, 주문 번호, 주문 이름 생성
+             */
+
+            // 티켓 ID : 구매 개수 HashMap 구성
+            final HashMap<Long, Integer> quantityMap = new HashMap<>();
+
+            requestVo.getPurchaseTicketMappingVoList().forEach(
+                    purchaseTicketMappingVo -> quantityMap.put(purchaseTicketMappingVo.getTicketId(), purchaseTicketMappingVo.getQuantity()));
+
+            // amount 측정
+            final int amount = ticketList.stream()
+                    .mapToInt(t -> quantityMap.get(t.getId()) * t.getPrice())
+                    .sum();
+
+            // orderId 생성
+            final String orderId = orderIdGenerator.generate();
+
+            // Redis에 orderId: map{ticketId: ticketQuantity}
+            cacheManager.setTicketInfoOfPurchase(orderId, requestVo.getPurchaseTicketMappingVoList());
+
+            // Redis에 ticketId:amenityId 저장
+            requestVo.getPurchaseTicketMappingVoList()
+                    .forEach(vo -> cacheManager.setAmenityIdOfTicket(vo.getTicketId(), vo.getAmenityId()));
+
+            // orderName 생성
+            String orderName = ticketList.get(0).getName();
+            if (ticketList.size() > 1) {
+                orderName += " 외 " + (ticketList.size() - 1) + "건";
+            }
+
+            /**
+             * Step 4. Purchase 및 PurchaseTicketMapping 엔티티 생성 후 return
+             */
+
+            // Purchase 엔티티 생성
+            final User user = userService.getUserByEmail(userDetails.getUsername());
+
+            final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
+            purchaseRepository.save(purchase);
+
+            // PurchaseTicketMapping 엔티티 생성
+            ticketList.forEach(ticket ->
+                    purchaseTicketMappingRepository.save(new PurchaseTicketMapping(purchase, ticket, quantityMap.get(ticket.getId())))
+            );
+            txManager.commit(sts);
+
+            return CreateOrderResponseVo.builder()
+                    .amount(amount)
+                    .orderId(orderId)
+                    .orderName(orderName)
+                    .build();
+
+        } catch (Exception e) {
+            txManager.rollback(sts);
+            throw e;
         }
-
-        /**
-         * Step 3. 총 주문 금액, 주문 번호, 주문 이름 생성
-         */
-
-        // 티켓 ID : 구매 개수 HashMap 구성
-        final HashMap<Long, Integer> quantityMap = new HashMap<>();
-
-        requestVo.getPurchaseTicketMappingVoList().forEach(
-                purchaseTicketMappingVo -> quantityMap.put(purchaseTicketMappingVo.getTicketId(), purchaseTicketMappingVo.getQuantity()));
-
-        // amount 측정
-        final int amount = ticketList.stream()
-                .mapToInt(t -> quantityMap.get(t.getId()) * t.getPrice())
-                .sum();
-
-        // orderId 생성
-        final String orderId = orderIdGenerator.generate();
-
-        // Redis에 orderId: map{ticketId: ticketQuantity}
-        cacheManager.setTicketInfoOfPurchase(orderId, requestVo.getPurchaseTicketMappingVoList());
-
-        // Redis에 ticketId:amenityId 저장
-        requestVo.getPurchaseTicketMappingVoList()
-                .forEach(vo -> cacheManager.setAmenityIdOfTicket(vo.getTicketId(), vo.getAmenityId()));
-
-        // orderName 생성
-        String orderName = ticketList.get(0).getName();
-        if (ticketList.size() > 1) {
-            orderName += " 외 " + (ticketList.size() - 1) + "건";
-        }
-
-        /**
-         * Step 4. Purchase 및 PurchaseTicketMapping 엔티티 생성 후 return
-         */
-
-        // Purchase 엔티티 생성
-        final User user = userService.getUserByEmail(userDetails.getUsername());
-
-        final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
-        purchaseRepository.save(purchase);
-
-        // PurchaseTicketMapping 엔티티 생성
-        ticketList.forEach(ticket ->
-                purchaseTicketMappingRepository.save(new PurchaseTicketMapping(purchase, ticket, quantityMap.get(ticket.getId())))
-        );
-
-        return CreateOrderResponseVo.builder()
-                .amount(amount)
-                .orderId(orderId)
-                .orderName(orderName)
-                .build();
     }
 
     @Override
@@ -143,7 +154,6 @@ public class PurchaseServiceImpl implements PurchaseService {
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 
-        DataSourceTransactionManager txManager = new DataSourceTransactionManager(dataSource);
         TransactionStatus sts = txManager.getTransaction(def);
 
         try {
