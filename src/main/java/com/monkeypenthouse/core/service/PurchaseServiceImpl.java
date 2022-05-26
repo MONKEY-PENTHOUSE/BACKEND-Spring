@@ -2,12 +2,15 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.component.CacheManager;
 import com.monkeypenthouse.core.component.OrderIdGenerator;
+import com.monkeypenthouse.core.connect.TossPaymentsConnector;
 import com.monkeypenthouse.core.constant.ResponseCode;
+import com.monkeypenthouse.core.dto.tossPayments.ApprovePaymentResponseDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.vo.*;
 import lombok.RequiredArgsConstructor;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,15 +40,15 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final CacheManager cacheManager;
     private final DataSourceTransactionManager txManager;
 
-    @Value("${toss-payments.api-key}")
-    private String tossPaymentsApiKey;
+    private final TossPaymentsConnector tossPaymentsConnector;
+
+
 
     @Override
     public CreateOrderResponseVo createPurchase(final UserDetails userDetails, final CreatePurchaseRequestVo requestVo) {
 
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-
         TransactionStatus sts = txManager.getTransaction(def);
 
         /**
@@ -145,6 +148,9 @@ public class PurchaseServiceImpl implements PurchaseService {
          * Step 1. orderId 로부터 티켓 정보 불러오기
          */
         final Map<Long, Integer> ticketInfo = cacheManager.getTicketInfoOfPurchase(requestVo.getOrderId());
+        if (ticketInfo.isEmpty()) {
+            throw new CommonException(ResponseCode.ORDER_NOT_FOUND);
+        }
 
         /**
          * Step 2. Multi Lock 획득 & 트랜잭션 시작
@@ -153,7 +159,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-
         TransactionStatus sts = txManager.getTransaction(def);
 
         try {
@@ -182,27 +187,17 @@ public class PurchaseServiceImpl implements PurchaseService {
             /**
              * Step 5. tossPayments API 호출
              */
+//            tossPaymentsConnector.approvePayments(
+//                    requestVo.getPaymentKey(),
+//                    requestVo.getAmount(),
+//                    requestVo.getOrderId()
+//            );
 
-//            HttpRequest request = HttpRequest.newBuilder()
-//                    .uri(URI.create("https://api.tosspayments.com/v1/payments/" + requestVo.getPaymentKey()))
-//                    .header("Authorization", tossPaymentsApiKey)
-//                    .header("Content-Type", "application/json")
-//                    .method("POST", HttpRequest.BodyPublishers.ofString(
-//                            "{\"amount\":" + requestVo.getAmount() +
-//                                    ",\"orderId\":\"" + requestVo.getOrderId() + "\"}"))
-//                    .build();
-
-//            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-//            final ApprovePaymentResponseDto responseDto = objectMapper.readValue(response.body(), ApprovePaymentResponseDto.class);
-
-//            if (response.statusCode() == 200) {
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
 
             /**
              * Step 6. tossPayments API 승인 시 Redis / DB 업데이트
              */
-
             for (Long ticketId : ticketInfo.keySet()) {
                 Integer ticketQuantity = ticketInfo.get(ticketId);
                 Long amenityId = cacheManager.getAmenityIdOfTicket(ticketId);
@@ -220,10 +215,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
                 ticketStock.increasePurchasedQuantity(ticketQuantity);
             }
-
-//            } else {
-//                throw new CommonException(ResponseCode.ORDER_PAYMENT_NOT_APPROVED);
-//            }
 
             if (System.currentTimeMillis() < lockWithTimeOut.getTimeOut()) {
                 txManager.commit(sts);

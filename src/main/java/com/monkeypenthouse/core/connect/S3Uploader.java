@@ -14,8 +14,8 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class S3Uploader {
 
     private final AmazonS3Client amazonS3Client;
