@@ -140,9 +140,8 @@ public class CacheManager {
 
     public LockWithTimeOut tryLock(String key, int waitSeconds, int leaseSeconds, TimeUnit timeUnit) {
         try {
-            RLock lock = redissonClient.getLock(key);
-            if (lock != null
-                    && lock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
+            RLock lock = redissonClient.getLock(key + ":lock");
+            if (!lock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
                 throw new CommonException(ResponseCode.LOCK_FAILED);
             }
             return new LockWithTimeOut(lock, System.currentTimeMillis() + leaseSeconds);
@@ -159,9 +158,9 @@ public class CacheManager {
         try {
             RLock multiLock = redissonClient.getMultiLock(
                     keys.stream().map(
-                            key -> redissonClient.getLock(key)
+                            key -> redissonClient.getLock(key + ":lock")
                     ).collect(Collectors.toList()).toArray(RLock[]::new));
-            if (multiLock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
+            if (!multiLock.tryLock(waitSeconds, leaseSeconds, timeUnit)) {
                 throw new CommonException(ResponseCode.LOCK_FAILED);
             }
             return new LockWithTimeOut(multiLock, System.currentTimeMillis() + leaseSeconds);
