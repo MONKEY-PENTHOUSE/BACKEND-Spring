@@ -187,11 +187,11 @@ public class PurchaseServiceImpl implements PurchaseService {
             /**
              * Step 5. tossPayments API 호출
              */
-//            tossPaymentsConnector.approvePayments(
-//                    requestVo.getPaymentKey(),
-//                    requestVo.getAmount(),
-//                    requestVo.getOrderId()
-//            );
+            tossPaymentsConnector.approvePayments(
+                    requestVo.getPaymentKey(),
+                    requestVo.getAmount(),
+                    requestVo.getOrderId()
+            );
 
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
 
