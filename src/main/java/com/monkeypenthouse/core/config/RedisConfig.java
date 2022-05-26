@@ -61,6 +61,7 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+    @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
         config.useClusterServers()
