@@ -23,7 +23,7 @@ public enum ResponseCode {
     EMPTY_ROOM_NOT_EXISTED(4000, "빈 방이 없습니다.", HttpStatus.BAD_REQUEST),
     PHONE_NUMBER_DUPLICATED(4001, "이미 가입된 회원의 전화번호입니다.", HttpStatus.FORBIDDEN),
     PASSWORD_NOT_MATCHED(4002, "비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
-    LIFE_STYLE_TEST_NEEDED(4003, "라이프스타일 테스트 미완료 회원입니다.", HttpStatus.UNAUTHORIZED),
+    LIFE_STYLE_TEST_NEEDED(4003, "라이프스타일 테스트 미완료 회원입니다.", HttpStatus.OK),
     ORDER_PAYMENT_NOT_APPROVED(4004, "주문 결제가 승인되지 않았습니다.", HttpStatus.BAD_REQUEST),
     LOCK_FAILED(4005, "락 획득에 실패하였습니다.", HttpStatus.SERVICE_UNAVAILABLE),
     NOT_ENOUGH_TICKETS(4006, "티켓 재고가 부족합니다.", HttpStatus.BAD_REQUEST),
