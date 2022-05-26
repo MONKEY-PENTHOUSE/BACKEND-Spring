@@ -1,8 +1,6 @@
 package com.monkeypenthouse.core.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -11,13 +9,11 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Builder
-@Table(name="order")
-@Data
+@Getter
+@Table(name="purchase")
 @NoArgsConstructor
-@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Order {
+public class Purchase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,14 +23,14 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name="order_id", nullable=false)
+    @Column(name="order_id", nullable=false, unique = true)
     private String orderId;
 
     @Column(name = "order_name", nullable = false)
-    private int orderName;
+    private String orderName;
 
-    @Column(name = "price", nullable = false)
-    private int price;
+    @Column(name = "amount", nullable = false)
+    private int amount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -43,4 +39,16 @@ public class Order {
     @CreatedDate
     @Column(name="created_at", updatable=false, nullable=false)
     private LocalDateTime createdAt;
+
+    public Purchase(User user, String orderId, String orderName, int amount, OrderStatus orderStatus) {
+        this.user = user;
+        this.orderId = orderId;
+        this.orderName = orderName;
+        this.amount = amount;
+        this.orderStatus = orderStatus;
+    }
+
+    public void changeOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 }

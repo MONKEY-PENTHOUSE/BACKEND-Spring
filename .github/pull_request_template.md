@@ -8,6 +8,7 @@
 - [ ] CI/CD
 - [ ] Set Up
 - [ ] Small Correction
+- [ ] DEV TO MAIN
 
 ## 개요
 

@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.service;
 
+import com.monkeypenthouse.core.component.CacheManager;
 import com.monkeypenthouse.core.component.ImageManager;
 import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.connect.S3Uploader;
@@ -24,11 +25,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,14 +41,15 @@ public class AmenityServiceImpl implements AmenityService {
     private final AmenityRepository amenityRepository;
     private final PhotoRepository photoRepository;
     private final TicketRepository ticketRepository;
+    private final TicketStockRepository ticketStockRepository;
     private final CategoryRepository categoryRepository;
     private final AmenityCategoryRepository amenityCategoryRepository;
-    private final DibsRepository dibsRepository;
     private final UserService userService;
 
     private final ImageManager imageManager;
     private final ModelMapper modelMapper;
     private final CloudFrontManager cloudFrontManager;
+    private final CacheManager cacheManager;
 
     @Override
     @Transactional
@@ -285,6 +289,29 @@ public class AmenityServiceImpl implements AmenityService {
                     .build());
         }
         return new GetPageResponseVo(pages, amenitySimpleVos);
+    }
+
+    @PostConstruct
+    @Transactional(readOnly = true)
+    private void loadPurchaseDataOnRedis() {
+        final List<Amenity> amenityList = amenityRepository.findAllWithTicketsUsingFetchJoin();
+
+        for (Amenity amenity : amenityList) {
+            Set<Long> ticketIds = amenity.getTickets().stream().map(t -> t.getId()).collect(Collectors.toSet());
+            List<TicketStock> ticketStocks = ticketStockRepository.findAllByTicketIdIn(ticketIds);
+
+            cacheManager.setTotalQuantityOfAmenity(amenity.getId(),
+                    ticketStocks.stream().mapToInt(TicketStock::getTotalQuantity).sum());
+            cacheManager.setPurchasedQuantityOfAmenity(amenity.getId(),
+                    ticketStocks.stream().mapToInt(TicketStock::getPurchasedQuantity).sum());
+
+            for (TicketStock ticketStock : ticketStocks) {
+                cacheManager.setTotalQuantityOfTicket(ticketStock.getTicketId(),
+                        ticketStock.getTotalQuantity());
+                cacheManager.setPurchasedQuantityOfTicket(ticketStock.getTicketId(),
+                        ticketStock.getPurchasedQuantity());
+            }
+        }
     }
 
 }
