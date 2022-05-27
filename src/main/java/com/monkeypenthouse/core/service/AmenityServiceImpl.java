@@ -195,7 +195,8 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional(readOnly = true)
-    public GetPageResponseVo getAmenitiesDibsOn(final UserDetails userDetails, Pageable pageable) throws CloudFrontServiceException, IOException {
+    public GetPageResponseVo getAmenitiesDibsOn(final UserDetails userDetails, Pageable pageable)
+            throws CloudFrontServiceException, IOException {
         final User user = userService.getUserByEmail(userDetails.getUsername());
         return GetPageResponseVo(amenityRepository.findPageByDibsOfUser(user.getId(), pageable));
     }
@@ -269,6 +270,13 @@ public class AmenityServiceImpl implements AmenityService {
         return GetViewedResponseVo.builder()
                 .amenities(amenitySimpleVos)
                 .build();
+    }
+
+    @Override
+    public GetPageResponseVo getAmenitiesByOrdered(UserDetails userDetails, Pageable pageable)
+            throws CloudFrontServiceException, IOException {
+        final User user = userService.getUserByEmail(userDetails.getUsername());
+        return GetPageResponseVo(amenityRepository.findPageByOrdered(user.getId(), pageable));
     }
 
     private GetPageResponseVo GetPageResponseVo(Page<AmenitySimpleDTO> pages) throws CloudFrontServiceException, IOException {

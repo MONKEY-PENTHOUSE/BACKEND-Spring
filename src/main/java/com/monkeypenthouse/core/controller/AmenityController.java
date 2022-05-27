@@ -11,6 +11,8 @@ import com.monkeypenthouse.core.service.AmenityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -90,5 +92,15 @@ public class AmenityController {
                 GetViewedResponseDTO.of(amenityService.getViewed(amentiyIds));
 
         return commonResponseMaker.makeCommonResponse(responseDto, ResponseCode.SUCCESS);
+    }
+
+    @GetMapping(value = "/ordered")
+    public CommonResponseEntity getPageByOrdered(
+            @AuthenticationPrincipal final UserDetails userDetails,
+            Pageable pageable) throws Exception {
+
+        final GetPageResponseDTO responseDTO = GetPageResponseDTO.of(amenityService.getAmenitiesByOrdered(userDetails, pageable));
+
+        return commonResponseMaker.makeCommonResponse(responseDTO, ResponseCode.SUCCESS);
     }
 }

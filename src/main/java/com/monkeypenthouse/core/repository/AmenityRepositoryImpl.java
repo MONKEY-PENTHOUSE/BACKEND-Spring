@@ -2,7 +2,8 @@ package com.monkeypenthouse.core.repository;
 
 import com.monkeypenthouse.core.dto.querydsl.*;
 import com.monkeypenthouse.core.entity.Amenity;
-import com.monkeypenthouse.core.entity.User;
+import com.monkeypenthouse.core.entity.OrderStatus;
+import com.monkeypenthouse.core.exception.CommonException;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -15,13 +16,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.monkeypenthouse.core.entity.QAmenity.*;
 import static com.monkeypenthouse.core.entity.QPurchaseTicketMapping.purchaseTicketMapping;
+import static com.monkeypenthouse.core.entity.QPurchase.*;
 import static com.monkeypenthouse.core.entity.QTicket.*;
 import static com.monkeypenthouse.core.entity.QAmenityCategory.*;
 import static com.monkeypenthouse.core.entity.QCategory.*;
@@ -96,7 +95,8 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
         JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
                 .leftJoin(amenity.dibs, dibs)
                 .leftJoin(dibs.user, user)
-                .where(user.id.eq(userId));
+                .where(user.id.eq(userId))
+                .orderBy(dibs.createdAt.desc());
         List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity)
                 .leftJoin(amenity.dibs, dibs)
@@ -134,6 +134,24 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
     }
 
     @Override
+    public Page<AmenitySimpleDTO> findPageByOrdered(Long userId, Pageable pageable) {
+        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
+                .leftJoin(purchaseTicketMapping.purchase, purchase)
+                .where(purchase.orderStatus.in(Arrays.asList(OrderStatus.COMPLETED, OrderStatus.RESERVED)))
+                .where(purchase.user.id.eq(userId))
+                .orderBy(purchase.createdAt.desc());
+        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
+        long totalCount = queryFactory.selectFrom(amenity)
+                .leftJoin(amenity.tickets, ticket)
+                .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
+                .leftJoin(purchaseTicketMapping.purchase, purchase)
+                .where(purchase.orderStatus.in(Arrays.asList(OrderStatus.COMPLETED, OrderStatus.RESERVED)))
+                .where(purchase.user.id.eq(userId))
+                .fetchCount();
+        return new PageImpl<>(content, pageable, totalCount);
+    }
+
+    @Override
     public int countTotalQuantity(Long amenityId) {
         return queryFactory
                 .from(amenity)
@@ -155,6 +173,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .select(purchaseTicketMapping.quantity.sum().coalesce(0))
                 .fetch().get(0);
     }
+
 
     private JPQLQuery<AmenitySimpleDTO> getQueryForAmenitySimpleDTO() {
         return queryFactory.from(amenity)
@@ -178,7 +197,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
     private JPQLQuery<AmenitySimpleDTO> applicatePageable(JPQLQuery query, Pageable pageable) {
         query.offset(pageable.getOffset()).limit(pageable.getPageSize());
         pageable.getSort().stream().forEach(e -> {
-            PathBuilder<Amenity> orderByExpression = new PathBuilder<Amenity>(Amenity.class, "amenity");
+            PathBuilder<Amenity> orderByExpression = new PathBuilder<>(Amenity.class, "amenity");
             query.orderBy(new OrderSpecifier(e.isAscending() ?
                     Order.ASC : Order.DESC, orderByExpression.get(e.getProperty())));
         });

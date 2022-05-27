@@ -26,6 +26,8 @@ public interface AmenityRepositoryCustom {
 
     List<AmenitySimpleDTO> findAllById(List<Long> amenityIds);
 
+    Page<AmenitySimpleDTO> findPageByOrdered(Long id, Pageable pageable);
+
     int countTotalQuantity(Long amenityId);
 
     int countPurchasedQuantity(Long amenityId);

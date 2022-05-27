@@ -33,7 +33,10 @@ public class DibsServiceImpl implements DibsService {
                 throw new CommonException(ResponseCode.DATA_DUPLICATED);
         });
 
-        final Dibs dibs = new Dibs(user, amenity);
+        final Dibs dibs = Dibs.builder()
+                .user(user)
+                .amenity(amenity)
+                .build();
 
         dibsRepository.save(dibs);
     }
