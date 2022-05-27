@@ -8,6 +8,7 @@ import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.querydsl.AmenitySimpleDTO;
 import com.monkeypenthouse.core.dto.querydsl.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
 import com.monkeypenthouse.core.dto.querydsl.TicketOfAmenityDto;
+import com.monkeypenthouse.core.dto.querydsl.TicketOfOrderedDto;
 import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.TicketDTO;
@@ -277,6 +278,34 @@ public class AmenityServiceImpl implements AmenityService {
             throws CloudFrontServiceException, IOException {
         final User user = userService.getUserByEmail(userDetails.getUsername());
         return GetPageResponseVo(amenityRepository.findPageByOrdered(user.getId(), pageable));
+    }
+
+    @Override
+    public GetTicketOfOrderedResponseVo getTicketsOfOrderedAmenity(UserDetails userDetails, Long amenityId) {
+        final User user = userService.getUserByEmail(userDetails.getUsername());
+        final String amenityTitle = amenityRepository.findById(amenityId)
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND))
+                .getTitle();
+        final List<TicketOfOrderedDto> dtoList = amenityRepository.getTicketsOfOrderedAmenity(user.getId(), amenityId);
+        return GetTicketOfOrderedResponseVo
+                .builder()
+                .amenityTitle(amenityTitle)
+                .tickets(
+                        dtoList.stream().map(
+                                e ->
+                                TicketOfOrderedVo.builder()
+                                        .id(e.getId())
+                                        .name(e.getName())
+                                        .detail(e.getDetail())
+                                        .amount(e.getAmount())
+                                        .eventDateTime(e.getEventDateTime())
+                                        .price(e.getPrice())
+                                        .build()
+
+                        ).collect(Collectors.toList())
+                )
+                .totalPrice(dtoList.stream().mapToInt(e -> e.getAmount() * e.getPrice()).sum())
+                .build();
     }
 
     private GetPageResponseVo GetPageResponseVo(Page<AmenitySimpleDTO> pages) throws CloudFrontServiceException, IOException {
