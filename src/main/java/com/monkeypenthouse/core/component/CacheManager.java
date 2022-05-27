@@ -68,6 +68,10 @@ public class CacheManager {
         list.forEach(e -> rMap.put(e.getTicketId(), e.getQuantity()));
     }
 
+    public void removeTicketInfoOfPurchase(String orderId) {
+        redissonClient.getMap(orderId + ":ticketInfo").delete();
+    }
+
     public Long getAmenityIdOfTicket(Long ticketId) {
         Long value = (Long) redissonClient.getBucket(ticketId + ":amenityId").get();
         return value != null ? value : ticketRepository.findById(ticketId)

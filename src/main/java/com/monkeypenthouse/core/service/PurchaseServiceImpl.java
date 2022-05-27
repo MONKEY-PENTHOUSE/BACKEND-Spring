@@ -226,6 +226,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             throw e;
         } finally {
             cacheManager.unlock(lockWithTimeOut.getRLock());
+            cacheManager.removeTicketInfoOfPurchase(requestVo.getOrderId());
         }
     }
 
@@ -240,5 +241,6 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         purchase.changeOrderStatus(OrderStatus.CANCELLED);
+        cacheManager.removeTicketInfoOfPurchase(requestVo.getOrderId());
     }
 }
