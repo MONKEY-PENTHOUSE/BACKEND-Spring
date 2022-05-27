@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @IdClass(DibsId.class)
@@ -25,5 +27,9 @@ public class Dibs {
     @ManyToOne
     @JoinColumn(name = "amenity_id")
     private Amenity amenity;
+
+    @CreatedDate
+    @Column(name="created_at", updatable=false, nullable=false)
+    private LocalDateTime createdAt;
 
 }
