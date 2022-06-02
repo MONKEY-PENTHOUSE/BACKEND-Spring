@@ -11,6 +11,7 @@ public interface PurchaseTicketMappingRepository extends CrudRepository<Purchase
 
     @Query("SELECT pt FROM PurchaseTicketMapping pt" +
             " INNER JOIN pt.purchase p" +
-            " WHERE p.orderId = :orderId")
+            " WHERE p.orderId = :orderId" +
+            " AND p.orderStatus = IN_PROGRESS")
     List<PurchaseTicketMapping> findAllByOrderId(@Param("orderId") String orderId);
 }
