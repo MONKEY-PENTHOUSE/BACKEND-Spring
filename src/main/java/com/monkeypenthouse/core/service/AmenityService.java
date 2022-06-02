@@ -29,4 +29,6 @@ public interface AmenityService {
     GetViewedResponseVo getViewed(List<Long> amenityIds) throws CloudFrontServiceException, IOException;
 
     GetPageResponseVo getAmenitiesByOrdered(UserDetails userDetails, Pageable pageable) throws CloudFrontServiceException, IOException;
+
+    GetTicketOfOrderedResponseVo getTicketsOfOrderedAmenity(UserDetails userDetails, Long amenityId);
 }

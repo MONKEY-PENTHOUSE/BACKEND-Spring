@@ -6,6 +6,7 @@ import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.dto.GetPageResponseDTO;
 import com.monkeypenthouse.core.dto.AmenityDTO.*;
 import com.monkeypenthouse.core.dto.GetTicketsOfAmenityResponseDto;
+import com.monkeypenthouse.core.dto.GetTicketsOfOrderedResponseDto;
 import com.monkeypenthouse.core.dto.GetViewedResponseDTO;
 import com.monkeypenthouse.core.service.AmenityService;
 import lombok.RequiredArgsConstructor;
@@ -71,9 +72,9 @@ public class AmenityController {
             @AuthenticationPrincipal final UserDetails userDetails,
             Pageable pageable) throws Exception {
 
-        final GetPageResponseDTO responseDTO = GetPageResponseDTO.of(amenityService.getAmenitiesDibsOn(userDetails, pageable));
+        final GetPageResponseDTO responseDto = GetPageResponseDTO.of(amenityService.getAmenitiesDibsOn(userDetails, pageable));
 
-        return commonResponseMaker.makeCommonResponse(responseDTO, ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(responseDto, ResponseCode.SUCCESS);
     }
 
     @GetMapping(value = "/{id}/tickets")
@@ -99,8 +100,18 @@ public class AmenityController {
             @AuthenticationPrincipal final UserDetails userDetails,
             Pageable pageable) throws Exception {
 
-        final GetPageResponseDTO responseDTO = GetPageResponseDTO.of(amenityService.getAmenitiesByOrdered(userDetails, pageable));
+        final GetPageResponseDTO responseDto = GetPageResponseDTO.of(amenityService.getAmenitiesByOrdered(userDetails, pageable));
 
-        return commonResponseMaker.makeCommonResponse(responseDTO, ResponseCode.SUCCESS);
+        return commonResponseMaker.makeCommonResponse(responseDto, ResponseCode.SUCCESS);
+    }
+
+    @GetMapping(value = "/ordered/{id}/tickets")
+    public CommonResponseEntity getTicketsOfOrdered(
+            @AuthenticationPrincipal final UserDetails userDetails,
+            @PathVariable("id") final Long amenityId) throws Exception {
+
+        final GetTicketsOfOrderedResponseDto responseDto = GetTicketsOfOrderedResponseDto.of(amenityService.getTicketsOfOrderedAmenity(userDetails, amenityId));
+
+        return commonResponseMaker.makeCommonResponse(responseDto, ResponseCode.SUCCESS);
     }
 }
