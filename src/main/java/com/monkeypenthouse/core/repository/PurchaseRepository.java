@@ -1,6 +1,6 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.entity.Purchase;
+import com.monkeypenthouse.core.repository.entity.Purchase;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

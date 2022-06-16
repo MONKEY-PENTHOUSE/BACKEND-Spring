@@ -1,25 +1,19 @@
 package com.monkeypenthouse.core.component;
 
 import com.monkeypenthouse.core.constant.ResponseCode;
-import com.monkeypenthouse.core.entity.Amenity;
-import com.monkeypenthouse.core.entity.Purchase;
-import com.monkeypenthouse.core.entity.TicketStock;
+import com.monkeypenthouse.core.repository.entity.Purchase;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
-import com.monkeypenthouse.core.vo.PurchaseTicketMappingVo;
+import com.monkeypenthouse.core.repository.dto.PurchaseTicketMappingDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.*;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 @Component
@@ -63,7 +57,7 @@ public class CacheManager {
         return map;
     }
 
-    public void setTicketInfoOfPurchase(String orderId, List<PurchaseTicketMappingVo> list) {
+    public void setTicketInfoOfPurchase(String orderId, List<PurchaseTicketMappingDto> list) {
         RMap<Long, Integer> rMap = redissonClient.getMap(orderId + ":ticketInfo");
         list.forEach(e -> rMap.put(e.getTicketId(), e.getQuantity()));
     }

@@ -1,9 +1,8 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.dto.querydsl.*;
-import com.monkeypenthouse.core.entity.Amenity;
-import com.monkeypenthouse.core.entity.OrderStatus;
-import com.monkeypenthouse.core.exception.CommonException;
+import com.monkeypenthouse.core.repository.entity.Amenity;
+import com.monkeypenthouse.core.repository.dto.*;
+import com.monkeypenthouse.core.repository.entity.OrderStatus;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -18,14 +17,14 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.*;
 
-import static com.monkeypenthouse.core.entity.QAmenity.*;
-import static com.monkeypenthouse.core.entity.QPurchaseTicketMapping.purchaseTicketMapping;
-import static com.monkeypenthouse.core.entity.QPurchase.*;
-import static com.monkeypenthouse.core.entity.QTicket.*;
-import static com.monkeypenthouse.core.entity.QAmenityCategory.*;
-import static com.monkeypenthouse.core.entity.QCategory.*;
-import static com.monkeypenthouse.core.entity.QDibs.*;
-import static com.monkeypenthouse.core.entity.QUser.*;
+import static com.monkeypenthouse.core.repository.entity.QAmenity.*;
+import static com.monkeypenthouse.core.repository.entity.QPurchaseTicketMapping.purchaseTicketMapping;
+import static com.monkeypenthouse.core.repository.entity.QPurchase.*;
+import static com.monkeypenthouse.core.repository.entity.QTicket.*;
+import static com.monkeypenthouse.core.repository.entity.QAmenityCategory.*;
+import static com.monkeypenthouse.core.repository.entity.QCategory.*;
+import static com.monkeypenthouse.core.repository.entity.QDibs.*;
+import static com.monkeypenthouse.core.repository.entity.QUser.*;
 
 
 @RequiredArgsConstructor

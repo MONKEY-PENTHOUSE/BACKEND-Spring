@@ -1,11 +1,9 @@
 package com.monkeypenthouse.core.connect;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.monkeypenthouse.core.dto.KakaoUserDTO;
-import com.monkeypenthouse.core.dto.NaverUserDTO;
-import com.monkeypenthouse.core.dto.TokenDTO.*;
+import com.monkeypenthouse.core.controller.dto.user.UserNaverAuthResI;
+import com.monkeypenthouse.core.controller.dto.user.UserNaverTokenResI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -31,7 +29,7 @@ public class NaverConnector {
     @Value("${naver.user-info-uri}")
     private String USER_INFO_URI;
 
-    public NaverResDTO getToken(String code, String state) throws Exception {
+    public UserNaverTokenResI getToken(String code, String state) throws Exception {
         // 인증 코드를 갖고 토큰 받아오기
         RestTemplate rt = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -55,13 +53,13 @@ public class NaverConnector {
         ObjectMapper obMapper = new ObjectMapper();
 
         try {
-            return obMapper.readValue(response.getBody(), NaverResDTO.class);
+            return obMapper.readValue(response.getBody(), UserNaverTokenResI.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("토큰 파싱 에러 : " + e.getMessage());
         }
     }
 
-    public NaverUserDTO getUserInfo(String accessToken) throws Exception {
+    public UserNaverAuthResI getUserInfo(String accessToken) throws Exception {
         // 회원정보 받아오기
         RestTemplate rt = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -77,7 +75,7 @@ public class NaverConnector {
         );
         ObjectMapper obMapper = new ObjectMapper();
 
-        return obMapper.readValue(response.getBody(), NaverUserDTO.class);
+        return obMapper.readValue(response.getBody(), UserNaverAuthResI.class);
 
     }
 }

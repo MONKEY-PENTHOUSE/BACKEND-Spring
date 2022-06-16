@@ -1,10 +1,9 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.dto.querydsl.AmenitySimpleDTO;
-import com.monkeypenthouse.core.dto.querydsl.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
-import com.monkeypenthouse.core.dto.querydsl.TicketOfAmenityDto;
-import com.monkeypenthouse.core.dto.querydsl.TicketOfOrderedDto;
-import com.monkeypenthouse.core.entity.User;
+import com.monkeypenthouse.core.repository.dto.AmenitySimpleDTO;
+import com.monkeypenthouse.core.repository.dto.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
+import com.monkeypenthouse.core.repository.dto.TicketOfAmenityDto;
+import com.monkeypenthouse.core.repository.dto.TicketOfOrderedDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
