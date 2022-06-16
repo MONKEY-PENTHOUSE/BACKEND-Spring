@@ -34,8 +34,8 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
 
 
     @Override
-    public Optional<CurrentPersonAndFundingPriceAndDibsOfAmenityDTO> findcurrentPersonAndFundingPriceAndDibsOfAmenityById(Long id) {
-        List<CurrentPersonAndFundingPriceAndDibsOfAmenityDTO> list = queryFactory
+    public Optional<CurrentPersonAndFundingPriceAndDibsOfAmenityDto> findcurrentPersonAndFundingPriceAndDibsOfAmenityById(Long id) {
+        List<CurrentPersonAndFundingPriceAndDibsOfAmenityDto> list = queryFactory
                 .from(amenity)
                 .leftJoin(amenity.tickets, ticket)
                 .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
@@ -58,29 +58,29 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
     }
 
     @Override
-    public Page<AmenitySimpleDTO> findPageByRecommended(int recommended, Pageable pageable) {
-        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
+    public Page<AmenitySimpleDto> findPageByRecommended(int recommended, Pageable pageable) {
+        JPQLQuery<AmenitySimpleDto> query = getQueryForAmenitySimpleDTO()
                 .where(amenity.recommended.eq(recommended));
-        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
+        List<AmenitySimpleDto> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity).where(amenity.recommended.eq(recommended)).fetchCount();
         return new PageImpl<>(content, pageable, totalCount);
     }
 
     @Override
-    public Page<AmenitySimpleDTO> findPage(Pageable pageable) {
-        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO();
-        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
+    public Page<AmenitySimpleDto> findPage(Pageable pageable) {
+        JPQLQuery<AmenitySimpleDto> query = getQueryForAmenitySimpleDTO();
+        List<AmenitySimpleDto> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity).fetchCount();
         return new PageImpl<>(content, pageable, totalCount);
     }
 
     @Override
-    public Page<AmenitySimpleDTO> findPageByCategory(Long categoryId, Pageable pageable) {
-        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
+    public Page<AmenitySimpleDto> findPageByCategory(Long categoryId, Pageable pageable) {
+        JPQLQuery<AmenitySimpleDto> query = getQueryForAmenitySimpleDTO()
                 .leftJoin(amenity.categories, amenityCategory)
                 .leftJoin(amenityCategory.category, category)
                 .where(category.id.eq(categoryId));
-        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
+        List<AmenitySimpleDto> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity)
                 .leftJoin(amenity.categories, amenityCategory)
                 .leftJoin(amenityCategory.category, category)
@@ -90,13 +90,13 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
     }
 
     @Override
-    public Page<AmenitySimpleDTO> findPageByDibsOfUser(Long userId, Pageable pageable) {
-        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
+    public Page<AmenitySimpleDto> findPageByDibsOfUser(Long userId, Pageable pageable) {
+        JPQLQuery<AmenitySimpleDto> query = getQueryForAmenitySimpleDTO()
                 .leftJoin(amenity.dibs, dibs)
                 .leftJoin(dibs.user, user)
                 .where(user.id.eq(userId))
                 .orderBy(dibs.createdAt.desc());
-        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
+        List<AmenitySimpleDto> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity)
                 .leftJoin(amenity.dibs, dibs)
                 .leftJoin(dibs.user, user)
@@ -125,21 +125,21 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
     }
 
     @Override
-    public List<AmenitySimpleDTO> findAllById(List<Long> amenityIds) {
-        List<AmenitySimpleDTO> amenities = getQueryForAmenitySimpleDTO()
+    public List<AmenitySimpleDto> findAllById(List<Long> amenityIds) {
+        List<AmenitySimpleDto> amenities = getQueryForAmenitySimpleDTO()
                 .where(amenity.id.in(amenityIds))
                 .fetch();
         return reOrderAccordingToIndex(amenities, amenityIds);
     }
 
     @Override
-    public Page<AmenitySimpleDTO> findPageByOrdered(Long userId, Pageable pageable) {
-        JPQLQuery<AmenitySimpleDTO> query = getQueryForAmenitySimpleDTO()
+    public Page<AmenitySimpleDto> findPageByOrdered(Long userId, Pageable pageable) {
+        JPQLQuery<AmenitySimpleDto> query = getQueryForAmenitySimpleDTO()
                 .leftJoin(purchaseTicketMapping.purchase, purchase)
                 .where(purchase.orderStatus.in(Arrays.asList(OrderStatus.COMPLETED, OrderStatus.RESERVED)))
                 .where(purchase.user.id.eq(userId))
                 .orderBy(purchase.createdAt.desc());
-        List<AmenitySimpleDTO> content = applicatePageable(query, pageable).fetch();
+        List<AmenitySimpleDto> content = applicatePageable(query, pageable).fetch();
         long totalCount = queryFactory.selectFrom(amenity)
                 .leftJoin(amenity.tickets, ticket)
                 .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
@@ -197,7 +197,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
     }
 
 
-    private JPQLQuery<AmenitySimpleDTO> getQueryForAmenitySimpleDTO() {
+    private JPQLQuery<AmenitySimpleDto> getQueryForAmenitySimpleDTO() {
         return queryFactory.from(amenity)
                 .leftJoin(amenity.tickets, ticket)
                 .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
@@ -216,7 +216,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
         );
     }
 
-    private JPQLQuery<AmenitySimpleDTO> applicatePageable(JPQLQuery query, Pageable pageable) {
+    private JPQLQuery<AmenitySimpleDto> applicatePageable(JPQLQuery query, Pageable pageable) {
         query.offset(pageable.getOffset()).limit(pageable.getPageSize());
         pageable.getSort().stream().forEach(e -> {
             PathBuilder<Amenity> orderByExpression = new PathBuilder<>(Amenity.class, "amenity");
@@ -226,14 +226,14 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
         return query;
     }
 
-    private static List<AmenitySimpleDTO> reOrderAccordingToIndex(List<AmenitySimpleDTO> itemList,
-                                                                        List<Long> indexList) {
-        HashMap<Long, AmenitySimpleDTO> hashMap = new HashMap<>(itemList.size());
+    private static List<AmenitySimpleDto> reOrderAccordingToIndex(List<AmenitySimpleDto> itemList,
+                                                                  List<Long> indexList) {
+        HashMap<Long, AmenitySimpleDto> hashMap = new HashMap<>(itemList.size());
         itemList.forEach(item -> hashMap.put(item.getId(), item));
 
-        ArrayList<AmenitySimpleDTO> output = new ArrayList<>(itemList.size());
+        ArrayList<AmenitySimpleDto> output = new ArrayList<>(itemList.size());
         for (Long index : indexList) {
-            AmenitySimpleDTO item = hashMap.get(index);
+            AmenitySimpleDto item = hashMap.get(index);
             if (item != null) output.add(hashMap.get(index));
         }
 

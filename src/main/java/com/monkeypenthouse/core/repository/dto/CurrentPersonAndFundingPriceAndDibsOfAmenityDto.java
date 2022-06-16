@@ -6,13 +6,13 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class CurrentPersonAndFundingPriceAndDibsOfAmenityDTO {
+public class CurrentPersonAndFundingPriceAndDibsOfAmenityDto {
     private int currentPersonNum;
     private int fundingPrice;
     private Long dibs;
 
     @QueryProjection
-    public CurrentPersonAndFundingPriceAndDibsOfAmenityDTO(int currentPersonNum,
+    public CurrentPersonAndFundingPriceAndDibsOfAmenityDto(int currentPersonNum,
                                                            int fundingPrice,
                                                            Long dibs) {
         this.currentPersonNum = currentPersonNum;

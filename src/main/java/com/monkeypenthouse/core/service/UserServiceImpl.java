@@ -5,7 +5,7 @@ import com.monkeypenthouse.core.connect.NaverConnector;
 import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.controller.dto.user.UserKakaoAuthResI;
 import com.monkeypenthouse.core.controller.dto.user.UserNaverAuthResI;
-import com.monkeypenthouse.core.exception.dto.AdditionalInfoNeededResponseDTO;
+import com.monkeypenthouse.core.exception.dto.AdditionalInfoNeededResponseDto;
 import com.monkeypenthouse.core.exception.*;
 import com.monkeypenthouse.core.repository.RefreshTokenRepository;
 import com.monkeypenthouse.core.repository.RoomRepository;
@@ -15,7 +15,7 @@ import com.monkeypenthouse.core.security.PrincipalDetails;
 import com.monkeypenthouse.core.security.SecurityUtil;
 import com.monkeypenthouse.core.security.TokenProvider;
 import com.monkeypenthouse.core.service.dto.user.*;
-import com.monkeypenthouse.core.exception.dto.LifeStyleNeededResponseDTO;
+import com.monkeypenthouse.core.exception.dto.LifeStyleNeededResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -82,10 +82,7 @@ public class UserServiceImpl implements UserService {
                 .gender(user.getGender())
                 .email(user.getEmail())
                 .phoneNum(user.getPhoneNum())
-                .room(user.getRoom())
-                .authority(user.getAuthority())
-                .loginType(user.getLoginType())
-                .lifeStyle(user.getLifeStyle())
+                .roomId(user.getRoom().getId())
                 .build();
     }
 
@@ -152,7 +149,7 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> map = new HashMap<>();
         // 라이프스타일 테스트 미완료 회원 처리
         if (loggedInUser.getLifeStyle() == null) {
-            LifeStyleNeededResponseDTO dto = LifeStyleNeededResponseDTO.builder()
+            LifeStyleNeededResponseDto dto = LifeStyleNeededResponseDto.builder()
                     .id(loggedInUser.getId())
                     .email(loggedInUser.getEmail())
                     .name(loggedInUser.getName())
@@ -232,7 +229,7 @@ public class UserServiceImpl implements UserService {
                 .gender(user.getGender())
                 .email(user.getEmail())
                 .phoneNum(user.getPhoneNum())
-                .room(user.getRoom())
+                .roomId(user.getRoom().getId())
                 .authority(user.getAuthority())
                 .loginType(user.getLoginType())
                 .lifeStyle(user.getLifeStyle())
@@ -264,7 +261,7 @@ public class UserServiceImpl implements UserService {
 
         User loggedInUser = optionalUser
                 .orElseThrow(() -> {
-                    AdditionalInfoNeededResponseDTO dto = AdditionalInfoNeededResponseDTO.builder()
+                    AdditionalInfoNeededResponseDto dto = AdditionalInfoNeededResponseDto.builder()
                         .name(kakaoUser.getKakao_account().getProfile().getNickname())
                         .gender(kakaoUser.getKakao_account().isHas_gender() ? kakaoUser.getKakao_account().getGender().equals("female") ? 0 : 1 : 2)
                         .email(kakaoUser.getKakao_account().isHas_email() ? kakaoUser.getKakao_account().getEmail() : null)
@@ -290,7 +287,7 @@ public class UserServiceImpl implements UserService {
 
         User loggedInUser = optionalUser
                 .orElseThrow(() -> {
-                    AdditionalInfoNeededResponseDTO dto = AdditionalInfoNeededResponseDTO.builder()
+                    AdditionalInfoNeededResponseDto dto = AdditionalInfoNeededResponseDto.builder()
                         .name(naverUser.getResponse().getName())
                         .gender(naverUser.getResponse().getGender() == null ?
                                 2 : naverUser.getResponse().getGender().equals("F") ? 0 : 1)

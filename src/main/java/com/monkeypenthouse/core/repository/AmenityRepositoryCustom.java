@@ -1,7 +1,7 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.repository.dto.AmenitySimpleDTO;
-import com.monkeypenthouse.core.repository.dto.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
+import com.monkeypenthouse.core.repository.dto.AmenitySimpleDto;
+import com.monkeypenthouse.core.repository.dto.CurrentPersonAndFundingPriceAndDibsOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.TicketOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.TicketOfOrderedDto;
 import org.springframework.data.domain.Page;
@@ -12,21 +12,21 @@ import java.util.Optional;
 
 public interface AmenityRepositoryCustom {
 
-    Optional<CurrentPersonAndFundingPriceAndDibsOfAmenityDTO> findcurrentPersonAndFundingPriceAndDibsOfAmenityById(Long id);
+    Optional<CurrentPersonAndFundingPriceAndDibsOfAmenityDto> findcurrentPersonAndFundingPriceAndDibsOfAmenityById(Long id);
 
-    Page<AmenitySimpleDTO> findPageByRecommended(int recommended, Pageable pageable);
+    Page<AmenitySimpleDto> findPageByRecommended(int recommended, Pageable pageable);
 
-    Page<AmenitySimpleDTO> findPage(Pageable pageable);
+    Page<AmenitySimpleDto> findPage(Pageable pageable);
 
-    Page<AmenitySimpleDTO> findPageByCategory(Long categoryId, Pageable pageable);
+    Page<AmenitySimpleDto> findPageByCategory(Long categoryId, Pageable pageable);
 
-    Page<AmenitySimpleDTO> findPageByDibsOfUser(Long userId, Pageable pageable);
+    Page<AmenitySimpleDto> findPageByDibsOfUser(Long userId, Pageable pageable);
 
     List<TicketOfAmenityDto> getTicketsOfAmenity(Long amenityId);
 
-    List<AmenitySimpleDTO> findAllById(List<Long> amenityIds);
+    List<AmenitySimpleDto> findAllById(List<Long> amenityIds);
 
-    Page<AmenitySimpleDTO> findPageByOrdered(Long id, Pageable pageable);
+    Page<AmenitySimpleDto> findPageByOrdered(Long id, Pageable pageable);
 
     int countTotalQuantity(Long amenityId);
 

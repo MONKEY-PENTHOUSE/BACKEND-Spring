@@ -1,6 +1,6 @@
 package com.monkeypenthouse.core.exception.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.monkeypenthouse.core.repository.entity.LoginType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,13 +8,13 @@ import java.time.LocalDate;
 
 @Getter
 @Builder
-public class LifeStyleNeededResponseDTO {
-    private Long id;
+public class AdditionalInfoNeededResponseDto {
     private String name;
-    @JsonFormat(pattern = "yyyy.MM.dd")
     private LocalDate birth;
     private int gender;
     private String email;
+    private String password;
     private String phoneNum;
-    private String roomId;
+    private int infoReceivable;
+    private LoginType loginType;
 }

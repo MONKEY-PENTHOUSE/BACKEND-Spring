@@ -18,8 +18,5 @@ public class UserSignUpResI {
     private final int gender;
     private final String email;
     private final String phoneNum;
-    private final Room room;
-    private final Authority authority;
-    private final LoginType loginType;
-    private final LifeStyle lifeStyle;
+    private final String roomId;
 }

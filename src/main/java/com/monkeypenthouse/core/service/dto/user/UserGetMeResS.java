@@ -21,14 +21,14 @@ public class UserGetMeResS {
     private final int gender;
     private final String email;
     private final String phoneNum;
-    private final Room room;
+    private final String roomId;
     private final Authority authority;
     private final LoginType loginType;
     private final LifeStyle lifeStyle;
 
     public UserGetMeResI toI() {
         return new UserGetMeResI(
-                id, name, birth, gender, email, phoneNum, room, authority, loginType, lifeStyle
+                id, name, birth, gender, email, phoneNum, roomId, authority, loginType, lifeStyle
         );
     }
 }

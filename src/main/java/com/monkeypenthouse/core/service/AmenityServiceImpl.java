@@ -6,8 +6,8 @@ import com.monkeypenthouse.core.connect.CloudFrontManager;
 import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
-import com.monkeypenthouse.core.repository.dto.AmenitySimpleDTO;
-import com.monkeypenthouse.core.repository.dto.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
+import com.monkeypenthouse.core.repository.dto.AmenitySimpleDto;
+import com.monkeypenthouse.core.repository.dto.CurrentPersonAndFundingPriceAndDibsOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.TicketOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.TicketOfOrderedDto;
 import com.monkeypenthouse.core.repository.entity.*;
@@ -151,13 +151,13 @@ public class AmenityServiceImpl implements AmenityService {
     @Transactional(readOnly = true)
     public AmenityGetByIdResS getById(Long id) throws CloudFrontServiceException, IOException {
         Amenity amenity = amenityRepository.findWithPhotosById(id).orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
-        CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs = amenityRepository.findcurrentPersonAndFundingPriceAndDibsOfAmenityById(id)
+        CurrentPersonAndFundingPriceAndDibsOfAmenityDto currentPersonAndFundingPriceAndDibs = amenityRepository.findcurrentPersonAndFundingPriceAndDibsOfAmenityById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
         return amenityDetailDtoToVo(amenity, currentPersonAndFundingPriceAndDibs);
     }
 
     private AmenityGetByIdResS amenityDetailDtoToVo(Amenity amenity,
-                                                   CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs)
+                                                   CurrentPersonAndFundingPriceAndDibsOfAmenityDto currentPersonAndFundingPriceAndDibs)
             throws CloudFrontServiceException, IOException {
         List<Photo> photos = amenity.getPhotos();
         List<String> bannerPhotos = new ArrayList<>();
@@ -248,10 +248,10 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     public AmenityGetViewedResS getViewed(List<Long> amenityIds) throws CloudFrontServiceException, IOException {
-        List<AmenitySimpleDTO> amenitySimpleDtos = amenityRepository.findAllById(
+        List<AmenitySimpleDto> amenitySimpleDtos = amenityRepository.findAllById(
                 amenityIds.size() > 5 ? amenityIds.subList(0,5) : amenityIds);
         List<AmenitySimpleResS>  amenitySimpleList = new ArrayList<>();
-        for (AmenitySimpleDTO dto : amenitySimpleDtos) {
+        for (AmenitySimpleDto dto : amenitySimpleDtos) {
             String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
             amenitySimpleList.add(AmenitySimpleResS.builder()
                     .id(dto.getId())
@@ -305,9 +305,9 @@ public class AmenityServiceImpl implements AmenityService {
                 .build();
     }
 
-    private AmenityGetPagesResS GetPageResS(Page<AmenitySimpleDTO> pages) throws CloudFrontServiceException, IOException {
+    private AmenityGetPagesResS GetPageResS(Page<AmenitySimpleDto> pages) throws CloudFrontServiceException, IOException {
         List<AmenitySimpleResS> amenitySimpleList = new ArrayList<>();
-        for (AmenitySimpleDTO dto : pages.getContent()) {
+        for (AmenitySimpleDto dto : pages.getContent()) {
             String filename = "thumbnail/" + dto.getThumbnailName();
             String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(filename);
             amenitySimpleList.add(AmenitySimpleResS.builder()

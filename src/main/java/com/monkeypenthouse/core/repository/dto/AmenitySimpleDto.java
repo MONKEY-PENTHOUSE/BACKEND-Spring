@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Builder
 @Getter
-public class AmenitySimpleDTO {
+public class AmenitySimpleDto {
     private Long id;
     private String title;
     private int minPersonNum;
@@ -20,7 +20,7 @@ public class AmenitySimpleDTO {
     private int status;
 
     @QueryProjection
-    public AmenitySimpleDTO(Long id,
+    public AmenitySimpleDto(Long id,
                             String title,
                             int minPersonNum,
                             int maxPersonNum,
