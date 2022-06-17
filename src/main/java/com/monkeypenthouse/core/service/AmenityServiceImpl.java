@@ -3,18 +3,18 @@ package com.monkeypenthouse.core.service;
 import com.monkeypenthouse.core.component.CacheManager;
 import com.monkeypenthouse.core.component.ImageManager;
 import com.monkeypenthouse.core.connect.CloudFrontManager;
-import com.monkeypenthouse.core.connect.S3Uploader;
 import com.monkeypenthouse.core.constant.ResponseCode;
-import com.monkeypenthouse.core.dto.querydsl.AmenitySimpleDTO;
-import com.monkeypenthouse.core.dto.querydsl.CurrentPersonAndFundingPriceAndDibsOfAmenityDTO;
-import com.monkeypenthouse.core.dto.querydsl.TicketOfAmenityDto;
-import com.monkeypenthouse.core.dto.querydsl.TicketOfOrderedDto;
-import com.monkeypenthouse.core.entity.*;
-import com.monkeypenthouse.core.dto.AmenityDTO.*;
-import com.monkeypenthouse.core.dto.TicketDTO;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
-import com.monkeypenthouse.core.vo.*;
+import com.monkeypenthouse.core.repository.dto.AmenitySimpleDto;
+import com.monkeypenthouse.core.repository.dto.CurrentPersonAndFundingPriceAndDibsOfAmenityDto;
+import com.monkeypenthouse.core.repository.dto.TicketOfAmenityDto;
+import com.monkeypenthouse.core.repository.dto.TicketOfOrderedDto;
+import com.monkeypenthouse.core.repository.entity.*;
+import com.monkeypenthouse.core.service.dto.amenity.*;
+import com.monkeypenthouse.core.service.dto.ticket.TicketOfAmenityS;
+import com.monkeypenthouse.core.service.dto.ticket.TicketOfOrderedS;
+import com.monkeypenthouse.core.service.dto.ticket.TicketSaveReqS;
 import lombok.RequiredArgsConstructor;
 import org.jets3t.service.CloudFrontServiceException;
 import org.modelmapper.ModelMapper;
@@ -54,15 +54,15 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional
-    public void add(SaveReqDTO amenityDTO) throws Exception {
+    public void add(final AmenitySaveReqS params) throws Exception {
         // DB에 저장할 어메니티 객체
         Amenity amenity = Amenity.builder()
-                .title(amenityDTO.getTitle())
-                .address(amenityDTO.getAddress())
-                .deadlineDate(amenityDTO.getDeadlineDate())
-                .detail(amenityDTO.getDetail())
-                .recommended(amenityDTO.getRecommended())
-                .minPersonNum(amenityDTO.getMinPersonNum())
+                .title(params.getTitle())
+                .address(params.getAddress())
+                .deadlineDate(params.getDeadlineDate())
+                .detail(params.getDetail())
+                .recommended(params.getRecommended())
+                .minPersonNum(params.getMinPersonNum())
                 .build();
 
         amenity.setStartDate(LocalDate.now());
@@ -73,7 +73,7 @@ public class AmenityServiceImpl implements AmenityService {
         List<Category> categories = new ArrayList<>();
         List<AmenityCategory> amenityCategories = new ArrayList<>();
         // 각 카테고리에 대하여
-        for (String categoryName : amenityDTO.getCategories()) {
+        for (String categoryName : params.getCategories()) {
             Optional<Category> optionalCategory = categoryRepository.findByName(categoryName);
             if (optionalCategory.isPresent()) {
                 // 존재하면 가져옴
@@ -102,10 +102,10 @@ public class AmenityServiceImpl implements AmenityService {
         List<Ticket> tickets = new ArrayList<>();
         LocalDate startDate = null;
         int maxPersonNum = 0;
-        for (TicketDTO.SaveDTO ticketDTO : amenityDTO.getTickets()) {
-            Ticket ticket = modelMapper.map(ticketDTO, Ticket.class);
-            if (startDate ==  null || startDate.isAfter(ticketDTO.getEventDateTime().toLocalDate())) {
-                startDate = ticketDTO.getEventDateTime().toLocalDate();
+        for (TicketSaveReqS ticketS : params.getTickets()) {
+            Ticket ticket = modelMapper.map(ticketS, Ticket.class);
+            if (startDate ==  null || startDate.isAfter(ticketS.getEventDateTime().toLocalDate())) {
+                startDate = ticketS.getEventDateTime().toLocalDate();
             }
             maxPersonNum += ticket.getCapacity();
             ticket.setAmenity(savedAmenity);
@@ -118,10 +118,10 @@ public class AmenityServiceImpl implements AmenityService {
 
         List<Photo> photos = new ArrayList<>();
        // 배너 사진 리스트 저장
-        for (int i = 0; i < amenityDTO.getBannerPhotos().size(); i++) {
-            String fileName = imageManager.uploadImageOnS3(amenityDTO.getBannerPhotos().get(i), "banner");
+        for (int i = 0; i < params.getBannerPhotos().size(); i++) {
+            String fileName = imageManager.uploadImageOnS3(params.getBannerPhotos().get(i), "banner");
             if (i == 0) {
-                String thumbnailFileName = imageManager.uploadThumbnailOnS3(amenityDTO.getBannerPhotos().get(i));
+                String thumbnailFileName = imageManager.uploadThumbnailOnS3(params.getBannerPhotos().get(i));
                 amenity.setThumbnailName(thumbnailFileName);
             }
             Photo photo = Photo
@@ -134,7 +134,7 @@ public class AmenityServiceImpl implements AmenityService {
         }
 
         // 상세 사진 리스트 저장
-        for (MultipartFile detailPhoto : amenityDTO.getDetailPhotos()) {
+        for (MultipartFile detailPhoto : params.getDetailPhotos()) {
             String fileName = imageManager.uploadImageOnS3(detailPhoto, "detail");
             Photo photo = Photo
                     .builder()
@@ -149,15 +149,15 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional(readOnly = true)
-    public GetByIdResponseVo getById(Long id) throws CloudFrontServiceException, IOException {
+    public AmenityGetByIdResS getById(Long id) throws CloudFrontServiceException, IOException {
         Amenity amenity = amenityRepository.findWithPhotosById(id).orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
-        CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs = amenityRepository.findcurrentPersonAndFundingPriceAndDibsOfAmenityById(id)
+        CurrentPersonAndFundingPriceAndDibsOfAmenityDto currentPersonAndFundingPriceAndDibs = amenityRepository.findcurrentPersonAndFundingPriceAndDibsOfAmenityById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
         return amenityDetailDtoToVo(amenity, currentPersonAndFundingPriceAndDibs);
     }
 
-    private GetByIdResponseVo amenityDetailDtoToVo(Amenity amenity,
-                                                   CurrentPersonAndFundingPriceAndDibsOfAmenityDTO currentPersonAndFundingPriceAndDibs)
+    private AmenityGetByIdResS amenityDetailDtoToVo(Amenity amenity,
+                                                   CurrentPersonAndFundingPriceAndDibsOfAmenityDto currentPersonAndFundingPriceAndDibs)
             throws CloudFrontServiceException, IOException {
         List<Photo> photos = amenity.getPhotos();
         List<String> bannerPhotos = new ArrayList<>();
@@ -173,7 +173,7 @@ public class AmenityServiceImpl implements AmenityService {
             }
         }
 
-        return GetByIdResponseVo.builder()
+        return AmenityGetByIdResS.builder()
                 .id(amenity.getId())
                 .title(amenity.getTitle())
                 .detail(amenity.getDetail())
@@ -196,40 +196,37 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     @Transactional(readOnly = true)
-    public GetPageResponseVo getAmenitiesDibsOn(final UserDetails userDetails, Pageable pageable)
+    public AmenityGetPagesResS getAmenitiesDibsOn(final UserDetails userDetails, Pageable pageable)
             throws CloudFrontServiceException, IOException {
         final User user = userService.getUserByEmail(userDetails.getUsername());
-        return GetPageResponseVo(amenityRepository.findPageByDibsOfUser(user.getId(), pageable));
+        return GetPageResS(amenityRepository.findPageByDibsOfUser(user.getId(), pageable));
     }
 
     @Override
-    public GetPageResponseVo getPage(Pageable pageable) throws CloudFrontServiceException, IOException {
-        Page<AmenitySimpleDTO> pages = amenityRepository.findPage(pageable);
-        return GetPageResponseVo(pages);
+    public AmenityGetPagesResS getPage(Pageable pageable) throws CloudFrontServiceException, IOException {
+        return GetPageResS(amenityRepository.findPage(pageable));
     }
 
     @Override
-    public GetPageResponseVo getPageByCategory(Long category, Pageable pageable) throws CloudFrontServiceException, IOException {
-        Page<AmenitySimpleDTO> pages = amenityRepository.findPageByCategory(category, pageable);
-        return GetPageResponseVo(pages);
+    public AmenityGetPagesResS getPageByCategory(Long category, Pageable pageable) throws CloudFrontServiceException, IOException {
+        return GetPageResS(amenityRepository.findPageByCategory(category, pageable));
     }
 
     @Override
-    public GetPageResponseVo getPageByRecommended(Pageable pageable) throws CloudFrontServiceException, IOException {
-        Page<AmenitySimpleDTO> pages = amenityRepository.findPageByRecommended(1, pageable);
-        return GetPageResponseVo(pages);
+    public AmenityGetPagesResS getPageByRecommended(Pageable pageable) throws CloudFrontServiceException, IOException {
+        return GetPageResS(amenityRepository.findPageByRecommended(1, pageable));
     }
 
     @Override
-    public GetTicketsOfAmenityResponseVo getTicketsOfAmenity(final Long amenityId) {
+    public AmenityTicketsByIdResS getTicketsOfAmenity(final Long amenityId) {
 
         final List<TicketOfAmenityDto> ticketsOfAmenity = amenityRepository.getTicketsOfAmenity(amenityId);
 
-        return GetTicketsOfAmenityResponseVo.builder()
+        return AmenityTicketsByIdResS.builder()
                 .tickets(
                         ticketsOfAmenity
                                 .stream()
-                                .map(TicketOfAmenityDto -> TicketOfAmenityVo.builder()
+                                .map(TicketOfAmenityDto -> TicketOfAmenityS.builder()
                                         .id(TicketOfAmenityDto.getId())
                                         .title(TicketOfAmenityDto.getTitle())
                                         .description(TicketOfAmenityDto.getDescription())
@@ -250,13 +247,13 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     @Override
-    public GetViewedResponseVo getViewed(List<Long> amenityIds) throws CloudFrontServiceException, IOException {
-        List<AmenitySimpleDTO> amenitySimpleDtos = amenityRepository.findAllById(
+    public AmenityGetViewedResS getViewed(List<Long> amenityIds) throws CloudFrontServiceException, IOException {
+        List<AmenitySimpleDto> amenitySimpleDtos = amenityRepository.findAllById(
                 amenityIds.size() > 5 ? amenityIds.subList(0,5) : amenityIds);
-        List<AmenitySimpleVo>  amenitySimpleVos = new ArrayList<>();
-        for (AmenitySimpleDTO dto : amenitySimpleDtos) {
+        List<AmenitySimpleResS>  amenitySimpleList = new ArrayList<>();
+        for (AmenitySimpleDto dto : amenitySimpleDtos) {
             String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
-            amenitySimpleVos.add(AmenitySimpleVo.builder()
+            amenitySimpleList.add(AmenitySimpleResS.builder()
                     .id(dto.getId())
                     .title(dto.getTitle())
                     .minPersonNum(dto.getMinPersonNum())
@@ -268,32 +265,32 @@ public class AmenityServiceImpl implements AmenityService {
                     .status(dto.getStatus())
                     .build());
         }
-        return GetViewedResponseVo.builder()
-                .amenities(amenitySimpleVos)
+        return AmenityGetViewedResS.builder()
+                .amenities(amenitySimpleList)
                 .build();
     }
 
     @Override
-    public GetPageResponseVo getAmenitiesByOrdered(UserDetails userDetails, Pageable pageable)
+    public AmenityGetPagesResS getAmenitiesByOrdered(UserDetails userDetails, Pageable pageable)
             throws CloudFrontServiceException, IOException {
         final User user = userService.getUserByEmail(userDetails.getUsername());
-        return GetPageResponseVo(amenityRepository.findPageByOrdered(user.getId(), pageable));
+        return GetPageResS(amenityRepository.findPageByOrdered(user.getId(), pageable));
     }
 
     @Override
-    public GetTicketOfOrderedResponseVo getTicketsOfOrderedAmenity(UserDetails userDetails, Long amenityId) {
+    public AmenityTicketsOfOrderedResS getTicketsOfOrderedAmenity(UserDetails userDetails, Long amenityId) {
         final User user = userService.getUserByEmail(userDetails.getUsername());
         final String amenityTitle = amenityRepository.findById(amenityId)
                 .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND))
                 .getTitle();
         final List<TicketOfOrderedDto> dtoList = amenityRepository.getTicketsOfOrderedAmenity(user.getId(), amenityId);
-        return GetTicketOfOrderedResponseVo
+        return AmenityTicketsOfOrderedResS
                 .builder()
                 .amenityTitle(amenityTitle)
                 .tickets(
                         dtoList.stream().map(
-                                e ->
-                                TicketOfOrderedVo.builder()
+                                e -> TicketOfOrderedS
+                                .builder()
                                         .id(e.getId())
                                         .name(e.getName())
                                         .detail(e.getDetail())
@@ -308,12 +305,12 @@ public class AmenityServiceImpl implements AmenityService {
                 .build();
     }
 
-    private GetPageResponseVo GetPageResponseVo(Page<AmenitySimpleDTO> pages) throws CloudFrontServiceException, IOException {
-        List<AmenitySimpleVo> amenitySimpleVos = new ArrayList<>();
-        for (AmenitySimpleDTO dto : pages.getContent()) {
+    private AmenityGetPagesResS GetPageResS(Page<AmenitySimpleDto> pages) throws CloudFrontServiceException, IOException {
+        List<AmenitySimpleResS> amenitySimpleList = new ArrayList<>();
+        for (AmenitySimpleDto dto : pages.getContent()) {
             String filename = "thumbnail/" + dto.getThumbnailName();
             String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(filename);
-            amenitySimpleVos.add(AmenitySimpleVo.builder()
+            amenitySimpleList.add(AmenitySimpleResS.builder()
                     .id(dto.getId())
                     .title(dto.getTitle())
                     .minPersonNum(dto.getMinPersonNum())
@@ -325,7 +322,7 @@ public class AmenityServiceImpl implements AmenityService {
                     .status(dto.getStatus())
                     .build());
         }
-        return new GetPageResponseVo(pages, amenitySimpleVos);
+        return new AmenityGetPagesResS(pages, amenitySimpleList);
     }
 
     @PostConstruct

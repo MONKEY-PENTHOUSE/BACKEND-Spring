@@ -1,6 +1,6 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.entity.Amenity;
+import com.monkeypenthouse.core.repository.entity.Amenity;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;

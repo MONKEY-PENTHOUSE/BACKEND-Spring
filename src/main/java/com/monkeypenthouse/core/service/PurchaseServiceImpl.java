@@ -4,14 +4,12 @@ import com.monkeypenthouse.core.component.CacheManager;
 import com.monkeypenthouse.core.component.OrderIdGenerator;
 import com.monkeypenthouse.core.connect.TossPaymentsConnector;
 import com.monkeypenthouse.core.constant.ResponseCode;
-import com.monkeypenthouse.core.dto.tossPayments.ApprovePaymentResponseDto;
-import com.monkeypenthouse.core.entity.*;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
-import com.monkeypenthouse.core.vo.*;
+import com.monkeypenthouse.core.repository.dto.PurchaseTicketMappingDto;
+import com.monkeypenthouse.core.repository.entity.*;
+import com.monkeypenthouse.core.service.dto.purchase.*;
 import lombok.RequiredArgsConstructor;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -45,7 +43,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
 
     @Override
-    public CreateOrderResponseVo createPurchase(final UserDetails userDetails, final CreatePurchaseRequestVo requestVo) {
+    public PurchaseCreateResS createPurchase(final UserDetails userDetails, final PurchaseCreateReqS params) {
 
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
@@ -60,11 +58,11 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             // 티켓 엔티티 리스트 검증 및 조회
             ticketList = (List<Ticket>) ticketRepository.findAllById(
-                    requestVo.getPurchaseTicketMappingVoList().stream()
-                            .map(purchaseTicketMappingVo -> purchaseTicketMappingVo.getTicketId())
+                    params.getPurchaseTicketMappingDtoList().stream()
+                            .map(e -> e.getTicketId())
                             .collect(Collectors.toList()));
 
-            if (ticketList.size() != requestVo.getPurchaseTicketMappingVoList().size()) {
+            if (ticketList.size() != params.getPurchaseTicketMappingDtoList().size()) {
                 throw new CommonException(ResponseCode.TICKET_NOT_FOUND);
             }
 
@@ -73,7 +71,7 @@ public class PurchaseServiceImpl implements PurchaseService {
              */
 
             // 티켓 재고 수량 검증
-            for (final PurchaseTicketMappingVo vo : requestVo.getPurchaseTicketMappingVoList()) {
+            for (final PurchaseTicketMappingS vo : params.getPurchaseTicketMappingDtoList()) {
                 if (
                         cacheManager.getTotalQuantityOfTicket(vo.getTicketId()) <
                                 cacheManager.getPurchasedQuantityOfTicket(vo.getTicketId()) + vo.getQuantity()
@@ -89,8 +87,8 @@ public class PurchaseServiceImpl implements PurchaseService {
             // 티켓 ID : 구매 개수 HashMap 구성
             final HashMap<Long, Integer> quantityMap = new HashMap<>();
 
-            requestVo.getPurchaseTicketMappingVoList().forEach(
-                    purchaseTicketMappingVo -> quantityMap.put(purchaseTicketMappingVo.getTicketId(), purchaseTicketMappingVo.getQuantity()));
+            params.getPurchaseTicketMappingDtoList().forEach(
+                    e -> quantityMap.put(e.getTicketId(), e.getQuantity()));
 
             // amount 측정
             final int amount = ticketList.stream()
@@ -101,10 +99,16 @@ public class PurchaseServiceImpl implements PurchaseService {
             final String orderId = orderIdGenerator.generate();
 
             // Redis에 orderId: map{ticketId: ticketQuantity}
-            cacheManager.setTicketInfoOfPurchase(orderId, requestVo.getPurchaseTicketMappingVoList());
+            cacheManager.setTicketInfoOfPurchase(
+                    orderId,
+                    params.getPurchaseTicketMappingDtoList()
+                            .stream()
+                            .map(e -> new PurchaseTicketMappingDto(e.getAmenityId(), e.getTicketId(), e.getQuantity()))
+                            .collect(Collectors.toList())
+            );
 
             // Redis에 ticketId:amenityId 저장
-            requestVo.getPurchaseTicketMappingVoList()
+            params.getPurchaseTicketMappingDtoList()
                     .forEach(vo -> cacheManager.setAmenityIdOfTicket(vo.getTicketId(), vo.getAmenityId()));
 
             // orderName 생성
@@ -129,7 +133,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             );
             txManager.commit(sts);
 
-            return CreateOrderResponseVo.builder()
+            return PurchaseCreateResS.builder()
                     .amount(amount)
                     .orderId(orderId)
                     .orderName(orderName)
@@ -142,12 +146,12 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    public void approvePurchase(final ApproveOrderRequestVo requestVo) throws IOException, InterruptedException {
+    public void approvePurchase(final PurchaseApproveReqS params) throws IOException, InterruptedException {
 
         /**
          * Step 1. orderId 로부터 티켓 정보 불러오기
          */
-        final Map<Long, Integer> ticketInfo = cacheManager.getTicketInfoOfPurchase(requestVo.getOrderId());
+        final Map<Long, Integer> ticketInfo = cacheManager.getTicketInfoOfPurchase(params.getOrderId());
         if (ticketInfo.isEmpty()) {
             throw new CommonException(ResponseCode.ORDER_NOT_FOUND);
         }
@@ -181,16 +185,16 @@ public class PurchaseServiceImpl implements PurchaseService {
             /**
              * Step 4. orderId로부터 Purchase 엔티티 조회
              */
-            final Purchase purchase = purchaseRepository.findByOrderId(requestVo.getOrderId())
+            final Purchase purchase = purchaseRepository.findByOrderId(params.getOrderId())
                     .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
             /**
              * Step 5. tossPayments API 호출
              */
             tossPaymentsConnector.approvePayments(
-                    requestVo.getPaymentKey(),
-                    requestVo.getAmount(),
-                    requestVo.getOrderId()
+                    params.getPaymentKey(),
+                    params.getAmount(),
+                    params.getOrderId()
             );
 
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
@@ -226,21 +230,21 @@ public class PurchaseServiceImpl implements PurchaseService {
             throw e;
         } finally {
             cacheManager.unlock(lockWithTimeOut.getRLock());
-            cacheManager.removeTicketInfoOfPurchase(requestVo.getOrderId());
+            cacheManager.removeTicketInfoOfPurchase(params.getOrderId());
         }
     }
 
     @Override
     @Transactional
-    public void cancelPurchase(final CancelPurchaseRequestVo requestVo) {
+    public void cancelPurchase(final PurchaseCancelReqS params) {
         final Purchase purchase =
-                purchaseRepository.findByOrderId(requestVo.getOrderId()).orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
+                purchaseRepository.findByOrderId(params.getOrderId()).orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
         if (purchase.getOrderStatus()!=OrderStatus.IN_PROGRESS) {
             throw new CommonException(ResponseCode.CANCEL_NOT_ENABLE);
         }
 
         purchase.changeOrderStatus(OrderStatus.CANCELLED);
-        cacheManager.removeTicketInfoOfPurchase(requestVo.getOrderId());
+        cacheManager.removeTicketInfoOfPurchase(params.getOrderId());
     }
 }
