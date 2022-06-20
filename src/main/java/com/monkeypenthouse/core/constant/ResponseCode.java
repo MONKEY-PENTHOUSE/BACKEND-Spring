@@ -30,6 +30,10 @@ public enum ResponseCode {
     ORDER_CREATE_FAILED(4007, "주문 생성에 실패하였습니다.", HttpStatus.BAD_REQUEST),
     CANCEL_NOT_ENABLE(4008, "취소할 수 없는 주문입니다.", HttpStatus.BAD_REQUEST),
 
+    CANCEL_UNABLE_AMENITY(4009, "이미 마감되어 취소할 수 없는 어메니티입니다.", HttpStatus.BAD_REQUEST),
+
+    PURCHASE_UNABLE_AMENITY(4010, "이미 마감되어 주문 할 수 없는 어메니티입니다.", HttpStatus.BAD_REQUEST),
+
     DATA_INTEGRITY_VIOLATED(9000, "무결성 제약 조건에 위반하는 데이터입니다.", HttpStatus.CONFLICT),
     AUTHENTICATION_FAILED(9001, "인증 실패하였습니다.", HttpStatus.UNAUTHORIZED),
     REISSUE_FAILED(9002, "토큰 재발급에 실패하였습니다.", HttpStatus.UNAUTHORIZED),

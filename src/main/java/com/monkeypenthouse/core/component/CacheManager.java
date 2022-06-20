@@ -28,8 +28,8 @@ public class CacheManager {
     private final AmenityRepository amenityRepository;
     private final TicketStockRepository ticketStockRepository;
 
-    public int getTotalQuantityOfTicket(Long ticketId) {
-        Integer value = (Integer) redissonClient.getBucket(ticketId + ":totalQuantity").get();
+    public Long getTotalQuantityOfTicket(Long ticketId) {
+        Long value =  redissonClient.getAtomicLong(ticketId + ":totalQuantity").get();
         return value != null ? value : ticketStockRepository.findByTicketId(ticketId).getTotalQuantity();
     }
 
@@ -46,11 +46,16 @@ public class CacheManager {
         redissonClient.getBucket(ticketId + ":purchasedQuantity").set(purchasedQuantity);
     }
 
-    public Map<Long, Integer> getTicketInfoOfPurchase(String orderId) {
-        RMap<Long, Integer> rMap = redissonClient.getMap(orderId + ":ticketInfo");
+    public Long addPurchasedQuantityOfTicket(Long ticketId, int amount) {
+        return redissonClient.getAtomicLong(ticketId + ":purchasedQuantity").addAndGet(amount);
+    }
+
+
+    public Map<Long, Long> getTicketInfoOfPurchase(String orderId) {
+        RMap<Long, Long> rMap = redissonClient.getMap(orderId + ":ticketInfo");
         if (rMap != null) return rMap.readAllMap();
 
-        Map<Long, Integer> map = new HashMap<>();
+        Map<Long, Long> map = new HashMap<>();
         purchaseTicketMappingRepository.findAllByOrderId(orderId).forEach(
                 pt -> map.put(pt.getTicket().getId(), pt.getQuantity())
         );
@@ -83,16 +88,20 @@ public class CacheManager {
     }
 
     public void setTotalQuantityOfAmenity(Long amenityId, int totalQuantity) {
-        redissonClient.getBucket(amenityId + ":totalQuantityOfTickets").set(totalQuantity);
+        redissonClient.getAtomicLong(amenityId + ":totalQuantityOfTickets").set(totalQuantity);
     }
 
     public int getPurchasedQuantityOfAmenity(Long amenityId) {
-        Integer value = (Integer) redissonClient.getBucket(amenityId + ":purchasedQuantityOfTickets").get();
+        Integer value = (Integer) redissonClient.getAtomicLong(amenityId + ":purchasedQuantityOfTickets").get();
         return value != null ? value : amenityRepository.countTotalQuantity(amenityId);
     }
 
     public void setPurchasedQuantityOfAmenity(Long amenityId, int purchasedQuantity) {
-        redissonClient.getBucket(amenityId + ":purchasedQuantityOfTickets").set(purchasedQuantity);
+        redissonClient.getAtomicLong(amenityId + ":purchasedQuantityOfTickets").set(purchasedQuantity);
+    }
+
+    public Long addPurchasedQuantityOfAmenity(Long amenityId, int amount) {
+        return redissonClient.getAtomicLong(amenityId + ":purchasedQuantityOfTickets").addAndGet(amount);
     }
 
     // 현재 사용해야할 SerialNum을 반환

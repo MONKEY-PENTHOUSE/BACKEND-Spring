@@ -15,4 +15,6 @@ public interface PurchaseService {
 
     void approvePurchase(final PurchaseApproveReqS params) throws IOException, InterruptedException;
     void cancelPurchase(final PurchaseCancelReqS params);
+
+    void refundPurchase(Long purchaseId);
 }

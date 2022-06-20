@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.repository;
 
+import com.monkeypenthouse.core.repository.entity.Purchase;
 import com.monkeypenthouse.core.repository.entity.PurchaseTicketMapping;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;

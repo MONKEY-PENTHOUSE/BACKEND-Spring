@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PurchaseServiceImpl implements PurchaseService {
 
+    private final AmenityRepository amenityRepository;
     private final PurchaseRepository purchaseRepository;
     private final PurchaseTicketMappingRepository purchaseTicketMappingRepository;
     private final TicketRepository ticketRepository;
@@ -48,6 +49,14 @@ public class PurchaseServiceImpl implements PurchaseService {
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
         TransactionStatus sts = txManager.getTransaction(def);
+
+        final Amenity amenity = amenityRepository.findById(
+                params.getPurchaseTicketMappingDtoList().get(0).getAmenityId())
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
+
+        if (amenity.getStatus() != 0) {
+            throw new CommonException(ResponseCode.PURCHASE_UNABLE_AMENITY);
+        }
 
         /**
          * Step 1. 티켓 리스트 DB 조회
@@ -124,7 +133,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             // Purchase 엔티티 생성
             final User user = userService.getUserByEmail(userDetails.getUsername());
 
-            final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
+            final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS, );
             purchaseRepository.save(purchase);
 
             // PurchaseTicketMapping 엔티티 생성
@@ -151,7 +160,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         /**
          * Step 1. orderId 로부터 티켓 정보 불러오기
          */
-        final Map<Long, Integer> ticketInfo = cacheManager.getTicketInfoOfPurchase(params.getOrderId());
+        final Map<Long, Long> ticketInfo = cacheManager.getTicketInfoOfPurchase(params.getOrderId());
         if (ticketInfo.isEmpty()) {
             throw new CommonException(ResponseCode.ORDER_NOT_FOUND);
         }
@@ -172,7 +181,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             // 티켓 재고 수량 검증
             for (Long ticketId : ticketInfo.keySet()) {
-                Integer ticketQuantity = ticketInfo.get(ticketId);
+                Long ticketQuantity = ticketInfo.get(ticketId);
 
                 if (
                         cacheManager.getTotalQuantityOfTicket(ticketId) <
@@ -198,12 +207,13 @@ public class PurchaseServiceImpl implements PurchaseService {
             );
 
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
+            purchase.setPaymentsKey(params.getPaymentKey());
 
             /**
              * Step 6. tossPayments API 승인 시 Redis / DB 업데이트
              */
             for (Long ticketId : ticketInfo.keySet()) {
-                Integer ticketQuantity = ticketInfo.get(ticketId);
+                Long ticketQuantity = ticketInfo.get(ticketId);
                 Long amenityId = cacheManager.getAmenityIdOfTicket(ticketId);
 
                 // DB 업데이트
@@ -238,7 +248,8 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Transactional
     public void cancelPurchase(final PurchaseCancelReqS params) {
         final Purchase purchase =
-                purchaseRepository.findByOrderId(params.getOrderId()).orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
+                purchaseRepository.findByOrderId(params.getOrderId())
+                        .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
         if (purchase.getOrderStatus()!=OrderStatus.IN_PROGRESS) {
             throw new CommonException(ResponseCode.CANCEL_NOT_ENABLE);
@@ -246,5 +257,44 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         purchase.changeOrderStatus(OrderStatus.CANCELLED);
         cacheManager.removeTicketInfoOfPurchase(params.getOrderId());
+    }
+
+    @Override
+    public void refundPurchase(PurchaseRefundReqS params) throws IOException, InterruptedException {
+        // 유효성 검사 1. 주문 정보 유효성 검사
+        final Purchase purchase = purchaseRepository.findById(params.getPurchaseId())
+                .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
+
+        if (purchase.getOrderStatus() != OrderStatus.COMPLETED) {
+            throw new CommonException(ResponseCode.CANCEL_NOT_ENABLE);
+        }
+
+        // 유효성 검사 2. 어메니티 정보 유효성 검사
+        final Amenity amenity = amenityRepository.findById(params.getAmenityId())
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
+
+        if (amenity.getStatus() != 0) {
+            throw new CommonException(ResponseCode.CANCEL_UNABLE_AMENITY);
+        }
+
+        // 2. tosspayments 취소 요청
+        tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.CHANGE_OF_MIND);
+
+        // 3. purchase 정보 수정
+        purchase.setCancelReason(CancelReason.CHANGE_OF_MIND);
+
+        // 4. 재고 관리
+        purchase.getPurchaseTicketMappingList().forEach(
+                e -> cacheManager.addPurchasedQuantityOfTicket(e.getTicket().getId(), e.getQuantity())
+        );
+
+        int totalAmount = purchase.getPurchaseTicketMappingList()
+                .stream().mapToInt(PurchaseTicketMapping::getQuantity).sum();
+
+        cacheManager.add
+
+
+
+
     }
 }
