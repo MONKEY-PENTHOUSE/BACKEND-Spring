@@ -223,10 +223,10 @@ public class PurchaseServiceImpl implements PurchaseService {
                 ticketStock.increasePurchasedQuantity(ticketQuantity);
 
                 // Redis 업데이트
-                int newPurchasedQuantity = cacheManager.getPurchasedQuantityOfTicket(ticketId) + ticketQuantity;
+                long newPurchasedQuantity = cacheManager.getPurchasedQuantityOfTicket(ticketId) + ticketQuantity;
                 cacheManager.setPurchasedQuantityOfTicket(ticketId, newPurchasedQuantity);
 
-                int newAmenityQuantity = cacheManager.getPurchasedQuantityOfAmenity(amenityId) + ticketQuantity;
+                long newAmenityQuantity = cacheManager.getPurchasedQuantityOfAmenity(amenityId) + ticketQuantity;
                 cacheManager.setPurchasedQuantityOfAmenity(amenityId, newAmenityQuantity);
             }
 
@@ -288,10 +288,10 @@ public class PurchaseServiceImpl implements PurchaseService {
                 e -> cacheManager.addPurchasedQuantityOfTicket(e.getTicket().getId(), e.getQuantity())
         );
 
-        int totalAmount = purchase.getPurchaseTicketMappingList()
-                .stream().mapToInt(PurchaseTicketMapping::getQuantity).sum();
+        Long totalAmount = purchase.getPurchaseTicketMappingList()
+                .stream().mapToLong(PurchaseTicketMapping::getQuantity).sum();
 
-        cacheManager.add
+        cacheManager.
 
 
 
