@@ -260,8 +260,10 @@ public class PurchaseServiceImpl implements PurchaseService {
             PurchaseRefundTossPayResI resI =
                     tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.EVENT_CANCELLED);
 
+            purchase.setCancelReason(CancelReason.EVENT_CANCELLED);
+
             if (resI.getStatusCode()==200) {
-                purchase.setCancelReason(CancelReason.EVENT_CANCELLED);
+                purchase.changeOrderStatus(OrderStatus.CANCELLED);
             }
             else {
                 purchase.changeOrderStatus(OrderStatus.CANCEL_FAILED);
