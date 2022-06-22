@@ -356,7 +356,6 @@ public class AmenityServiceImpl implements AmenityService {
     public void handleClosingProcessOfAmenity(){
         amenityRepository.findAllByDeadlineDate(LocalDate.now()).stream()
                 .filter(a -> cacheManager.getPurchasedQuantityOfAmenity(a.getId()) < a.getMinPersonNum())
-                .collect(Collectors.toList())
                 .forEach(a -> {
                     try {
                         purchaseService.refundAllPurchasesByAmenity(new PurchaseRefundAllByAmenityReqS(a.getId()));
