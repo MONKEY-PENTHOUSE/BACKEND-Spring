@@ -3,7 +3,7 @@ package com.monkeypenthouse.core.repository.entity;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum CancelReason {
-    CHANGE_OF_MIND("고객 변심"), MINIMUM_NUMBER_NOT_MET("최소 인원 미달성");
+    CHANGE_OF_MIND("고객 변심"), EVENT_CANCELLED("이벤트 취소");
 
     private final String value;
 
