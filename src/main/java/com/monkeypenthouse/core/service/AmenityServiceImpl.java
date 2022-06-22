@@ -12,6 +12,7 @@ import com.monkeypenthouse.core.repository.dto.TicketOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.TicketOfOrderedDto;
 import com.monkeypenthouse.core.repository.entity.*;
 import com.monkeypenthouse.core.service.dto.amenity.*;
+import com.monkeypenthouse.core.service.dto.purchase.PurchaseRefundAllByAmenityReqS;
 import com.monkeypenthouse.core.service.dto.ticket.TicketOfAmenityS;
 import com.monkeypenthouse.core.service.dto.ticket.TicketOfOrderedS;
 import com.monkeypenthouse.core.service.dto.ticket.TicketSaveReqS;
@@ -46,6 +47,7 @@ public class AmenityServiceImpl implements AmenityService {
     private final CategoryRepository categoryRepository;
     private final AmenityCategoryRepository amenityCategoryRepository;
     private final UserService userService;
+    private final PurchaseService purchaseService;
 
     private final ImageManager imageManager;
     private final ModelMapper modelMapper;
@@ -104,7 +106,7 @@ public class AmenityServiceImpl implements AmenityService {
         int maxPersonNum = 0;
         for (TicketSaveReqS ticketS : params.getTickets()) {
             Ticket ticket = modelMapper.map(ticketS, Ticket.class);
-            if (startDate ==  null || startDate.isAfter(ticketS.getEventDateTime().toLocalDate())) {
+            if (startDate == null || startDate.isAfter(ticketS.getEventDateTime().toLocalDate())) {
                 startDate = ticketS.getEventDateTime().toLocalDate();
             }
             maxPersonNum += ticket.getCapacity();
@@ -117,7 +119,7 @@ public class AmenityServiceImpl implements AmenityService {
         amenity.setMaxPersonNum(maxPersonNum);
 
         List<Photo> photos = new ArrayList<>();
-       // 배너 사진 리스트 저장
+        // 배너 사진 리스트 저장
         for (int i = 0; i < params.getBannerPhotos().size(); i++) {
             String fileName = imageManager.uploadImageOnS3(params.getBannerPhotos().get(i), "banner");
             if (i == 0) {
@@ -157,7 +159,7 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     private AmenityGetByIdResS amenityDetailDtoToVo(Amenity amenity,
-                                                   CurrentPersonAndFundingPriceAndDibsOfAmenityDto currentPersonAndFundingPriceAndDibs)
+                                                    CurrentPersonAndFundingPriceAndDibsOfAmenityDto currentPersonAndFundingPriceAndDibs)
             throws CloudFrontServiceException, IOException {
         List<Photo> photos = amenity.getPhotos();
         List<String> bannerPhotos = new ArrayList<>();
@@ -232,7 +234,7 @@ public class AmenityServiceImpl implements AmenityService {
                                         .description(TicketOfAmenityDto.getDescription())
                                         .price(TicketOfAmenityDto.getPrice())
                                         .maxCount(TicketOfAmenityDto.getMaxCount())
-                                        .availableCount(TicketOfAmenityDto.getMaxCount()- TicketOfAmenityDto.getReservedCount())
+                                        .availableCount(TicketOfAmenityDto.getMaxCount() - TicketOfAmenityDto.getReservedCount())
                                         .build())
                                 .collect(Collectors.toList()))
                 .build();
@@ -249,10 +251,10 @@ public class AmenityServiceImpl implements AmenityService {
     @Override
     public AmenityGetViewedResS getViewed(List<Long> amenityIds) throws CloudFrontServiceException, IOException {
         List<AmenitySimpleDto> amenitySimpleDtos = amenityRepository.findAllById(
-                amenityIds.size() > 5 ? amenityIds.subList(0,5) : amenityIds);
-        List<AmenitySimpleResS>  amenitySimpleList = new ArrayList<>();
+                amenityIds.size() > 5 ? amenityIds.subList(0, 5) : amenityIds);
+        List<AmenitySimpleResS> amenitySimpleList = new ArrayList<>();
         for (AmenitySimpleDto dto : amenitySimpleDtos) {
-            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
+            String signedUrl = cloudFrontManager.getSignedUrlWithCannedPolicy(dto.getThumbnailName());
             amenitySimpleList.add(AmenitySimpleResS.builder()
                     .id(dto.getId())
                     .title(dto.getTitle())
@@ -290,7 +292,7 @@ public class AmenityServiceImpl implements AmenityService {
                 .tickets(
                         dtoList.stream().map(
                                 e -> TicketOfOrderedS
-                                .builder()
+                                        .builder()
                                         .id(e.getId())
                                         .name(e.getName())
                                         .detail(e.getDetail())
@@ -309,7 +311,7 @@ public class AmenityServiceImpl implements AmenityService {
         List<AmenitySimpleResS> amenitySimpleList = new ArrayList<>();
         for (AmenitySimpleDto dto : pages.getContent()) {
             String filename = "thumbnail/" + dto.getThumbnailName();
-            String signedUrl =  cloudFrontManager.getSignedUrlWithCannedPolicy(filename);
+            String signedUrl = cloudFrontManager.getSignedUrlWithCannedPolicy(filename);
             amenitySimpleList.add(AmenitySimpleResS.builder()
                     .id(dto.getId())
                     .title(dto.getTitle())
@@ -348,4 +350,21 @@ public class AmenityServiceImpl implements AmenityService {
         }
     }
 
+    @Override
+    @Scheduled(cron = "0 5 0 * * ?") // 매일 0시 5분에
+    @Transactional
+    public void handleClosingProcessOfAmenity(){
+        amenityRepository.findAllByDeadlineDate(LocalDate.now()).stream()
+                .filter(a -> cacheManager.getPurchasedQuantityOfAmenity(a.getId()) < a.getMinPersonNum())
+                .collect(Collectors.toList())
+                .forEach(a -> {
+                    try {
+                        purchaseService.refundAllPurchasesByAmenity(new PurchaseRefundAllByAmenityReqS(a.getId()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
 }

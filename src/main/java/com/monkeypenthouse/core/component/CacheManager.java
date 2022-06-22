@@ -88,7 +88,7 @@ public class CacheManager {
 
     public int getPurchasedQuantityOfAmenity(Long amenityId) {
         Integer value = (Integer) redissonClient.getBucket(amenityId + ":purchasedQuantityOfTickets").get();
-        return value != null ? value : amenityRepository.countTotalQuantity(amenityId);
+        return value != null ? value : amenityRepository.countPurchasedQuantity(amenityId);
     }
 
     public void setPurchasedQuantityOfAmenity(Long amenityId, int purchasedQuantity) {

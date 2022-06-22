@@ -2,7 +2,9 @@ package com.monkeypenthouse.core.connect;
 
 import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.controller.dto.purchase.PurchaseApproveTossPayResI;
+import com.monkeypenthouse.core.controller.dto.purchase.PurchaseRefundTossPayResI;
 import com.monkeypenthouse.core.exception.CommonException;
+import com.monkeypenthouse.core.repository.entity.CancelReason;
 import lombok.RequiredArgsConstructor;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,5 +42,23 @@ public class TossPaymentsConnector {
         }
 
         return objectMapper.readValue(response.body(), PurchaseApproveTossPayResI.class);
+    }
+
+    public PurchaseRefundTossPayResI refundPayments(final String paymentKey, final CancelReason cancelReason)
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel"))
+                .header("Authorization", tossPaymentsApiKey)
+                .header("Content-Type", "application/json")
+                .method("POST", HttpRequest.BodyPublishers.ofString("{\"cancelReason\":\"" + cancelReason.value() + "\"}"))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        PurchaseRefundTossPayResI resI = objectMapper.readValue(response.body(), PurchaseRefundTossPayResI.class);
+        resI.setStatusCode(response.statusCode());
+
+        return resI;
     }
 }

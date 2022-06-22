@@ -4,6 +4,7 @@ import com.monkeypenthouse.core.component.CacheManager;
 import com.monkeypenthouse.core.component.OrderIdGenerator;
 import com.monkeypenthouse.core.connect.TossPaymentsConnector;
 import com.monkeypenthouse.core.constant.ResponseCode;
+import com.monkeypenthouse.core.controller.dto.purchase.PurchaseRefundTossPayResI;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.repository.dto.PurchaseTicketMappingDto;
@@ -39,7 +40,6 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final DataSourceTransactionManager txManager;
 
     private final TossPaymentsConnector tossPaymentsConnector;
-
 
 
     @Override
@@ -124,7 +124,9 @@ public class PurchaseServiceImpl implements PurchaseService {
             // Purchase 엔티티 생성
             final User user = userService.getUserByEmail(userDetails.getUsername());
 
-            final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
+            final Purchase purchase = new Purchase(user, params.getPurchaseTicketMappingDtoList().get(0).getAmenityId(),
+                    orderId, orderName, amount, OrderStatus.IN_PROGRESS);
+
             purchaseRepository.save(purchase);
 
             // PurchaseTicketMapping 엔티티 생성
@@ -240,11 +242,30 @@ public class PurchaseServiceImpl implements PurchaseService {
         final Purchase purchase =
                 purchaseRepository.findByOrderId(params.getOrderId()).orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
-        if (purchase.getOrderStatus()!=OrderStatus.IN_PROGRESS) {
+        if (purchase.getOrderStatus() != OrderStatus.IN_PROGRESS) {
             throw new CommonException(ResponseCode.CANCEL_NOT_ENABLE);
         }
 
         purchase.changeOrderStatus(OrderStatus.CANCELLED);
         cacheManager.removeTicketInfoOfPurchase(params.getOrderId());
+    }
+
+    @Override
+    @Transactional
+    public void refundAllPurchasesByAmenity(final PurchaseRefundAllByAmenityReqS params) throws IOException, InterruptedException {
+        final List<Purchase> purchaseList =
+                purchaseRepository.findAllByAmenityIdAndOrderStatus(params.getAmenityId(), OrderStatus.COMPLETED);
+
+        for (Purchase purchase : purchaseList) {
+            PurchaseRefundTossPayResI resI =
+                    tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.EVENT_CANCELLED);
+
+            if (resI.getStatusCode()==200) {
+                purchase.setCancelReason(CancelReason.EVENT_CANCELLED);
+            }
+            else {
+                purchase.changeOrderStatus(OrderStatus.CANCEL_FAILED);
+            }
+        }
     }
 }

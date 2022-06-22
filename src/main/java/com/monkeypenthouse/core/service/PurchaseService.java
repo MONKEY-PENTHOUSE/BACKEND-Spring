@@ -1,10 +1,7 @@
 package com.monkeypenthouse.core.service;
 
 
-import com.monkeypenthouse.core.service.dto.purchase.PurchaseApproveReqS;
-import com.monkeypenthouse.core.service.dto.purchase.PurchaseCancelReqS;
-import com.monkeypenthouse.core.service.dto.purchase.PurchaseCreateReqS;
-import com.monkeypenthouse.core.service.dto.purchase.PurchaseCreateResS;
+import com.monkeypenthouse.core.service.dto.purchase.*;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.IOException;
@@ -15,4 +12,5 @@ public interface PurchaseService {
 
     void approvePurchase(final PurchaseApproveReqS params) throws IOException, InterruptedException;
     void cancelPurchase(final PurchaseCancelReqS params);
+    void refundAllPurchasesByAmenity(final PurchaseRefundAllByAmenityReqS params) throws IOException, InterruptedException;
 }
