@@ -43,7 +43,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .where(amenity.id.eq(id))
                 .groupBy(amenity.id)
                 .select(
-                        new QCurrentPersonAndFundingPriceAndDibsOfAmenityDTO(
+                        new QCurrentPersonAndFundingPriceAndDibsOfAmenityDto(
                                 purchaseTicketMapping.quantity.sum().coalesce(0),
                                 ticket.price.multiply(purchaseTicketMapping.quantity.coalesce(0)).sum(),
                                 ExpressionUtils.as(
@@ -202,7 +202,7 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .leftJoin(amenity.tickets, ticket)
                 .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
                 .groupBy(amenity.id)
-                .select(new QAmenitySimpleDTO(
+                .select(new QAmenitySimpleDto(
                         amenity.id,
                         amenity.title,
                         amenity.minPersonNum,
