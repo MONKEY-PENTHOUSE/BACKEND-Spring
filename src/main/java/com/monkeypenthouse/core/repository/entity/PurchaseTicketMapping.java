@@ -26,7 +26,7 @@ public class PurchaseTicketMapping {
     private Ticket ticket;
 
     @Column(nullable = false)
-    private Long quantity;
+    private int quantity;
 
     public PurchaseTicketMapping(Purchase purchase, Ticket ticket, int quantity) {
         this.purchase = purchase;

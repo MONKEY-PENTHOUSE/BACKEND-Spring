@@ -100,8 +100,8 @@ public class PurchaseServiceImpl implements PurchaseService {
                     e -> quantityMap.put(e.getTicketId(), e.getQuantity()));
 
             // amount 측정
-            final int amount = ticketList.stream()
-                    .mapToInt(t -> quantityMap.get(t.getId()) * t.getPrice())
+            final long amount = ticketList.stream()
+                    .mapToLong(t -> quantityMap.get(t.getId()) * t.getPrice())
                     .sum();
 
             // orderId 생성
@@ -133,7 +133,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             // Purchase 엔티티 생성
             final User user = userService.getUserByEmail(userDetails.getUsername());
 
-            final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS, );
+            final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
             purchaseRepository.save(purchase);
 
             // PurchaseTicketMapping 엔티티 생성
@@ -160,7 +160,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         /**
          * Step 1. orderId 로부터 티켓 정보 불러오기
          */
-        final Map<Long, Long> ticketInfo = cacheManager.getTicketInfoOfPurchase(params.getOrderId());
+        final Map<Long, Integer> ticketInfo = cacheManager.getTicketInfoOfPurchase(params.getOrderId());
         if (ticketInfo.isEmpty()) {
             throw new CommonException(ResponseCode.ORDER_NOT_FOUND);
         }
@@ -181,7 +181,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             // 티켓 재고 수량 검증
             for (Long ticketId : ticketInfo.keySet()) {
-                Long ticketQuantity = ticketInfo.get(ticketId);
+                Integer ticketQuantity = ticketInfo.get(ticketId);
 
                 if (
                         cacheManager.getTotalQuantityOfTicket(ticketId) <
@@ -213,7 +213,7 @@ public class PurchaseServiceImpl implements PurchaseService {
              * Step 6. tossPayments API 승인 시 Redis / DB 업데이트
              */
             for (Long ticketId : ticketInfo.keySet()) {
-                Long ticketQuantity = ticketInfo.get(ticketId);
+                Integer ticketQuantity = ticketInfo.get(ticketId);
                 Long amenityId = cacheManager.getAmenityIdOfTicket(ticketId);
 
                 // DB 업데이트
@@ -278,23 +278,21 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         // 2. tosspayments 취소 요청
-        tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.CHANGE_OF_MIND);
+        tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
 
         // 3. purchase 정보 수정
-        purchase.setCancelReason(CancelReason.CHANGE_OF_MIND);
+        purchase.setCancelReason(CancelReason.CUSTOMER_REMORSE);
 
-        // 4. 재고 관리
+        // 4. 재고 관리 - ticket 재고 관리
         purchase.getPurchaseTicketMappingList().forEach(
                 e -> cacheManager.addPurchasedQuantityOfTicket(e.getTicket().getId(), e.getQuantity())
         );
 
-        Long totalAmount = purchase.getPurchaseTicketMappingList()
-                .stream().mapToLong(PurchaseTicketMapping::getQuantity).sum();
+        // 4. 재고 관리 - amenity 재고 관리
+        int totalAmount = purchase.getPurchaseTicketMappingList()
+                .stream().mapToInt(PurchaseTicketMapping::getQuantity).sum();
 
-        cacheManager.
-
-
-
+        cacheManager.addPurchasedQuantityOfAmenity(params.getAmenityId(), totalAmount);
 
     }
 }

@@ -8,5 +8,5 @@ import lombok.RequiredArgsConstructor;
 public class PurchaseTicketMappingDto {
     public final Long amenityId;
     public final Long ticketId;
-    public final Long quantity;
+    public final Integer quantity;
 }

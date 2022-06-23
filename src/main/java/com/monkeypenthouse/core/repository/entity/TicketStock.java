@@ -21,12 +21,12 @@ public class TicketStock {
     private Long ticketId;
 
     @Column(nullable=false)
-    private Long totalQuantity;
+    private Integer totalQuantity;
 
     @Column(nullable=false)
-    private Long purchasedQuantity;
+    private Integer purchasedQuantity;
 
-    public void increasePurchasedQuantity(Long quantity) {
+    public void increasePurchasedQuantity(int quantity) {
         purchasedQuantity += quantity;
     }
 }
