@@ -13,6 +13,7 @@ public enum ResponseCode {
     USER_NOT_FOUND(1000, "회원이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     TICKET_NOT_FOUND(1001, "티켓이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     ORDER_NOT_FOUND(1002, "주문이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    AMENITY_NOT_FOUND(1003, "어매니티가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 
     DATA_NOT_FOUND(2000, "데이터가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     DATA_DUPLICATED(2001, "데이터가 중복되었습니다.", HttpStatus.CONFLICT),
@@ -29,6 +30,7 @@ public enum ResponseCode {
     NOT_ENOUGH_TICKETS(4006, "티켓 재고가 부족합니다.", HttpStatus.BAD_REQUEST),
     ORDER_CREATE_FAILED(4007, "주문 생성에 실패하였습니다.", HttpStatus.BAD_REQUEST),
     CANCEL_NOT_ENABLE(4008, "취소할 수 없는 주문입니다.", HttpStatus.BAD_REQUEST),
+    AMENITY_ALREADY_CLOSED(4009, "어매니티가 마감되었습니다.", HttpStatus.BAD_REQUEST),
 
     DATA_INTEGRITY_VIOLATED(9000, "무결성 제약 조건에 위반하는 데이터입니다.", HttpStatus.CONFLICT),
     AUTHENTICATION_FAILED(9001, "인증 실패하였습니다.", HttpStatus.UNAUTHORIZED),

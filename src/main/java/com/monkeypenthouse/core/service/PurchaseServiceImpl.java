@@ -20,16 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PurchaseServiceImpl implements PurchaseService {
 
+    private final AmenityRepository amenityRepository;
     private final PurchaseRepository purchaseRepository;
     private final PurchaseTicketMappingRepository purchaseTicketMappingRepository;
     private final TicketRepository ticketRepository;
@@ -50,7 +48,17 @@ public class PurchaseServiceImpl implements PurchaseService {
         TransactionStatus sts = txManager.getTransaction(def);
 
         /**
-         * Step 1. 티켓 리스트 DB 조회
+         * Step 1. 어매니티가 마감되었는지 체크
+         */
+        final Amenity amenity = amenityRepository.findById(params.getPurchaseTicketMappingDtoList().get(0).getAmenityId())
+                .orElseThrow(() -> new CommonException(ResponseCode.AMENITY_NOT_FOUND));
+
+        if (amenity.getStatus() != 0) {
+            throw new CommonException(ResponseCode.AMENITY_ALREADY_CLOSED);
+        }
+
+        /**
+         * Step 2. 티켓 리스트 DB 조회
          */
 
         final List<Ticket> ticketList;
@@ -67,7 +75,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
 
             /**
-             * Step 2. 티켓 재고 수량 체크
+             * Step 3. 티켓 재고 수량 체크
              */
 
             // 티켓 재고 수량 검증
@@ -81,7 +89,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
 
             /**
-             * Step 3. 총 주문 금액, 주문 번호, 주문 이름 생성
+             * Step 4. 총 주문 금액, 주문 번호, 주문 이름 생성
              */
 
             // 티켓 ID : 구매 개수 HashMap 구성
@@ -118,7 +126,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
 
             /**
-             * Step 4. Purchase 및 PurchaseTicketMapping 엔티티 생성 후 return
+             * Step 5. Purchase 및 PurchaseTicketMapping 엔티티 생성 후 return
              */
 
             // Purchase 엔티티 생성
@@ -262,10 +270,9 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             purchase.setCancelReason(CancelReason.EVENT_CANCELLED);
 
-            if (resI.getStatusCode()==200) {
+            if (resI.getStatusCode() == 200) {
                 purchase.changeOrderStatus(OrderStatus.CANCELLED);
-            }
-            else {
+            } else {
                 purchase.changeOrderStatus(OrderStatus.CANCEL_FAILED);
             }
         }
