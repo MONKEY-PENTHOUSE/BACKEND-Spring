@@ -1,5 +1,7 @@
 package com.monkeypenthouse.core.repository.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -10,6 +12,8 @@ import javax.persistence.*;
 @Getter
 @Table(name="ticket_stock")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
 public class TicketStock {
 

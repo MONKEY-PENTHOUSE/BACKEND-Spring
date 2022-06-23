@@ -45,7 +45,7 @@ public class PurchaseController {
     }
 
     @PostMapping(value = "/refund")
-    public CommonResponseEntity refundPurchase(@RequestBody final PurchaseRefundReqI request)  {
+    public CommonResponseEntity refundPurchase(@RequestBody final PurchaseRefundReqI request) throws IOException, InterruptedException {
         purchaseService.refundPurchase(request.getPurchaseId());
         return commonResponseMaker.makeCommonResponse(ResponseCode.SUCCESS);
     }

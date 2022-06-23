@@ -7,13 +7,5 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class PurchaseRefundReqI {
-
     private Long purchaseId;
-
-    private Long amenityId;
-
-    public PurchaseRefundReqS toS() {
-        return new PurchaseRefundReqS(purchaseId, amenityId);
-    }
-
 }

@@ -11,5 +11,5 @@ public interface PurchaseService {
     PurchaseCreateResS createPurchase(final UserDetails userDetails, final PurchaseCreateReqS params) throws InterruptedException;
     void approvePurchase(final PurchaseApproveReqS params) throws IOException, InterruptedException;
     void cancelPurchase(final PurchaseCancelReqS params);
-    void refundPurchase(PurchaseRefundReqS params) throws IOException, InterruptedException;
+    void refundPurchase(Long purchaseId) throws IOException, InterruptedException;
 }

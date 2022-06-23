@@ -100,6 +100,7 @@ public class AmenityServiceImpl implements AmenityService {
 
         // 티켓 저장
         List<Ticket> tickets = new ArrayList<>();
+
         LocalDate startDate = null;
         int maxPersonNum = 0;
         for (TicketSaveReqS ticketS : params.getTickets()) {
@@ -110,8 +111,21 @@ public class AmenityServiceImpl implements AmenityService {
             maxPersonNum += ticket.getCapacity();
             ticket.setAmenity(savedAmenity);
             tickets.add(ticket);
+
+
         }
+
         ticketRepository.saveAll(tickets);
+        List<TicketStock> ticketStocks = new ArrayList<>();
+        for (Ticket ticket : tickets) {
+            ticketStocks.add(TicketStock
+                    .builder()
+                    .ticketId(ticket.getId())
+                    .totalQuantity(ticket.getCapacity())
+                    .purchasedQuantity(0)
+                    .build());
+        }
+        ticketStockRepository.saveAll(ticketStocks);
         // 어메니티 정보 업데이트
         amenity.setStartDate(startDate);
         amenity.setMaxPersonNum(maxPersonNum);

@@ -100,8 +100,8 @@ public class PurchaseServiceImpl implements PurchaseService {
                     e -> quantityMap.put(e.getTicketId(), e.getQuantity()));
 
             // amount 측정
-            final long amount = ticketList.stream()
-                    .mapToLong(t -> quantityMap.get(t.getId()) * t.getPrice())
+            final int amount = ticketList.stream()
+                    .mapToInt(t -> quantityMap.get(t.getId()) * t.getPrice())
                     .sum();
 
             // orderId 생성
@@ -133,7 +133,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             // Purchase 엔티티 생성
             final User user = userService.getUserByEmail(userDetails.getUsername());
 
-            final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
+            final Purchase purchase = new Purchase(user, amenity.getId(), orderId, orderName, amount, OrderStatus.IN_PROGRESS);
             purchaseRepository.save(purchase);
 
             // PurchaseTicketMapping 엔티티 생성
@@ -197,14 +197,14 @@ public class PurchaseServiceImpl implements PurchaseService {
             final Purchase purchase = purchaseRepository.findByOrderId(params.getOrderId())
                     .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
-            /**
-             * Step 5. tossPayments API 호출
-             */
-            tossPaymentsConnector.approvePayments(
-                    params.getPaymentKey(),
-                    params.getAmount(),
-                    params.getOrderId()
-            );
+//            /**
+//             * Step 5. tossPayments API 호출
+//             */
+//            tossPaymentsConnector.approvePayments(
+//                    params.getPaymentKey(),
+//                    params.getAmount(),
+//                    params.getOrderId()
+//            );
 
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
             purchase.setPaymentsKey(params.getPaymentKey());
@@ -223,10 +223,10 @@ public class PurchaseServiceImpl implements PurchaseService {
                 ticketStock.increasePurchasedQuantity(ticketQuantity);
 
                 // Redis 업데이트
-                long newPurchasedQuantity = cacheManager.getPurchasedQuantityOfTicket(ticketId) + ticketQuantity;
+                int newPurchasedQuantity = cacheManager.getPurchasedQuantityOfTicket(ticketId) + ticketQuantity;
                 cacheManager.setPurchasedQuantityOfTicket(ticketId, newPurchasedQuantity);
 
-                long newAmenityQuantity = cacheManager.getPurchasedQuantityOfAmenity(amenityId) + ticketQuantity;
+                int newAmenityQuantity = cacheManager.getPurchasedQuantityOfAmenity(amenityId) + ticketQuantity;
                 cacheManager.setPurchasedQuantityOfAmenity(amenityId, newAmenityQuantity);
             }
 
@@ -260,9 +260,9 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    public void refundPurchase(PurchaseRefundReqS params) throws IOException, InterruptedException {
+    public void refundPurchase(Long purchaseId) throws IOException, InterruptedException {
         // 유효성 검사 1. 주문 정보 유효성 검사
-        final Purchase purchase = purchaseRepository.findById(params.getPurchaseId())
+        final Purchase purchase = purchaseRepository.findById(purchaseId)
                 .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
         if (purchase.getOrderStatus() != OrderStatus.COMPLETED) {
@@ -270,7 +270,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         // 유효성 검사 2. 어메니티 정보 유효성 검사
-        final Amenity amenity = amenityRepository.findById(params.getAmenityId())
+        final Amenity amenity = amenityRepository.findById(purchase.getAmenityId())
                 .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
 
         if (amenity.getStatus() != 0) {
@@ -292,7 +292,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         int totalAmount = purchase.getPurchaseTicketMappingList()
                 .stream().mapToInt(PurchaseTicketMapping::getQuantity).sum();
 
-        cacheManager.addPurchasedQuantityOfAmenity(params.getAmenityId(), totalAmount);
+        cacheManager.addPurchasedQuantityOfAmenity(purchase.getAmenityId(), totalAmount);
 
     }
 }
