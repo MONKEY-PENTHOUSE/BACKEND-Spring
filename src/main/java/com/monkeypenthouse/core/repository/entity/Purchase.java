@@ -72,4 +72,6 @@ public class Purchase {
 
     public void setCancelReason(CancelReason cancelReason) { this.cancelReason = cancelReason; }
     public void setPaymentsKey(String paymentsKey) { this.paymentsKey = paymentsKey; }
+
 }
+

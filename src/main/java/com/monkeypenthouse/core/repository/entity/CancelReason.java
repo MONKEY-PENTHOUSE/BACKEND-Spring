@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum CancelReason {
     EVENT_CANCELLED("이벤트 취소"), CUSTOMER_REMORSE("고객 변심");
-
     private final String value;
-
     CancelReason(String value) { this.value = value; }
 
     @JsonCreator
