@@ -58,10 +58,10 @@ public class TossPaymentsConnector {
                 if (amount > 0) {
                     requestBuilder.method("POST", HttpRequest.BodyPublishers.ofString(
                             "{\"amount\":" + amount +
-                                    ",\"cancelReason\":\"" + cancelReason + "\"}"));
+                                    ",\"cancelReason\":\"" + cancelReason.value() + "\"}"));
                 } else {
                     requestBuilder.method("POST", HttpRequest.BodyPublishers.ofString(
-                                    "{\"cancelReason\":\"" + cancelReason + "\"}"));
+                                    "{\"cancelReason\":\"" + cancelReason.value() + "\"}"));
                 }
         HttpRequest request = requestBuilder.build();
 
