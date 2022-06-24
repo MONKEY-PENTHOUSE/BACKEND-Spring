@@ -39,8 +39,12 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .from(amenity)
                 .leftJoin(amenity.tickets, ticket)
                 .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
+                .leftJoin(purchaseTicketMapping.purchase, purchase)
                 .leftJoin(amenity.dibs, dibs)
-                .where(amenity.id.eq(id))
+                .where(
+                        amenity.id.eq(id),
+                        purchase.orderStatus.eq(OrderStatus.COMPLETED)
+                )
                 .groupBy(amenity.id)
                 .select(
                         new QCurrentPersonAndFundingPriceAndDibsOfAmenityDto(
@@ -164,11 +168,13 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
     @Override
     public int countPurchasedQuantity(Long amenityId) {
         return queryFactory
-                .from(amenity)
-                .leftJoin(amenity.tickets, ticket)
-                .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
-                .groupBy(amenity.id)
-                .where(amenity.id.eq(amenityId))
+                .from(purchase)
+                .leftJoin(purchase.purchaseTicketMappingList, purchaseTicketMapping)
+                .where(
+                        amenity.id.eq(amenityId),
+                        purchase.orderStatus.eq(OrderStatus.COMPLETED)
+                )
+                .groupBy(purchase.amenityId)
                 .select(purchaseTicketMapping.quantity.sum().coalesce(0))
                 .fetch().get(0);
     }
