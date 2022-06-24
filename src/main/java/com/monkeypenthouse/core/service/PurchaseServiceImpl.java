@@ -201,11 +201,11 @@ public class PurchaseServiceImpl implements PurchaseService {
             /**
              * Step 5. tossPayments API 호출
              */
-//            tossPaymentsConnector.approvePayments(
-//                    params.getPaymentKey(),
-//                    params.getAmount(),
-//                    params.getOrderId()
-//            );
+            tossPaymentsConnector.approvePayments(
+                    params.getPaymentKey(),
+                    params.getAmount(),
+                    params.getOrderId()
+            );
 
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
             purchase.setPaymentsKey(params.getPaymentKey());
@@ -280,7 +280,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         // 2. tosspayments 취소 요청
-//        tossPaymentsConnector.refundPayments1(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
+        tossPaymentsConnector.refundPayments1(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
 
         // 3. purchase 정보 수정
         purchase.changeOrderStatus(OrderStatus.CANCELLED);
