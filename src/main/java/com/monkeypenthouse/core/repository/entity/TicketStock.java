@@ -33,4 +33,8 @@ public class TicketStock {
     public void increasePurchasedQuantity(int quantity) {
         purchasedQuantity += quantity;
     }
+
+    public void decreasePurchasedQuantity(int quantity) {
+        purchasedQuantity -= quantity;
+    }
 }

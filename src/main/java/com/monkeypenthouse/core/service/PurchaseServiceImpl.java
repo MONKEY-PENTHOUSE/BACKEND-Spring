@@ -44,6 +44,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
 
     @Override
+    @Transactional
     public PurchaseCreateResS createPurchase(final UserDetails userDetails, final PurchaseCreateReqS params) {
 
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -155,6 +156,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
+    @Transactional
     public void approvePurchase(final PurchaseApproveReqS params) throws IOException, InterruptedException {
 
         /**
@@ -197,14 +199,14 @@ public class PurchaseServiceImpl implements PurchaseService {
             final Purchase purchase = purchaseRepository.findByOrderId(params.getOrderId())
                     .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
-//            /**
-//             * Step 5. tossPayments API 호출
-//             */
-//            tossPaymentsConnector.approvePayments(
-//                    params.getPaymentKey(),
-//                    params.getAmount(),
-//                    params.getOrderId()
-//            );
+            /**
+             * Step 5. tossPayments API 호출
+             */
+            tossPaymentsConnector.approvePayments(
+                    params.getPaymentKey(),
+                    params.getAmount(),
+                    params.getOrderId()
+            );
 
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
             purchase.setPaymentsKey(params.getPaymentKey());
@@ -260,6 +262,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
+    @Transactional
     public void refundPurchase(Long purchaseId) throws IOException, InterruptedException {
         // 유효성 검사 1. 주문 정보 유효성 검사
         final Purchase purchase = purchaseRepository.findById(purchaseId)
@@ -281,17 +284,22 @@ public class PurchaseServiceImpl implements PurchaseService {
         tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
 
         // 3. purchase 정보 수정
+        purchase.changeOrderStatus(OrderStatus.CANCELLED);
         purchase.setCancelReason(CancelReason.CUSTOMER_REMORSE);
 
         // 4. 재고 관리 - ticket 재고 관리
         purchase.getPurchaseTicketMappingList().forEach(
-                e -> cacheManager.addPurchasedQuantityOfTicket(e.getTicket().getId(), e.getQuantity())
+                e -> {
+                    cacheManager.addPurchasedQuantityOfTicket(e.getTicket().getId(), e.getQuantity());
+                    TicketStock ticketStock = ticketStockRepository.findById(e.getTicket().getId())
+                            .orElseThrow(() -> new CommonException(ResponseCode.TICKET_NOT_FOUND));
+                    ticketStock.decreasePurchasedQuantity(e.getQuantity());
+                }
         );
 
         // 4. 재고 관리 - amenity 재고 관리
         int totalAmount = purchase.getPurchaseTicketMappingList()
                 .stream().mapToInt(PurchaseTicketMapping::getQuantity).sum();
-
         cacheManager.addPurchasedQuantityOfAmenity(purchase.getAmenityId(), totalAmount);
 
     }

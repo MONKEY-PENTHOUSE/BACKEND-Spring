@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
                 params.getBirth(),
                 params.getGender(),
                 params.getEmail(),
-                params.getPassword(),
+                passwordEncoder.encode(params.getPassword()),
                 params.getPhoneNum(),
                 params.getInfoReceivable(),
                 null,
@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
         roomRepository.updateUserIdForVoidRoom(user.getId(), user.getAuthority());
         Room room = roomRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
-        user.setRoom(room);
+        userRepository.updateRoomId(user.getId(), room);
 
         return UserSignUpResS.builder()
                 .id(user.getId())
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
                 .gender(user.getGender())
                 .email(user.getEmail())
                 .phoneNum(user.getPhoneNum())
-                .roomId(user.getRoom().getId())
+                .roomId(room.getId())
                 .build();
     }
 
