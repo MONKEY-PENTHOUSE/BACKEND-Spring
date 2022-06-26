@@ -2,8 +2,10 @@ package com.monkeypenthouse.core.controller.dto.purchase;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
-public class PurchaseApproveTossPayResI {
+public class PurchaseTossPayResI {
 
     public String mId;
     public String version;
@@ -27,7 +29,7 @@ public class PurchaseApproveTossPayResI {
     public String giftCertificate;
     public String cashReceipt;
     public String discount;
-    public String cancels;
+    public List<Cancel> cancels;
     public String secret;
     public String type;
     public String easyPay;
@@ -35,7 +37,7 @@ public class PurchaseApproveTossPayResI {
     public Card card;
 
     @Data
-    public class Card {
+    public static class Card {
         public String company;
         public String number;
         public Integer installmentPlanMonths;
@@ -46,6 +48,17 @@ public class PurchaseApproveTossPayResI {
         public String ownerType;
         public String acquireStatus;
         public String receiptUrl;
+    }
+
+    @Data
+    public static class Cancel {
+        public Integer cancelAmount;
+        public String cancelReason;
+        public Integer taxFreeAmount;
+        public Integer taxAmount;
+        public Integer refundableAmount;
+        public String canceledAt;
+        public String transactionKey;
     }
 
 }

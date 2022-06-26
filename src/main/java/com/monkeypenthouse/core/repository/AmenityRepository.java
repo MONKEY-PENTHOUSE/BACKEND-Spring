@@ -21,4 +21,6 @@ public interface AmenityRepository extends CrudRepository<Amenity, Long>, Amenit
 
     @Query("SELECT distinct a FROM Amenity a join fetch a.tickets")
     List<Amenity> findAllWithTicketsUsingFetchJoin();
+
+    List<Amenity> findAllByDeadlineDate(LocalDate today);
 }

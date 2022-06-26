@@ -4,6 +4,7 @@ import com.monkeypenthouse.core.component.CacheManager;
 import com.monkeypenthouse.core.component.OrderIdGenerator;
 import com.monkeypenthouse.core.connect.TossPaymentsConnector;
 import com.monkeypenthouse.core.constant.ResponseCode;
+import com.monkeypenthouse.core.controller.dto.purchase.PurchaseRefundTossPayResI;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
 import com.monkeypenthouse.core.repository.dto.PurchaseTicketMappingDto;
@@ -19,16 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PurchaseServiceImpl implements PurchaseService {
 
+    private final AmenityRepository amenityRepository;
     private final PurchaseRepository purchaseRepository;
     private final PurchaseTicketMappingRepository purchaseTicketMappingRepository;
     private final TicketRepository ticketRepository;
@@ -41,8 +40,8 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final TossPaymentsConnector tossPaymentsConnector;
 
 
-
     @Override
+    @Transactional
     public PurchaseCreateResS createPurchase(final UserDetails userDetails, final PurchaseCreateReqS params) {
 
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -50,7 +49,17 @@ public class PurchaseServiceImpl implements PurchaseService {
         TransactionStatus sts = txManager.getTransaction(def);
 
         /**
-         * Step 1. 티켓 리스트 DB 조회
+         * Step 1. 어매니티가 마감되었는지 체크
+         */
+        final Amenity amenity = amenityRepository.findById(params.getPurchaseTicketMappingDtoList().get(0).getAmenityId())
+                .orElseThrow(() -> new CommonException(ResponseCode.AMENITY_NOT_FOUND));
+
+        if (amenity.getStatus() != 0) {
+            throw new CommonException(ResponseCode.AMENITY_ALREADY_CLOSED);
+        }
+
+        /**
+         * Step 2. 티켓 리스트 DB 조회
          */
 
         final List<Ticket> ticketList;
@@ -67,7 +76,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
 
             /**
-             * Step 2. 티켓 재고 수량 체크
+             * Step 3. 티켓 재고 수량 체크
              */
 
             // 티켓 재고 수량 검증
@@ -81,7 +90,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
 
             /**
-             * Step 3. 총 주문 금액, 주문 번호, 주문 이름 생성
+             * Step 4. 총 주문 금액, 주문 번호, 주문 이름 생성
              */
 
             // 티켓 ID : 구매 개수 HashMap 구성
@@ -118,13 +127,13 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
 
             /**
-             * Step 4. Purchase 및 PurchaseTicketMapping 엔티티 생성 후 return
+             * Step 5. Purchase 및 PurchaseTicketMapping 엔티티 생성 후 return
              */
 
             // Purchase 엔티티 생성
             final User user = userService.getUserByEmail(userDetails.getUsername());
 
-            final Purchase purchase = new Purchase(user, orderId, orderName, amount, OrderStatus.IN_PROGRESS);
+            final Purchase purchase = new Purchase(user, amenity.getId(), orderId, orderName, amount, OrderStatus.IN_PROGRESS);
             purchaseRepository.save(purchase);
 
             // PurchaseTicketMapping 엔티티 생성
@@ -146,6 +155,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
+    @Transactional
     public void approvePurchase(final PurchaseApproveReqS params) throws IOException, InterruptedException {
 
         /**
@@ -198,6 +208,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             );
 
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
+            purchase.setPaymentsKey(params.getPaymentKey());
 
             /**
              * Step 6. tossPayments API 승인 시 Redis / DB 업데이트
@@ -238,13 +249,75 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Transactional
     public void cancelPurchase(final PurchaseCancelReqS params) {
         final Purchase purchase =
-                purchaseRepository.findByOrderId(params.getOrderId()).orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
+                purchaseRepository.findByOrderId(params.getOrderId())
+                        .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
 
-        if (purchase.getOrderStatus()!=OrderStatus.IN_PROGRESS) {
+        if (purchase.getOrderStatus() != OrderStatus.IN_PROGRESS) {
             throw new CommonException(ResponseCode.CANCEL_NOT_ENABLE);
         }
 
         purchase.changeOrderStatus(OrderStatus.CANCELLED);
         cacheManager.removeTicketInfoOfPurchase(params.getOrderId());
+    }
+
+    @Override
+    @Transactional
+    public void refundPurchase(Long purchaseId) throws IOException, InterruptedException {
+        // 유효성 검사 1. 주문 정보 유효성 검사
+        final Purchase purchase = purchaseRepository.findById(purchaseId)
+                .orElseThrow(() -> new CommonException(ResponseCode.ORDER_NOT_FOUND));
+
+        if (purchase.getOrderStatus() != OrderStatus.COMPLETED) {
+            throw new CommonException(ResponseCode.CANCEL_NOT_ENABLE);
+        }
+
+        // 유효성 검사 2. 어메니티 정보 유효성 검사
+        final Amenity amenity = amenityRepository.findById(purchase.getAmenityId())
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
+
+        if (amenity.getStatus() != 0) {
+            throw new CommonException(ResponseCode.AMENITY_ALREADY_CLOSED);
+        }
+
+        // 2. tosspayments 취소 요청
+        tossPaymentsConnector.refundPayments1(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
+
+        // 3. purchase 정보 수정
+        purchase.changeOrderStatus(OrderStatus.CANCELLED);
+        purchase.setCancelReason(CancelReason.CUSTOMER_REMORSE);
+
+        // 4. 재고 관리 - ticket 재고 관리
+        purchase.getPurchaseTicketMappingList().forEach(
+                e -> {
+                    cacheManager.addPurchasedQuantityOfTicket(e.getTicket().getId(), e.getQuantity());
+                    TicketStock ticketStock = ticketStockRepository.findById(e.getTicket().getId())
+                            .orElseThrow(() -> new CommonException(ResponseCode.TICKET_NOT_FOUND));
+                    ticketStock.decreasePurchasedQuantity(e.getQuantity());
+                }
+        );
+
+        // 4. 재고 관리 - amenity 재고 관리
+        int totalAmount = purchase.getPurchaseTicketMappingList()
+                .stream().mapToInt(PurchaseTicketMapping::getQuantity).sum();
+        cacheManager.addPurchasedQuantityOfAmenity(purchase.getAmenityId(), totalAmount);
+    }
+
+    public void refundAllPurchasesByAmenity(final PurchaseRefundAllByAmenityReqS params) throws IOException, InterruptedException {
+        final List<Purchase> purchaseList =
+                purchaseRepository.findAllByAmenityIdAndOrderStatus(params.getAmenityId(), OrderStatus.COMPLETED);
+
+        for (Purchase purchase : purchaseList) {
+            PurchaseRefundTossPayResI resI =
+                    tossPaymentsConnector.refundPayments2(purchase.getPaymentsKey(), CancelReason.EVENT_CANCELLED);
+
+            purchase.setCancelReason(CancelReason.EVENT_CANCELLED);
+
+            if (resI.getStatusCode() == 200) {
+                purchase.changeOrderStatus(OrderStatus.CANCELLED);
+            } else {
+                purchase.changeOrderStatus(OrderStatus.CANCEL_FAILED);
+            }
+        }
+
     }
 }

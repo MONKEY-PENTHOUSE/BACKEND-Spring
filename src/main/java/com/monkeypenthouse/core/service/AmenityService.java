@@ -29,4 +29,6 @@ public interface AmenityService {
     AmenityGetPagesResS getAmenitiesByOrdered(final UserDetails userDetails, final Pageable pageable) throws CloudFrontServiceException, IOException;
 
     AmenityTicketsOfOrderedResS getTicketsOfOrderedAmenity(final UserDetails userDetails, final Long amenityId);
+
+    void handleClosingProcessOfAmenity();
 }
