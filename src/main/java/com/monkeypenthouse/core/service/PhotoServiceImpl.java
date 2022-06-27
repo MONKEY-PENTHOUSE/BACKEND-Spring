@@ -2,19 +2,17 @@ package com.monkeypenthouse.core.service;
 
 import com.monkeypenthouse.core.component.ImageManager;
 import com.monkeypenthouse.core.connect.CloudFrontManager;
-import com.monkeypenthouse.core.connect.S3Uploader;
 import com.monkeypenthouse.core.constant.ResponseCode;
-import com.monkeypenthouse.core.dto.AddCarouselsRequestDTO;
-import com.monkeypenthouse.core.dto.CarouselFileDTO;
-import com.monkeypenthouse.core.entity.Amenity;
-import com.monkeypenthouse.core.entity.Photo;
-import com.monkeypenthouse.core.entity.PhotoType;
+import com.monkeypenthouse.core.repository.entity.Amenity;
+import com.monkeypenthouse.core.repository.entity.Photo;
+import com.monkeypenthouse.core.repository.entity.PhotoType;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.AmenityRepository;
 import com.monkeypenthouse.core.repository.PhotoRepository;
-import com.monkeypenthouse.core.vo.CarouselVo;
-import com.monkeypenthouse.core.vo.GetCarouselsResponseVo;
-import io.lettuce.core.RedisClient;
+import com.monkeypenthouse.core.service.dto.photo.PhotoAddCarouselReqS;
+import com.monkeypenthouse.core.service.dto.photo.PhotoCarouselDataS;
+import com.monkeypenthouse.core.service.dto.photo.PhotoCarouselFileS;
+import com.monkeypenthouse.core.service.dto.photo.PhotoGetCarouselsResS;
 import lombok.RequiredArgsConstructor;
 import org.jets3t.service.CloudFrontServiceException;
 import org.springframework.data.redis.core.ListOperations;
@@ -26,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,9 +38,9 @@ public class PhotoServiceImpl implements PhotoService {
 
     @Override
     @Transactional
-    public void addCarousels(final AddCarouselsRequestDTO addReqDTO) throws IOException {
+    public void addCarousels(final PhotoAddCarouselReqS params) throws IOException {
         List<Photo> photos = new ArrayList<>();
-        for (CarouselFileDTO carousel : addReqDTO.getCarousels()) {
+        for (PhotoCarouselFileS carousel : params.getCarousels()) {
             String fileName = imageManager.uploadImageOnS3(carousel.getFile(), "carousel");
             long amenityId = carousel.getAmenityId();
             Amenity amenity = null;
@@ -63,11 +60,11 @@ public class PhotoServiceImpl implements PhotoService {
 
     @Override
     @Transactional(readOnly = true)
-    public GetCarouselsResponseVo getCarousels() throws CloudFrontServiceException, IOException {
+    public PhotoGetCarouselsResS getCarousels() throws CloudFrontServiceException, IOException {
         ListOperations<String, String> listStringOperations = redisTemplate.opsForList();
         ListOperations<String, Long> listLongOperations = redisTemplate.opsForList();
 
-        List<CarouselVo> carouselVos = new ArrayList<>();
+        List<PhotoCarouselDataS> carousels = new ArrayList<>();
 
         Long size;
         List<String> photoFileNames;
@@ -90,14 +87,14 @@ public class PhotoServiceImpl implements PhotoService {
         for (int i = 0; i < size; i++) {
             String filename = "carousel/" + photoFileNames.get(i);
             String url = cloudFrontManager.getSignedUrlWithCannedPolicy(filename);
-            CarouselVo carouselVo = CarouselVo.builder()
+            PhotoCarouselDataS carousel = PhotoCarouselDataS.builder()
                     .url(url)
                     .amenityId(photoAmenityIds.get(i))
                     .build();
-            carouselVos.add(carouselVo);
+            carousels.add(carousel);
         }
-        return GetCarouselsResponseVo.builder()
-                .carouselVos(carouselVos)
+        return PhotoGetCarouselsResS.builder()
+                .carousels(carousels)
                 .build();
     }
 

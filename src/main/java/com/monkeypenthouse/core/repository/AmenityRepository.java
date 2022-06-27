@@ -1,6 +1,6 @@
 package com.monkeypenthouse.core.repository;
 
-import com.monkeypenthouse.core.entity.Amenity;
+import com.monkeypenthouse.core.repository.entity.Amenity;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -21,4 +21,6 @@ public interface AmenityRepository extends CrudRepository<Amenity, Long>, Amenit
 
     @Query("SELECT distinct a FROM Amenity a join fetch a.tickets")
     List<Amenity> findAllWithTicketsUsingFetchJoin();
+
+    List<Amenity> findAllByDeadlineDate(LocalDate today);
 }
