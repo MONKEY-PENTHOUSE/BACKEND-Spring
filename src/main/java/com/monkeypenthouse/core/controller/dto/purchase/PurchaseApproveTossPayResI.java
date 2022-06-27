@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class PurchaseTossPayResI {
+public class PurchaseApproveTossPayResI {
 
     public String mId;
     public String version;
@@ -29,7 +29,7 @@ public class PurchaseTossPayResI {
     public String giftCertificate;
     public String cashReceipt;
     public String discount;
-    public List<Cancel> cancels;
+    public String cancels;
     public String secret;
     public String type;
     public String easyPay;
@@ -37,7 +37,7 @@ public class PurchaseTossPayResI {
     public Card card;
 
     @Data
-    public static class Card {
+    public class Card {
         public String company;
         public String number;
         public Integer installmentPlanMonths;
@@ -48,17 +48,6 @@ public class PurchaseTossPayResI {
         public String ownerType;
         public String acquireStatus;
         public String receiptUrl;
-    }
-
-    @Data
-    public static class Cancel {
-        public Integer cancelAmount;
-        public String cancelReason;
-        public Integer taxFreeAmount;
-        public Integer taxAmount;
-        public Integer refundableAmount;
-        public String canceledAt;
-        public String transactionKey;
     }
 
 }

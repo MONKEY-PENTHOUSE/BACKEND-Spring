@@ -280,7 +280,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         // 2. tosspayments 취소 요청
-        tossPaymentsConnector.refundPayments1(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
+        tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
 
         // 3. purchase 정보 수정
         purchase.changeOrderStatus(OrderStatus.CANCELLED);
@@ -308,7 +308,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         for (Purchase purchase : purchaseList) {
             PurchaseRefundTossPayResI resI =
-                    tossPaymentsConnector.refundPayments2(purchase.getPaymentsKey(), CancelReason.EVENT_CANCELLED);
+                    tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.EVENT_CANCELLED);
 
             purchase.setCancelReason(CancelReason.EVENT_CANCELLED);
 
