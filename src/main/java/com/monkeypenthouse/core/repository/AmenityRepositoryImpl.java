@@ -179,29 +179,6 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .fetch().get(0);
     }
 
-    @Override
-    public List<TicketOfOrderedDto> getTicketsOfOrderedAmenity(Long userId, Long amenityId) {
-        return queryFactory
-                .select(new QTicketOfOrderedDto(
-                        ticket.id,
-                        ticket.name,
-                        ticket.detail,
-                        ticket.eventDateTime,
-                        ticket.price,
-                        purchaseTicketMapping.quantity.sum().coalesce(0)
-                ))
-                .from(ticket)
-                .where(ticket.amenity.id.eq(amenityId))
-                .where(purchaseTicketMapping.purchase.user.id.eq(userId))
-                .where(purchaseTicketMapping.purchase.orderStatus.eq(OrderStatus.COMPLETED))
-                .rightJoin(ticket.amenity, amenity)
-                .leftJoin(purchaseTicketMapping).on(ticket.id.eq(purchaseTicketMapping.ticket.id))
-                .leftJoin(purchaseTicketMapping.purchase, purchase)
-                .leftJoin(purchase.user, user)
-                .groupBy(ticket.id)
-                .fetch();
-    }
-
 
     private JPQLQuery<AmenitySimpleDto> getQueryForAmenitySimpleDTO() {
         return queryFactory.from(amenity)

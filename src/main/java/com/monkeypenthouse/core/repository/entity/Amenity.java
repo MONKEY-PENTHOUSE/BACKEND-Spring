@@ -57,12 +57,8 @@ public class Amenity {
     @Column(name="max_person_num", nullable = false)
     private int maxPersonNum;
 
-    // 0 : 모집중
-    // 1 : 모집 마감
-    // 2 : 종료
     @Column(nullable = false)
-    @ColumnDefault("0")
-    private int status;
+    private AmenityStatus status;
 
     @OneToMany(mappedBy = "amenity")
     @ToString.Exclude

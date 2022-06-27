@@ -12,6 +12,8 @@ import com.monkeypenthouse.core.repository.dto.TicketOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.TicketOfOrderedDto;
 import com.monkeypenthouse.core.repository.entity.*;
 import com.monkeypenthouse.core.service.dto.amenity.*;
+import com.monkeypenthouse.core.service.dto.purchase.PurchaseByAmenityAndUserReqS;
+import com.monkeypenthouse.core.service.dto.purchase.PurchaseByAmenityAndUserResS;
 import com.monkeypenthouse.core.service.dto.purchase.PurchaseRefundAllByAmenityReqS;
 import com.monkeypenthouse.core.service.dto.ticket.TicketOfAmenityS;
 import com.monkeypenthouse.core.service.dto.ticket.TicketOfOrderedS;
@@ -65,11 +67,12 @@ public class AmenityServiceImpl implements AmenityService {
                 .detail(params.getDetail())
                 .recommended(params.getRecommended())
                 .minPersonNum(params.getMinPersonNum())
+                .startDate(LocalDate.now())
+                .maxPersonNum(0)
+                .thumbnailName("")
+                .status(AmenityStatus.RECRUITING)
                 .build();
 
-        amenity.setStartDate(LocalDate.now());
-        amenity.setMaxPersonNum(0);
-        amenity.setThumbnailName("");
         Amenity savedAmenity = amenityRepository.save(amenity);
 
         List<Category> categories = new ArrayList<>();
@@ -294,30 +297,33 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     @Override
-    public AmenityTicketsOfOrderedResS getTicketsOfOrderedAmenity(UserDetails userDetails, Long amenityId) {
-        final User user = userService.getUserByEmail(userDetails.getUsername());
-        final String amenityTitle = amenityRepository.findById(amenityId)
-                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND))
-                .getTitle();
-        final List<TicketOfOrderedDto> dtoList = amenityRepository.getTicketsOfOrderedAmenity(user.getId(), amenityId);
-        return AmenityTicketsOfOrderedResS
-                .builder()
-                .amenityTitle(amenityTitle)
-                .tickets(
-                        dtoList.stream().map(
-                                e -> TicketOfOrderedS
-                                        .builder()
-                                        .id(e.getId())
-                                        .name(e.getName())
-                                        .detail(e.getDetail())
-                                        .amount(e.getAmount())
-                                        .eventDateTime(e.getEventDateTime())
-                                        .price(e.getPrice())
-                                        .build()
+    public AmenityPurchasesOfOrderedResS getPurchasesOfOrderedAmenity(UserDetails userDetails, Long amenityId)
+            throws CloudFrontServiceException, IOException {
 
-                        ).collect(Collectors.toList())
-                )
-                .totalPrice(dtoList.stream().mapToInt(e -> e.getAmount() * e.getPrice()).sum())
+        final User user = userService.getUserByEmail(userDetails.getUsername());
+
+        final Amenity amenity = amenityRepository.findWithPhotosById(amenityId)
+                .orElseThrow(() -> new CommonException(ResponseCode.AMENITY_NOT_FOUND));
+
+        final List<Photo> bannerPhotos = amenity.getPhotos()
+                .stream().filter(e -> e.getType().equals(PhotoType.BANNER)).collect(Collectors.toList());
+        final List<String> bannerUrls = new ArrayList<>();
+        for (Photo bannerPhoto : bannerPhotos) {
+            bannerUrls.add(cloudFrontManager.getSignedUrlWithCannedPolicy(bannerPhoto.getType().name().toLowerCase() + "/" + bannerPhoto.getName()));
+        }
+
+        final int currentPersonNum = cacheManager.getTotalQuantityOfAmenity(amenityId);
+
+        final List<PurchaseByAmenityAndUserResS> purchases =
+                purchaseService.getPurchaseByAmenityAndUser(new PurchaseByAmenityAndUserReqS(amenityId, user.getId()));
+        return AmenityPurchasesOfOrderedResS
+                .builder()
+                .bannerImages(bannerUrls)
+                .title(amenity.getTitle())
+                .maxPersonNum(amenity.getMaxPersonNum())
+                .currentPersonNum(currentPersonNum)
+                .status(amenity.getStatus())
+                .purchases(purchases)
                 .build();
     }
 

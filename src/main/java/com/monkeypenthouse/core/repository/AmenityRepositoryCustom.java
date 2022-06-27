@@ -31,6 +31,4 @@ public interface AmenityRepositoryCustom {
     int countTotalQuantity(Long amenityId);
 
     int countPurchasedQuantity(Long amenityId);
-
-    List<TicketOfOrderedDto> getTicketsOfOrderedAmenity(Long userId, Long amenityId);
 }

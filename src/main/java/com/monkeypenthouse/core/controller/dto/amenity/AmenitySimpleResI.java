@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.controller.dto.amenity;
 
+import com.monkeypenthouse.core.repository.entity.AmenityStatus;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -16,5 +17,5 @@ public class AmenitySimpleResI {
     private final String thumbnailName;
     private final String address;
     private final LocalDate startDate;
-    private final int status;
+    private final AmenityStatus status;
 }
