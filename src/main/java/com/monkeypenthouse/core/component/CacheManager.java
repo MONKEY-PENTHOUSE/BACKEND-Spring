@@ -48,8 +48,9 @@ public class CacheManager {
         redissonClient.getAtomicLong(ticketId + ":purchasedQuantity").set(purchasedQuantity.longValue());
     }
 
-    public int addPurchasedQuantityOfTicket(Long ticketId, int amount) {
-        return Long.valueOf(redissonClient.getAtomicLong(ticketId + ":purchasedQuantity").addAndGet(amount)).intValue();
+    public int decrPurchasedQuantityOfTicket(Long ticketId, int amount) {
+        return Long.valueOf(redissonClient.getAtomicLong(ticketId + ":purchasedQuantity")
+                .addAndGet(amount * (-1L))).intValue();
     }
 
 
@@ -102,9 +103,9 @@ public class CacheManager {
         redissonClient.getAtomicLong(amenityId + ":purchasedQuantityOfTickets").set(purchasedQuantity.longValue());
     }
 
-    public int addPurchasedQuantityOfAmenity(Long amenityId, int amount) {
+    public int decrPurchasedQuantityOfAmenity(Long amenityId, int amount) {
         return Long.valueOf(redissonClient.getAtomicLong(amenityId + ":purchasedQuantityOfTickets")
-                        .addAndGet(amount)).intValue();
+                        .addAndGet(amount * (-1L))).intValue();
     }
 
     // 현재 사용해야할 SerialNum을 반환

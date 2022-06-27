@@ -201,11 +201,11 @@ public class PurchaseServiceImpl implements PurchaseService {
             /**
              * Step 5. tossPayments API 호출
              */
-            tossPaymentsConnector.approvePayments(
-                    params.getPaymentKey(),
-                    params.getAmount(),
-                    params.getOrderId()
-            );
+//            tossPaymentsConnector.approvePayments(
+//                    params.getPaymentKey(),
+//                    params.getAmount(),
+//                    params.getOrderId()
+//            );
 
             purchase.changeOrderStatus(OrderStatus.COMPLETED);
             purchase.setPaymentsKey(params.getPaymentKey());
@@ -280,7 +280,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         // 2. tosspayments 취소 요청
-        tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
+//        tossPaymentsConnector.refundPayments(purchase.getPaymentsKey(), CancelReason.CUSTOMER_REMORSE);
 
         // 3. purchase 정보 수정
         purchase.changeOrderStatus(OrderStatus.CANCELLED);
@@ -289,7 +289,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         // 4. 재고 관리 - ticket 재고 관리
         purchase.getPurchaseTicketMappingList().forEach(
                 e -> {
-                    cacheManager.addPurchasedQuantityOfTicket(e.getTicket().getId(), e.getQuantity());
+                    cacheManager.decrPurchasedQuantityOfTicket(e.getTicket().getId(), e.getQuantity());
                     TicketStock ticketStock = ticketStockRepository.findById(e.getTicket().getId())
                             .orElseThrow(() -> new CommonException(ResponseCode.TICKET_NOT_FOUND));
                     ticketStock.decreasePurchasedQuantity(e.getQuantity());
@@ -299,7 +299,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         // 4. 재고 관리 - amenity 재고 관리
         int totalAmount = purchase.getPurchaseTicketMappingList()
                 .stream().mapToInt(PurchaseTicketMapping::getQuantity).sum();
-        cacheManager.addPurchasedQuantityOfAmenity(purchase.getAmenityId(), totalAmount);
+        cacheManager.decrPurchasedQuantityOfAmenity(purchase.getAmenityId(), totalAmount);
     }
 
     public void refundAllPurchasesByAmenity(final PurchaseRefundAllByAmenityReqS params) throws IOException, InterruptedException {
