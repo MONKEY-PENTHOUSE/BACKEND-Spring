@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.monkeypenthouse.core.repository.entity.QAmenity.amenity;
 import static com.monkeypenthouse.core.repository.entity.QPurchase.purchase;
@@ -35,23 +36,23 @@ public class PurchaseRepositoryImpl implements PurchaseRepositoryCustom {
                 )
                 .orderBy(purchase.createdAt.desc())
                 .fetch();
-        Map<Long, List<TicketOfOrderedDto>> aMap = queryFactory
+        Map<Purchase, List<TicketOfOrderedDto>> purchaseTicketMap = queryFactory
                 .from(purchaseTicketMapping)
                 .innerJoin(purchaseTicketMapping.ticket, ticket)
                 .where(purchaseTicketMapping.purchase.in(purchases))
-                .groupBy(purchaseTicketMapping.purchase)
-      .where(boardOneToOneJpaEntity.bbsEtc1.ne("1"))
-                .orderBy(boardOneToOneJpaEntity.bbsDate.asc())
-                .transform(
-                        GroupBy.groupBy(boardOneToOneJpaEntity.groups).`as`(
-                                GroupBy.list(new QTicketOfOrderedDto(
-
-                        )
-        ))
-      )
-        val qnaList = qList.map {
-            BoardOneToOneQnAResultData(it, aMap.get(it.groups) ?: emptyList<BoardOneToOneAnswerD>())
-        }
+                .transform(GroupBy.groupBy(purchaseTicketMapping.purchase).as(
+                        GroupBy.list(new QTicketOfOrderedDto(
+                                ticket.id,
+                                ticket.name,
+                                ticket.detail,
+                                ticket.eventDateTime,
+                                ticket.price,
+                                purchaseTicketMapping.quantity
+                        ))
+                ));
+        return purchases
+                .stream().map(purchase -> new PurchaseOfAmenityDto(purchase, purchaseTicketMap.get(purchase)))
+                .collect(Collectors.toList());
 
     }
 }

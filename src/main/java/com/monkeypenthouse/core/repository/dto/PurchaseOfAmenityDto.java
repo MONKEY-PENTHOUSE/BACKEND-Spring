@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.repository.dto;
 
 import com.monkeypenthouse.core.repository.entity.AmenityStatus;
+import com.monkeypenthouse.core.repository.entity.Purchase;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,5 +28,12 @@ public class PurchaseOfAmenityDto {
         this.createdAt = createdAt;
         this.tickets = tickets;
         this.totalPrice = totalPrice;
+    }
+
+    public PurchaseOfAmenityDto(Purchase purchase, List<TicketOfOrderedDto> tickets) {
+        this.id = purchase.getId();
+        this.createdAt = purchase.getCreatedAt();
+        this.tickets = tickets;
+        this.totalPrice = purchase.getAmount();
     }
 }

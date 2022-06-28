@@ -300,8 +300,10 @@ public class AmenityServiceImpl implements AmenityService {
     public AmenityPurchasesOfOrderedResS getPurchasesOfOrderedAmenity(UserDetails userDetails, Long amenityId)
             throws CloudFrontServiceException, IOException {
 
+        // 회원 정보 조회
         final User user = userService.getUserByEmail(userDetails.getUsername());
 
+        // 어메니티 정보 조회
         final Amenity amenity = amenityRepository.findWithPhotosById(amenityId)
                 .orElseThrow(() -> new CommonException(ResponseCode.AMENITY_NOT_FOUND));
 
@@ -312,8 +314,6 @@ public class AmenityServiceImpl implements AmenityService {
             bannerUrls.add(cloudFrontManager.getSignedUrlWithCannedPolicy(bannerPhoto.getType().name().toLowerCase() + "/" + bannerPhoto.getName()));
         }
 
-        final int currentPersonNum = cacheManager.getTotalQuantityOfAmenity(amenityId);
-
         final List<PurchaseByAmenityAndUserResS> purchases =
                 purchaseService.getPurchaseByAmenityAndUser(new PurchaseByAmenityAndUserReqS(amenityId, user.getId()));
         return AmenityPurchasesOfOrderedResS
@@ -321,7 +321,7 @@ public class AmenityServiceImpl implements AmenityService {
                 .bannerImages(bannerUrls)
                 .title(amenity.getTitle())
                 .maxPersonNum(amenity.getMaxPersonNum())
-                .currentPersonNum(currentPersonNum)
+                .currentPersonNum(cacheManager.getPurchasedQuantityOfAmenity(amenityId))
                 .status(amenity.getStatus())
                 .purchases(purchases)
                 .build();
