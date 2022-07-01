@@ -1,7 +1,6 @@
 package com.monkeypenthouse.core.repository.entity;
 
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -75,4 +74,8 @@ public class Amenity {
     @OneToMany(mappedBy = "amenity")
     @ToString.Exclude
     private List<Dibs> dibs = new ArrayList<>();
+
+    public void changeStatus(AmenityStatus status) {
+        this.status = status;
+    }
 }

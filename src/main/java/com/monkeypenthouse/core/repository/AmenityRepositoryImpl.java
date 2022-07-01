@@ -15,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.monkeypenthouse.core.repository.entity.QAmenity.*;
@@ -177,6 +179,16 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .groupBy(purchase.amenityId)
                 .select(purchaseTicketMapping.quantity.sum().coalesce(0))
                 .fetch().get(0);
+    }
+
+    @Override
+    public List<Amenity> findAllByLastEventDateTime(LocalDate today) {
+        return queryFactory
+                .selectFrom(amenity)
+                .leftJoin(amenity.tickets, ticket)
+                .groupBy(amenity)
+                .having(ticket.eventDateTime.max().after(LocalDateTime.from(today)))
+                .fetch();
     }
 
 
