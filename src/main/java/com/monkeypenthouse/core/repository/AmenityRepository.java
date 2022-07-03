@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.repository;
 
 import com.monkeypenthouse.core.repository.entity.Amenity;
+import com.monkeypenthouse.core.repository.entity.AmenityStatus;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -23,4 +24,6 @@ public interface AmenityRepository extends CrudRepository<Amenity, Long>, Amenit
     List<Amenity> findAllWithTicketsUsingFetchJoin();
 
     List<Amenity> findAllByDeadlineDate(LocalDate today);
+
+    List<Amenity> findAllByStatus(AmenityStatus status);
 }

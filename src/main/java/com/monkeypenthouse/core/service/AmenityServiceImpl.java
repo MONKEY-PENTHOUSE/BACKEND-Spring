@@ -399,16 +399,15 @@ public class AmenityServiceImpl implements AmenityService {
     @Scheduled(cron = "0 5 0 * * ?") // 매일 0시 5분에
     @Transactional
     public void handleClosingProcessOfAmenity(){
-        amenityRepository.findAllByDeadlineDate(LocalDate.now()).stream()
-                .filter(a -> cacheManager.getPurchasedQuantityOfAmenity(a.getId()) < a.getMinPersonNum())
-                .forEach(a -> {
-                    try {
-                        purchaseService.refundAllPurchasesByAmenity(new PurchaseRefundAllByAmenityReqS(a.getId()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                });
+        amenityRepository.findAllByStatus(AmenityStatus.CANCELLED)
+            .forEach(a -> {
+                try {
+                    purchaseService.refundAllPurchasesByAmenity(new PurchaseRefundAllByAmenityReqS(a.getId()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
     }
 }
