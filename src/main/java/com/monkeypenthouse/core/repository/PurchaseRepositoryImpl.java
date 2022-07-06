@@ -10,6 +10,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,8 +51,17 @@ public class PurchaseRepositoryImpl implements PurchaseRepositoryCustom {
                                 purchaseTicketMapping.quantity
                         ))
                 ));
-        return purchases
-                .stream().map(purchase -> new PurchaseOfAmenityDto(purchase, purchaseTicketMap.get(purchase)))
+        return purchases.stream()
+                .map(purchase -> {
+                    List<TicketOfOrderedDto> ticketList = purchaseTicketMap.get(purchase);
+                    ticketList.sort(Comparator.comparing(TicketOfOrderedDto::getId));
+                    return PurchaseOfAmenityDto.builder()
+                            .id(purchase.getId())
+                            .createdAt(purchase.getCreatedAt())
+                            .tickets(ticketList)
+                            .totalPrice(purchase.getAmount())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
     }
