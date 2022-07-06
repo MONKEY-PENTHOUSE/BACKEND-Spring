@@ -2,10 +2,12 @@ package com.monkeypenthouse.core.repository;
 
 import com.monkeypenthouse.core.repository.entity.Amenity;
 import com.monkeypenthouse.core.repository.dto.*;
+import com.monkeypenthouse.core.repository.entity.AmenityStatus;
 import com.monkeypenthouse.core.repository.entity.OrderStatus;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
@@ -14,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -181,10 +185,20 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .fetch().get(0);
     }
 
+
     @Override
-    public List<Amenity> findAllByLastEventDateTime(LocalDate today) {
+    public List<Amenity> findAllAmenitiesToBeClosed(LocalDate today) {
         return queryFactory
                 .selectFrom(amenity)
+                .where(amenity.status.eq(AmenityStatus.RECRUITING), amenity.deadlineDate.lt(today))
+                .fetch();
+    }
+
+    @Override
+    public List<Amenity> findAllAmenitiesToBeEnded(LocalDate today) {
+        return queryFactory
+                .selectFrom(amenity)
+                .where(amenity.status.in(Arrays.asList(AmenityStatus.FIXED, AmenityStatus.CANCELLED)))
                 .leftJoin(amenity.tickets, ticket)
                 .groupBy(amenity)
                 .having(ticket.eventDateTime.max().after(LocalDateTime.from(today)))

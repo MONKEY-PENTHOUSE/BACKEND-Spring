@@ -261,33 +261,22 @@ public class AmenityServiceImpl implements AmenityService {
     @Scheduled(cron = "0 0 0 * * ?") // 매일 자정
     @Transactional
     public void updateStatusOfAmenity() {
-        // 모집마감 날짜 == 오늘?
-        //  어메니티 상태: RECRUITING?
-        //    주문수 >= 최소 인원 or 주문수 < 최소 인원?
-        //        => FIXED or CANCELLED
+        // 모집마감 날짜 < 오늘 && 어메니티 상태: RECRUITING
+        // 주문수 >= 최소 인원 or 주문수 < 최소 인원? => FIXED or CANCELLED
         LocalDate today = LocalDate.now();
-        List<Amenity> closedAmenities = amenityRepository.findAllByDeadlineDate(today);
-        for (Amenity amenity : closedAmenities) {
-            if (amenity.getStatus() == AmenityStatus.RECRUITING) {
-                if (amenity.getDeadlineDate().isBefore(today)) {
-                    if (cacheManager.getPurchasedQuantityOfAmenity(amenity.getId()) >= amenity.getMinPersonNum()) {
-                        amenity.changeStatus(AmenityStatus.FIXED);
-                    } else {
-                        amenity.changeStatus(AmenityStatus.CANCELLED);
-                    }
+        amenityRepository.findAllAmenitiesToBeClosed(today).forEach(
+            amenity -> {
+                if (cacheManager.getPurchasedQuantityOfAmenity(amenity.getId()) >= amenity.getMinPersonNum()) {
+                    amenity.changeStatus(AmenityStatus.FIXED);
+                } else {
+                    amenity.changeStatus(AmenityStatus.CANCELLED);
                 }
             }
-        }
+        );
 
-        // 마지막 이벤트 일시 < 오늘?
-        //   어메니티 상태: FIXED or CANCELLED?
-        //     => ENDED
-        List<Amenity> endedAmenities = amenityRepository.findAllByLastEventDateTime(today);
-        for (Amenity amenity : endedAmenities) {
-            if (amenity.getStatus() == AmenityStatus.FIXED || amenity.getStatus() == AmenityStatus.CANCELLED) {
-                amenity.changeStatus(AmenityStatus.ENDED);
-            }
-        }
+        // 마지막 이벤트 일시 < 오늘 && 어메니티 상태: FIXED or CANCELLED => ENDED
+        amenityRepository.findAllAmenitiesToBeEnded(today)
+                .forEach(amenity -> amenity.changeStatus(AmenityStatus.ENDED));
     }
 
     @Override

@@ -34,5 +34,7 @@ public interface AmenityRepositoryCustom {
 
     int countPurchasedQuantity(Long amenityId);
 
-    List<Amenity> findAllByLastEventDateTime(LocalDate today);
+    List<Amenity> findAllAmenitiesToBeClosed(LocalDate today);
+
+    List<Amenity> findAllAmenitiesToBeEnded(LocalDate today);
 }
