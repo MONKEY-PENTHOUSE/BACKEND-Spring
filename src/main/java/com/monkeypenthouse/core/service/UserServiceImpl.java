@@ -52,22 +52,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserSignUpResS add(UserSignUpReqS params) throws DataIntegrityViolationException{
-        User user = userRepository.save(new User(
-                null,
-                params.getName(),
-                null,
-                null,
-                params.getBirth(),
-                params.getGender(),
-                params.getEmail(),
-                passwordEncoder.encode(params.getPassword()),
-                params.getPhoneNum(),
-                params.getInfoReceivable(),
-                null,
-                Authority.USER,
-                LoginType.LOCAL,
-                null
-        ));
+        User user = userRepository.save(
+                User.builder()
+                .name(params.getName())
+                .birth(params.getBirth())
+                .gender(params.getGender())
+                .email(params.getEmail())
+                .password(passwordEncoder.encode(params.getPassword()))
+                .phoneNum(params.getPhoneNum())
+                .infoReceivable(params.getInfoReceivable())
+                .authority(Authority.USER)
+                .loginType(LoginType.LOCAL)
+                .build());
 
         // 회원에게 빈 방 주기
         roomRepository.updateUserIdForVoidRoom(user.getId(), user.getAuthority());

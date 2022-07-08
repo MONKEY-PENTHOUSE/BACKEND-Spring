@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.repository.entity;
 
 import lombok.*;
 
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "isActive = true")
 @EntityListeners(AuditingEntityListener.class)
 public class User {
 
@@ -70,4 +72,8 @@ public class User {
     @Enumerated(EnumType.ORDINAL)
     @Column(name="life_style")
     private LifeStyle lifeStyle;
+
+    @Column(name="is_active", nullable = false)
+    @Builder.Default
+    private boolean isActive = true;
 }

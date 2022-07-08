@@ -4,6 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -16,6 +20,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "is_active = true")
 @EntityListeners(AuditingEntityListener.class)
 public class Photo {
 
@@ -36,4 +41,10 @@ public class Photo {
     @CreatedDate
     @Column(name="created_at", updatable=false, nullable=false)
     private LocalDateTime createdAt;
+
+    @Column(name="is_active", nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private boolean isActive = true;
+
 }

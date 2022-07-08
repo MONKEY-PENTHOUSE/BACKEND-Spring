@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Where;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
@@ -11,6 +13,7 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Table(name="ticket_stock")
+@Where(clause = "is_active = true")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,6 +32,11 @@ public class TicketStock {
 
     @Column(nullable=false)
     private Integer purchasedQuantity;
+
+    @Column(name="is_active", nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private boolean isActive = true;
 
     public void increasePurchasedQuantity(int quantity) {
         purchasedQuantity += quantity;

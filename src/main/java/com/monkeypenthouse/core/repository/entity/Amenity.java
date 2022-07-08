@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.repository.entity;
 
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @Builder
 @Table(name="amenity", indexes = @Index(name = "ix_amenity_status_deadline_date", columnList = "status,deadline_date"))
 @Data
+@Where(clause = "is_active = true")
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -79,4 +81,9 @@ public class Amenity {
     @OneToMany(mappedBy = "amenity")
     @ToString.Exclude
     private List<Dibs> dibs = new ArrayList<>();
+
+    @Column(name="is_active", nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private boolean isActive = true;
 }
