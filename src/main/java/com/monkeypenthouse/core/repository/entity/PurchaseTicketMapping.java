@@ -38,7 +38,7 @@ public class PurchaseTicketMapping {
     @Column(name="is_active", nullable = false)
     @ColumnDefault("true")
     @Builder.Default
-    private boolean isActive = true;
+    private Boolean isActive = true;
 
     public PurchaseTicketMapping(Purchase purchase, Ticket ticket, int quantity) {
         this.purchase = purchase;

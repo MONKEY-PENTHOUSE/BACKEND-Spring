@@ -9,6 +9,7 @@ import com.monkeypenthouse.core.exception.dto.AdditionalInfoNeededResponseDto;
 import com.monkeypenthouse.core.exception.*;
 import com.monkeypenthouse.core.repository.RefreshTokenRepository;
 import com.monkeypenthouse.core.repository.RoomRepository;
+import com.monkeypenthouse.core.repository.UserJoinLogRepository;
 import com.monkeypenthouse.core.repository.UserRepository;
 import com.monkeypenthouse.core.repository.entity.*;
 import com.monkeypenthouse.core.security.PrincipalDetails;
@@ -31,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -42,18 +44,19 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final UserRepository userRepository;
     private final RoomRepository roomRepository;
+    private final UserJoinLogRepository userJoinLogRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final KakaoConnector kakaoConnector;
     private final NaverConnector naverConnector;
 
+
     // 회원 추가
     @Override
     @Transactional
     public UserSignUpResS add(UserSignUpReqS params) throws DataIntegrityViolationException{
-        User user = userRepository.save(
-                User.builder()
+        User user = User.builder()
                 .name(params.getName())
                 .birth(params.getBirth())
                 .gender(params.getGender())
@@ -63,13 +66,20 @@ public class UserServiceImpl implements UserService {
                 .infoReceivable(params.getInfoReceivable())
                 .authority(Authority.USER)
                 .loginType(LoginType.LOCAL)
-                .build());
+                .build();
+        user = userRepository.save(user);
 
         // 회원에게 빈 방 주기
         roomRepository.updateUserIdForVoidRoom(user.getId(), user.getAuthority());
         Room room = roomRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
         userRepository.updateRoomId(user.getId(), room);
+
+        userJoinLogRepository.save(
+                UserJoinLog.builder()
+                        .userId(user.getId())
+                        .type(UserJoinType.SIGN_UP)
+                        .build());
 
         return UserSignUpResS.builder()
                 .id(user.getId())
@@ -365,5 +375,29 @@ public class UserServiceImpl implements UserService {
                 .token(token)
                 .build();
 
+    }
+
+    @Override
+    @Transactional
+    public void signOut(final UserDetails userDetails, UserSignOutReqS params) {
+        // 회원 정보 비활성화
+        final User user = getUserByEmail(userDetails.getUsername());
+        user.setIsActive(false);
+        user.setBirth(LocalDate.EPOCH);
+        user.setGender(99);
+        user.setEmail("");
+        user.setPhoneNum("");
+        user.setInfoReceivable(0);
+        user.setLifeStyle(null);
+
+        user.getRoom().setUserId(null);
+        user.setRoom(null);
+        // 회원 JOIN 로그 정보 저장
+        userJoinLogRepository.save(UserJoinLog.builder()
+                .userId(user.getId())
+                .type(UserJoinType.SIGN_OUT)
+                .signOutReason(params.getSignOutReason())
+                .build());
+        // 회원이 주문한 것들 중 아직 참여 예정인 것들에 대한 환불 로직 수행
     }
 }

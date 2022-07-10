@@ -29,5 +29,6 @@ public class Category {
 
     @Column(name="is_active", nullable = false)
     @ColumnDefault("true")
-    private boolean isActive;
+    @Builder.Default
+    private Boolean isActive = true;
 }

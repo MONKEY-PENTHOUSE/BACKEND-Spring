@@ -2,6 +2,7 @@ package com.monkeypenthouse.core.repository.entity;
 
 import lombok.*;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Where(clause = "isActive = true")
+@Where(clause = "is_active = true")
 @EntityListeners(AuditingEntityListener.class)
 public class User {
 
@@ -41,7 +42,8 @@ public class User {
     private LocalDate birth;
 
     // 0 : 여자
-    // 1: 남자
+    // 1 : 남자
+    // 99: 무효값
     @Column(nullable = false)
     private int gender;
 
@@ -74,6 +76,7 @@ public class User {
     private LifeStyle lifeStyle;
 
     @Column(name="is_active", nullable = false)
+    @ColumnDefault("true")
     @Builder.Default
-    private boolean isActive = true;
+    private Boolean isActive = true;
 }

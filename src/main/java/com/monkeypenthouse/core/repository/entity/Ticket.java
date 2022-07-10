@@ -57,5 +57,5 @@ public class Ticket {
     @Column(name="is_active", nullable = false)
     @ColumnDefault("true")
     @Builder.Default
-    private boolean isActive = true;
+    private Boolean isActive = true;
 }

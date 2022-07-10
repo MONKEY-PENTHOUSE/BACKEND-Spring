@@ -63,7 +63,7 @@ public class Purchase {
     @Column(name="is_active", nullable = false)
     @ColumnDefault("true")
     @Builder.Default
-    private boolean isActive = true;
+    private Boolean isActive = true;
 
     public Purchase(User user, Long amenityId, String orderId, String orderName, int amount, OrderStatus orderStatus) {
         this.user = user;
