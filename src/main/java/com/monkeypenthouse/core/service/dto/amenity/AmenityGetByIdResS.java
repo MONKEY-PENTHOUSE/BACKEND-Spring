@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.service.dto.amenity;
 
 import com.monkeypenthouse.core.controller.dto.amenity.AmenityGetByIdResI;
+import com.monkeypenthouse.core.repository.entity.AmenityStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class AmenityGetByIdResS {
     private final int minPersonNum;
     private final int maxPersonNum;
     private final int currentPersonNum;
-    private final int status;
+    private final AmenityStatus status;
     private final int fundingPrice;
     private final Long dibs;
 

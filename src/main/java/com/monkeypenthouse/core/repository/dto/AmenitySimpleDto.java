@@ -1,5 +1,6 @@
 package com.monkeypenthouse.core.repository.dto;
 
+import com.monkeypenthouse.core.repository.entity.AmenityStatus;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +18,7 @@ public class AmenitySimpleDto {
     private String thumbnailName;
     private String address;
     private LocalDate startDate;
-    private int status;
+    private AmenityStatus status;
 
     @QueryProjection
     public AmenitySimpleDto(Long id,
@@ -28,7 +29,7 @@ public class AmenitySimpleDto {
                             String thumbnailName,
                             String address,
                             LocalDate startDate,
-                            int status) {
+                            AmenityStatus status) {
         this.id = id;
         this.title = title;
         this.minPersonNum = minPersonNum;
