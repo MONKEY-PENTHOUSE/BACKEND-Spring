@@ -232,6 +232,13 @@ public class PurchaseServiceImpl implements PurchaseService {
 
                 int newAmenityQuantity = cacheManager.getPurchasedQuantityOfAmenity(amenityId) + ticketQuantity;
                 cacheManager.setPurchasedQuantityOfAmenity(amenityId, newAmenityQuantity);
+
+                // 재고가 매진일 경우, 어메니티 상태 정보 업데이트
+                if (newAmenityQuantity == cacheManager.getTotalQuantityOfAmenity(amenityId)) {
+                    amenityRepository.findById(amenityId)
+                            .orElseThrow(() -> new CommonException(ResponseCode.AMENITY_NOT_FOUND))
+                            .changeStatus(AmenityStatus.FIXED);
+                }
             }
 
             if (System.currentTimeMillis() < lockWithTimeOut.getTimeOut()) {

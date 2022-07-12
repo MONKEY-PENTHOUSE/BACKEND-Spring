@@ -261,8 +261,22 @@ public class AmenityServiceImpl implements AmenityService {
     @Scheduled(cron = "0 0 0 * * ?") // 매일 자정
     @Transactional
     public void updateStatusOfAmenity() {
+        // 모집마감 날짜 < 오늘 && 어메니티 상태: RECRUITING
+        // 주문수 >= 최소 인원 or 주문수 < 최소 인원? => FIXED or CANCELLED
         LocalDate today = LocalDate.now();
-        amenityRepository.updateStatusByDeadlineDate(today);
+        amenityRepository.findAllAmenitiesToBeClosed(today).forEach(
+            amenity -> {
+                if (cacheManager.getPurchasedQuantityOfAmenity(amenity.getId()) >= amenity.getMinPersonNum()) {
+                    amenity.changeStatus(AmenityStatus.FIXED);
+                } else {
+                    amenity.changeStatus(AmenityStatus.CANCELLED);
+                }
+            }
+        );
+
+        // 마지막 이벤트 일시 < 오늘 && 어메니티 상태: FIXED or CANCELLED => ENDED
+        amenityRepository.findAllAmenitiesToBeEnded(today)
+                .forEach(amenity -> amenity.changeStatus(AmenityStatus.ENDED));
     }
 
     @Override
@@ -374,16 +388,15 @@ public class AmenityServiceImpl implements AmenityService {
     @Scheduled(cron = "0 5 0 * * ?") // 매일 0시 5분에
     @Transactional
     public void handleClosingProcessOfAmenity(){
-        amenityRepository.findAllByDeadlineDate(LocalDate.now()).stream()
-                .filter(a -> cacheManager.getPurchasedQuantityOfAmenity(a.getId()) < a.getMinPersonNum())
-                .forEach(a -> {
-                    try {
-                        purchaseService.refundAllPurchasesByAmenity(new PurchaseRefundAllByAmenityReqS(a.getId()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                });
+        amenityRepository.findAllByStatus(AmenityStatus.CANCELLED)
+            .forEach(a -> {
+                try {
+                    purchaseService.refundAllPurchasesByAmenity(new PurchaseRefundAllByAmenityReqS(a.getId()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
     }
 }
