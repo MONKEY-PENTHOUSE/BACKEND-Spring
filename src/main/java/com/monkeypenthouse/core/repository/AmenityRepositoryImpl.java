@@ -2,10 +2,12 @@ package com.monkeypenthouse.core.repository;
 
 import com.monkeypenthouse.core.repository.entity.Amenity;
 import com.monkeypenthouse.core.repository.dto.*;
+import com.monkeypenthouse.core.repository.entity.AmenityStatus;
 import com.monkeypenthouse.core.repository.entity.OrderStatus;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
@@ -14,7 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.monkeypenthouse.core.repository.entity.QAmenity.*;
@@ -179,26 +185,23 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
                 .fetch().get(0);
     }
 
+
     @Override
-    public List<TicketOfOrderedDto> getTicketsOfOrderedAmenity(Long userId, Long amenityId) {
+    public List<Amenity> findAllAmenitiesToBeClosed(LocalDate today) {
         return queryFactory
-                .select(new QTicketOfOrderedDto(
-                        ticket.id,
-                        ticket.name,
-                        ticket.detail,
-                        ticket.eventDateTime,
-                        ticket.price,
-                        purchaseTicketMapping.quantity.sum().coalesce(0)
-                ))
-                .from(ticket)
-                .where(ticket.amenity.id.eq(amenityId))
-                .where(purchaseTicketMapping.purchase.user.id.eq(userId))
-                .where(purchaseTicketMapping.purchase.orderStatus.eq(OrderStatus.COMPLETED))
-                .rightJoin(ticket.amenity, amenity)
-                .leftJoin(purchaseTicketMapping).on(ticket.id.eq(purchaseTicketMapping.ticket.id))
-                .leftJoin(purchaseTicketMapping.purchase, purchase)
-                .leftJoin(purchase.user, user)
-                .groupBy(ticket.id)
+                .selectFrom(amenity)
+                .where(amenity.status.eq(AmenityStatus.RECRUITING), amenity.deadlineDate.lt(today))
+                .fetch();
+    }
+
+    @Override
+    public List<Amenity> findAllAmenitiesToBeEnded(LocalDate today) {
+        return queryFactory
+                .selectFrom(amenity)
+                .where(amenity.status.in(Arrays.asList(AmenityStatus.FIXED, AmenityStatus.CANCELLED)))
+                .leftJoin(amenity.tickets, ticket)
+                .groupBy(amenity)
+                .having(ticket.eventDateTime.max().after(LocalDateTime.from(today)))
                 .fetch();
     }
 

@@ -80,7 +80,7 @@ public class AmenityController {
     @GetMapping(value = "/ordered/{id}/tickets")
     public CommonResponseEntity getTicketsOfOrdered(
             @AuthenticationPrincipal final UserDetails userDetails,
-            @PathVariable("id") final Long amenityId) {
-        return commonResponseMaker.makeCommonResponse(amenityService.getTicketsOfOrderedAmenity(userDetails, amenityId).toI(), ResponseCode.SUCCESS);
+            @PathVariable("id") final Long amenityId) throws Exception {
+        return commonResponseMaker.makeCommonResponse(amenityService.getPurchasesOfOrderedAmenity(userDetails, amenityId).toI(), ResponseCode.SUCCESS);
     }
 }
