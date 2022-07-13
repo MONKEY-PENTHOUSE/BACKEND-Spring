@@ -398,6 +398,5 @@ public class UserServiceImpl implements UserService {
                 .type(UserJoinType.SIGN_OUT)
                 .signOutReason(params.getSignOutReason())
                 .build());
-        // 회원이 주문한 것들 중 아직 참여 예정인 것들에 대한 환불 로직 수행
     }
 }
