@@ -31,7 +31,7 @@ public class CacheManager {
     public int getTotalQuantityOfTicket(Long ticketId) {
         RAtomicLong value = redissonClient.getAtomicLong(ticketId + ":totalQuantity");
         return value.isExists() ? Long.valueOf(value.get()).intValue() : ticketStockRepository.findByTicketId(ticketId)
-                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND)).getPurchasedQuantity();
+                .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND)).getTotalQuantity();
     }
 
     public void setTotalQuantityOfTicket(Long ticketId, Integer totalQuantity) {
