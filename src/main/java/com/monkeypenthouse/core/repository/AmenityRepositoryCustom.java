@@ -4,9 +4,11 @@ import com.monkeypenthouse.core.repository.dto.AmenitySimpleDto;
 import com.monkeypenthouse.core.repository.dto.CurrentPersonAndFundingPriceAndDibsOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.TicketOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.TicketOfOrderedDto;
+import com.monkeypenthouse.core.repository.entity.Amenity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,5 +34,7 @@ public interface AmenityRepositoryCustom {
 
     int countPurchasedQuantity(Long amenityId);
 
-    List<TicketOfOrderedDto> getTicketsOfOrderedAmenity(Long userId, Long amenityId);
+    List<Amenity> findAllAmenitiesToBeClosed(LocalDate today);
+
+    List<Amenity> findAllAmenitiesToBeEnded(LocalDate today);
 }

@@ -7,7 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface PurchaseRepository extends CrudRepository<Purchase, Long> {
+public interface PurchaseRepository extends CrudRepository<Purchase, Long>, PurchaseRepositoryCustom {
 
     Optional<Purchase> findTop1ByOrderByIdDesc();
 

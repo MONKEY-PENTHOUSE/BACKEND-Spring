@@ -1,6 +1,7 @@
 package com.monkeypenthouse.core.service.dto.amenity;
 
 import com.monkeypenthouse.core.controller.dto.amenity.AmenitySimpleResI;
+import com.monkeypenthouse.core.repository.entity.AmenityStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class AmenitySimpleResS {
     private final String thumbnailName;
     private final String address;
     private final LocalDate startDate;
-    private final int status;
+    private final AmenityStatus status;
 
     public AmenitySimpleResI toI() {
         return new AmenitySimpleResI(

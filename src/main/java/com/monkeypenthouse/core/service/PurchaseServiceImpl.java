@@ -7,9 +7,12 @@ import com.monkeypenthouse.core.constant.ResponseCode;
 import com.monkeypenthouse.core.controller.dto.purchase.PurchaseRefundTossPayResI;
 import com.monkeypenthouse.core.exception.CommonException;
 import com.monkeypenthouse.core.repository.*;
+import com.monkeypenthouse.core.repository.dto.PurchaseOfAmenityDto;
 import com.monkeypenthouse.core.repository.dto.PurchaseTicketMappingDto;
 import com.monkeypenthouse.core.repository.entity.*;
+import com.monkeypenthouse.core.service.dto.purchase.PurchaseByAmenityAndUserReqS;
 import com.monkeypenthouse.core.service.dto.purchase.*;
+import com.monkeypenthouse.core.service.dto.ticket.TicketOfOrderedS;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -54,7 +57,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         final Amenity amenity = amenityRepository.findById(params.getPurchaseTicketMappingDtoList().get(0).getAmenityId())
                 .orElseThrow(() -> new CommonException(ResponseCode.AMENITY_NOT_FOUND));
 
-        if (amenity.getStatus() != 0) {
+        if (amenity.getStatus() != AmenityStatus.RECRUITING) {
             throw new CommonException(ResponseCode.AMENITY_ALREADY_CLOSED);
         }
 
@@ -229,6 +232,13 @@ public class PurchaseServiceImpl implements PurchaseService {
 
                 int newAmenityQuantity = cacheManager.getPurchasedQuantityOfAmenity(amenityId) + ticketQuantity;
                 cacheManager.setPurchasedQuantityOfAmenity(amenityId, newAmenityQuantity);
+
+                // 재고가 매진일 경우, 어메니티 상태 정보 업데이트
+                if (newAmenityQuantity == cacheManager.getTotalQuantityOfAmenity(amenityId)) {
+                    amenityRepository.findById(amenityId)
+                            .orElseThrow(() -> new CommonException(ResponseCode.AMENITY_NOT_FOUND))
+                            .changeStatus(AmenityStatus.FIXED);
+                }
             }
 
             if (System.currentTimeMillis() < lockWithTimeOut.getTimeOut()) {
@@ -275,7 +285,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         final Amenity amenity = amenityRepository.findById(purchase.getAmenityId())
                 .orElseThrow(() -> new CommonException(ResponseCode.DATA_NOT_FOUND));
 
-        if (amenity.getStatus() != 0) {
+        if (amenity.getStatus() != AmenityStatus.RECRUITING) {
             throw new CommonException(ResponseCode.AMENITY_ALREADY_CLOSED);
         }
 
@@ -318,6 +328,32 @@ public class PurchaseServiceImpl implements PurchaseService {
                 purchase.changeOrderStatus(OrderStatus.CANCEL_FAILED);
             }
         }
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PurchaseByAmenityAndUserResS> getPurchaseByAmenityAndUser(final PurchaseByAmenityAndUserReqS params) {
+
+        final List<PurchaseOfAmenityDto> purchaseList =
+                purchaseRepository.findAllByAmenityIdAndUserId(params.getUserId(), params.getAmenityId());
+
+        if (purchaseList.isEmpty()) {
+            throw new CommonException(ResponseCode.DATA_NOT_FOUND);
+        }
+
+        return purchaseList.stream().map(e -> new PurchaseByAmenityAndUserResS(
+                e.getId(),
+                e.getCreatedAt(),
+                e.getTickets().stream().map(ticket -> TicketOfOrderedS.builder()
+                        .id(ticket.getId())
+                        .eventDateTime(ticket.getEventDateTime())
+                        .name(ticket.getName())
+                        .detail(ticket.getDetail())
+                        .price(ticket.getPrice())
+                        .amount(ticket.getAmount())
+                        .build()
+                ).collect(Collectors.toList()),
+                e.getTotalPrice()
+        )).collect(Collectors.toList());
     }
 }
