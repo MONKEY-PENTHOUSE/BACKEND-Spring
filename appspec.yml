@@ -4,7 +4,7 @@ version: 0.0
 os: linux
 files:
   - source:  /
-    destination: /home/ubuntu/build/
+    destination: /home/ec2-user/build/
 # source는 로컬의 어떤 파일들을 EC2로 옮길지에 대한 것입니다. 현재는 모든 파일("/")을 선택하고 있습니다.
 # destination은 로컬로부터 받아온 파일들을 EC2 instance 어디에 저장할 지에 대한 것입니다.
 # 현재는 /home/ubuntu/build/ 라는 경로를 지정하고 있습니다.
