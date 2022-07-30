@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -16,6 +18,7 @@ import java.util.List;
 @Builder
 @Table(name="ticket")
 @Data
+@Where(clause = "is_active = true")
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -50,4 +53,9 @@ public class Ticket {
 
     @OneToMany(mappedBy = "ticket")
     private List<PurchaseTicketMapping> purchaseTicketMappings = new ArrayList<>();
+
+    @Column(name="is_active", nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private Boolean isActive = true;
 }

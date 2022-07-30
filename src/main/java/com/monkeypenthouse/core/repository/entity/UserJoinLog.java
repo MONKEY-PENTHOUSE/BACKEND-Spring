@@ -4,10 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -16,35 +12,29 @@ import java.time.LocalDateTime;
 
 @Entity
 @Builder
-@Table(name="photo")
+@Table(name="user_join_log")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Where(clause = "is_active = true")
 @EntityListeners(AuditingEntityListener.class)
-public class Photo {
+public class UserJoinLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private PhotoType type;
-
-    @Column(length = 100, nullable = false)
-    private String name;
-
-    @ManyToOne
-    @JoinColumn(name = "amenity_id")
-    private Amenity amenity;
+    @Column(name="user_id", nullable = false)
+    private Long userId;
 
     @CreatedDate
     @Column(name="created_at", updatable=false, nullable=false)
     private LocalDateTime createdAt;
 
-    @Column(name="is_active", nullable = false)
-    @ColumnDefault("true")
-    @Builder.Default
-    private Boolean isActive = true;
+    @Column(nullable = false)
+    private UserJoinType type;
+
+    @Column
+    private String signOutReason;
+
 
 }
