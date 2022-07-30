@@ -72,7 +72,7 @@ jobs:
       # [Your GitHub Repository] 예시) Woomin-Jeon/facebook-clone-server
       # "commitId=${GITHUB_SHA}" 코드가 자동으로 최신 commit을 불러옵니다.
     - name: Trigger the CodeDeploy in EC2 instance
-      run: aws deploy --region ap-northeast-2 create-deployment --application-name Monkeypenthouse --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name codedeploy-group --github-location repository=MONKEY-PENTHOUSE/BACKEND-Spring,commitId=${GITHUB_SHA}
+      run: aws deploy --region ap-northeast-2 create-deployment --application-name api server --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name api --github-location repository=MONKEY-PENTHOUSE/BACKEND-Spring,commitId=${GITHUB_SHA}
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
