@@ -44,5 +44,6 @@ public class PurchaseTicketMapping {
         this.purchase = purchase;
         this.ticket = ticket;
         this.quantity = quantity;
+        this.isActive = true;
     }
 }
