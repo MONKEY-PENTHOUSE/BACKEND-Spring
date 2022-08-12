@@ -73,6 +73,7 @@ public class Purchase {
         this.orderName = orderName;
         this.amount = amount;
         this.orderStatus = orderStatus;
+        this.isActive = true;
     }
 
     public void changeOrderStatus(OrderStatus orderStatus) {
