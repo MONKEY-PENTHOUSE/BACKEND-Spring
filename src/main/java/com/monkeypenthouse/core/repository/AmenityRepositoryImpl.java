@@ -7,7 +7,6 @@ import com.monkeypenthouse.core.repository.entity.OrderStatus;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
@@ -16,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +28,7 @@ import static com.monkeypenthouse.core.repository.entity.QAmenityCategory.*;
 import static com.monkeypenthouse.core.repository.entity.QCategory.*;
 import static com.monkeypenthouse.core.repository.entity.QDibs.*;
 import static com.monkeypenthouse.core.repository.entity.QUser.*;
+import static com.monkeypenthouse.core.repository.entity.QTicketStock.*;
 
 
 @RequiredArgsConstructor
@@ -44,18 +42,14 @@ public class AmenityRepositoryImpl implements AmenityRepositoryCustom {
         List<CurrentPersonAndFundingPriceAndDibsOfAmenityDto> list = queryFactory
                 .from(amenity)
                 .leftJoin(amenity.tickets, ticket)
-                .leftJoin(ticket.purchaseTicketMappings, purchaseTicketMapping)
-                .leftJoin(purchaseTicketMapping.purchase, purchase)
+                .leftJoin(ticketStock).on(ticket.id.eq(ticketStock.id))
                 .leftJoin(amenity.dibs, dibs)
-                .where(
-                        amenity.id.eq(id),
-                        purchase.orderStatus.eq(OrderStatus.COMPLETED)
-                )
+                .where(amenity.id.eq(id))
                 .groupBy(amenity.id)
                 .select(
                         new QCurrentPersonAndFundingPriceAndDibsOfAmenityDto(
-                                purchaseTicketMapping.quantity.sum().coalesce(0),
-                                ticket.price.multiply(purchaseTicketMapping.quantity.coalesce(0)).sum(),
+                                ticketStock.purchasedQuantity.sum(),
+                                ticketStock.purchasedQuantity.multiply(ticket.price).sum(),
                                 ExpressionUtils.as(
                                         JPAExpressions.select(dibs.count().coalesce(0L))
                                         .from(dibs)
