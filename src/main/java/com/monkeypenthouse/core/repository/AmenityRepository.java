@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public interface AmenityRepository extends CrudRepository<Amenity, Long>, AmenityRepositoryCustom {
 
-    @Query("SELECT DISTINCT a FROM Amenity a join fetch a.photos WHERE a.id=:id")
+    @Query("SELECT a FROM Amenity a left join fetch a.photos WHERE a.id=:id")
     Optional<Amenity> findWithPhotosById(@Param("id") Long id);
 
     @Query("SELECT distinct a FROM Amenity a join fetch a.tickets")

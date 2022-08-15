@@ -61,4 +61,7 @@ public interface UserService {
 
     // 이메일과 전화번호로 회원여부를 확인
     UserCheckExistResS checkUser(final UserCheckExistReqS params);
+
+    // 회원 탈퇴
+    void signOut(final UserDetails userDetails, final UserSignOutReqS params);
 }

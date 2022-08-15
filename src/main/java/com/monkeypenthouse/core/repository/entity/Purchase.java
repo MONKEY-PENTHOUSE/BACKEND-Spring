@@ -1,8 +1,8 @@
 package com.monkeypenthouse.core.repository.entity;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -13,8 +13,11 @@ import java.util.List;
 
 @Entity
 @Getter
+@Builder
 @Table(name="purchase")
+@Where(clause = "is_active = true")
 @NoArgsConstructor
+@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Purchase {
 
@@ -58,6 +61,11 @@ public class Purchase {
     @ToString.Exclude
     private List<PurchaseTicketMapping> purchaseTicketMappingList;
 
+    @Column(name="is_active", nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private Boolean isActive = true;
+
     public Purchase(User user, Long amenityId, String orderId, String orderName, int amount, OrderStatus orderStatus) {
         this.user = user;
         this.amenityId = amenityId;
@@ -65,6 +73,7 @@ public class Purchase {
         this.orderName = orderName;
         this.amount = amount;
         this.orderStatus = orderStatus;
+        this.isActive = true;
     }
 
     public void changeOrderStatus(OrderStatus orderStatus) {
