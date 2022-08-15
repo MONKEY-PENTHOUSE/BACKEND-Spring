@@ -53,4 +53,5 @@ public class PrincipalDetails implements UserDetails {
     public User getUserInfo() {
         return user;
     }
+
 }
