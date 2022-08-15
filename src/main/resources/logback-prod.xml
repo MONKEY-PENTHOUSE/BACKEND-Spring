@@ -28,11 +28,45 @@
         </filter>
     </appender>
 
+    <appender name="AWS-ERROR" class="ca.pjer.logback.AwsLogsAppender">
+        <layout class="net.logstash.logback.layout.LogstashLayout"> <!-- json 포맷 -->
+            <timestampPattern>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampPattern>
+        </layout>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <logGroupName>api-error</logGroupName>
+        <logStreamUuidPrefix>api-error</logStreamUuidPrefix>
+        <logRegion>ap-northeast-2</logRegion>
+        <maxBatchLogEvents>50</maxBatchLogEvents>
+        <maxFlushTimeMillis>30000</maxFlushTimeMillis>
+        <maxBlockTimeMillis>5000</maxBlockTimeMillis>
+        <retentionTimeDays>0</retentionTimeDays>
+    </appender>
+
+    <appender name="AWS" class="ca.pjer.logback.AwsLogsAppender">
+        <layout class="net.logstash.logback.layout.LogstashLayout"> <!-- json 포맷 -->
+            <timestampPattern>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampPattern>
+        </layout>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <logGroupName>api</logGroupName>
+        <logStreamUuidPrefix>api</logStreamUuidPrefix>
+        <logRegion>ap-northeast-2</logRegion>
+        <maxBatchLogEvents>50</maxBatchLogEvents>
+        <maxFlushTimeMillis>30000</maxFlushTimeMillis>
+        <maxBlockTimeMillis>5000</maxBlockTimeMillis>
+        <retentionTimeDays>0</retentionTimeDays>
+    </appender>
+
     <logger name="com.monkeypenthouse.core.loggging.LoggerAspect" additivity="false">
         <appender-ref ref="API" />
+        <appender-ref ref="AWS" />
     </logger>
     <logger name="com.monkeypenthouse.core.controller.ExceptionController" additivity="false">
         <appender-ref ref="API-ERROR" />
+        <appender-ref ref="AWS-ERROR" />
     </logger>
 
 </configuration>
