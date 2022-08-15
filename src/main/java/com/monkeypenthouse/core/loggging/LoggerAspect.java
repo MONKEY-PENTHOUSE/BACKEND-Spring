@@ -38,6 +38,8 @@ public class LoggerAspect {
         HttpServletRequest request = Objects.requireNonNull(contextHolder).getRequest();
         HttpServletResponse response = contextHolder.getResponse();
 
+        if (request.getRequestURI().equals("/")) return;
+
         Map<String, String> pathVariables =
                 (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
         String httpMethodName = request.getMethod();
