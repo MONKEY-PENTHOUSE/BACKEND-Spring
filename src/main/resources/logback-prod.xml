@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <appender name="API-ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>log/api-error.log</file>
+        <file>home/api-error.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>log/api-error.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
@@ -15,7 +15,7 @@
     </appender>
 
     <appender name="API" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>log/api.log</file>
+        <file>home/api.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>log/api.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
