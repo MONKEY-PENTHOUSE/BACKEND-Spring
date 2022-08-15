@@ -13,6 +13,7 @@ import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 @Aspect
 public class LoggerAspect {
 
-    @AfterReturning(value = "bean(*Controller) && !@annotation(com.monkeypenthouse.core.loggging.NoLogging)")
+    @AfterReturning(value = "bean(*Controller)")
     public void methodLogger(JoinPoint joinPoint) {
         Logger logger = LoggerFactory.getLogger(this.getClass());
         ServletRequestAttributes contextHolder = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -44,8 +45,8 @@ public class LoggerAspect {
         this.setPayLoad(joinPoint, pathVariables);
 
         Object principal1 = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal1 instanceof PrincipalDetails) {
-            PrincipalDetails principal = (PrincipalDetails) principal1;
+        if (principal1 instanceof UserDetails) {
+            UserDetails principal = (UserDetails) principal1;
             String authorities = principal.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.joining(","));
