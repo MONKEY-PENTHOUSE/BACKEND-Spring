@@ -1,32 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="API-ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>home/api-error.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>log/api-error.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory>
-        </rollingPolicy>
-        <layout class="net.logstash.logback.layout.LogstashLayout"> <!-- json 포맷 -->
-            <timestampPattern>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampPattern>
-        </layout>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
-        </filter>
-    </appender>
-
-    <appender name="API" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>home/api.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>log/api.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory>
-        </rollingPolicy>
-        <layout class="net.logstash.logback.layout.LogstashLayout"> <!-- json 포맷 -->
-            <timestampPattern>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampPattern>
-        </layout>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
-    </appender>
 
     <appender name="AWS-ERROR" class="ca.pjer.logback.AwsLogsAppender">
         <layout class="net.logstash.logback.layout.LogstashLayout"> <!-- json 포맷 -->
